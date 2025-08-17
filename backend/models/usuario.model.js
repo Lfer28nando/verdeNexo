@@ -62,8 +62,15 @@ export class usuarioModel {
     if (!passwordValida) throw new Error('Contraseña incorrectos.');
 
     return usuario;
+
+
 }
+static async getById(id) {
+    return await Usuario.findById(id).select('-password -__v');
+  }
 }
+
+
 
 //validaciones:
 class validaciones {

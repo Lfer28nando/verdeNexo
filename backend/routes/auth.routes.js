@@ -13,7 +13,8 @@ const router = express.Router();
 // Middleware para parsear cookies
 router.use(cookieParser());
 
-// Ruta del Registro
+//Rutas de autenticación de usuarios:
+// RF-USU-01 - Registrar usuario:
 router.post('/registro', async (req, res) => {
   try {
     const { nombre, email, password, telefono, direccion, documento } = req.body;
@@ -26,7 +27,7 @@ router.post('/registro', async (req, res) => {
   }
 });
 
-// Ruta del Login
+//RF-USU-02 - Iniciar sesión:
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -44,6 +45,19 @@ router.post('/login', async (req, res) => {
 
   } catch (error) {
     res.status(401).json({ mensaje: 'Error al iniciar sesión', error: error.message });
+  }
+});
+
+//RF-USU-03 - Ver perfil.
+router.get('/me', verificarToken, async (req, res) => {
+  try {
+    const usuario = await usuarioModel.getById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.status(200).json({ usuario });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener el perfil', error: error.message });
   }
 });
 
