@@ -16,9 +16,9 @@ router.use(cookieParser());
 // Ruta del Registro
 router.post('/registro', async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, email, password, telefono, direccion, documento } = req.body;
     // Usamos usuarioModel.create para registrar y validar
-    const nuevoUsuario = await usuarioModel.create({ nombre, email, password });
+    const nuevoUsuario = await usuarioModel.create({ nombre, email, password, telefono, direccion, documento });
     await enviarCorreo(email, 'Bienvenido a VerdeNexo', `<p>Hola ${nombre}, tu cuenta ha sido creada exitosamente.</p>`);
     res.status(201).json({ mensaje: 'Usuario registrado y correo enviado', usuario: nuevoUsuario });
   } catch (error) {

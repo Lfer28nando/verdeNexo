@@ -5,9 +5,14 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import productosRoutes from './routes/productos.routes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 //Variables de entorno:
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Cargar .env desde la carpeta raíz del proyecto (uno arriba de /backend)
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 //Instancia de Express:
 const app = express();
@@ -33,4 +38,4 @@ mongoose.connect(process.env.MONGO_URI)
 // Arranque del server
 app.listen(process.env.PORT, () => {
     console.log(`Backend corriendo en http://localhost:${process.env.PORT}`);
-});  
+});

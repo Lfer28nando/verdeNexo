@@ -8,7 +8,13 @@ const usuarioSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   rol: { type: String, enum: ['cliente', 'vendedor', 'admin'], default: 'cliente' },
+  documento: { type: String, required: false },
+  telefono: { type: String, required: false },
+  direccion: { type: String,required: false },
 });
+
+// Índice único pero sparse: permite múltiples documentos sin `documento` (null/absente) y garantiza que sean únicos cuando se proporciona
+usuarioSchema.index({ documento: 1 }, { unique: true, sparse: true });
 
 //Modelo:
 const Usuario = mongoose.model('Usuario', usuarioSchema);
@@ -16,10 +22,13 @@ const Usuario = mongoose.model('Usuario', usuarioSchema);
 //usuarioModel con validaciones:
 export class usuarioModel {
   //registrar
-  static async create({ nombre, email, password }) {
+  static async create({ nombre, email, password, telefono, direccion, documento }) {
     validaciones.nombre(nombre);
     validaciones.email(email);
     validaciones.password(password);
+    if (telefono) validaciones.telefono(telefono); // validar solo si se proporciona
+    if (direccion) validaciones.direccion(direccion); // validar solo si se proporciona
+    if (documento) validaciones.documento(documento); // validar solo si se proporciona
 
     //Hash contraseña con bcrypt:
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -32,13 +41,16 @@ export class usuarioModel {
     const nuevoUsuario = new Usuario({
      nombre,
      email,
-     password : hashedPassword 
+     password : hashedPassword,
+     telefono,
+     direccion,
+     documento
     });
 
      return await nuevoUsuario.save();
   }
 
-  //entrar
+  //login
   static async login({ email, password }) {
     validaciones.email(email);
     validaciones.password(password);
@@ -72,7 +84,24 @@ class validaciones {
         if (typeof password !== 'string') throw new Error('Contraseña debe ser un string.');
         if (password.length < 6) throw new Error('Contraseña debe contener al menos 6 caracteres.');
         if (!/\d/.test(password)) throw new Error('Contraseña debe contener al menos un número.');
+    }
 
+    static telefono (telefono) {
+        // Validación: teléfono
+        if (typeof telefono !== 'string') throw new Error('Teléfono debe ser un string.');
+        if (!/^\d{10}$/.test(telefono)) throw new Error('Teléfono debe contener 10 dígitos.');
+    }
+
+    static direccion (direccion) {
+        // Validación: dirección
+        if (typeof direccion !== 'string') throw new Error('Dirección debe ser un string.');
+        if (direccion.length < 5 || direccion.length > 100) throw new Error('Dirección debe contener entre 5 y 100 caracteres.');
+    }
+
+    static documento (documento) {
+        // Validación: documento
+        if (typeof documento !== 'string') throw new Error('Documento debe ser un string.');
+        if (!/^\d{7,10}$/.test(documento)) throw new Error('Documento debe contener entre 7 y 10 dígitos.');
     }
 }
 
