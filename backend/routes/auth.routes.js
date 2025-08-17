@@ -61,6 +61,24 @@ router.get('/me', verificarToken, async (req, res) => {
   }
 });
 
+// RF-USU-04 - Editar perfil
+router.put('/me', verificarToken, async (req, res) => {
+  try {
+    const id = req.usuario.id; // del token decodificado
+    const data = req.body;
+
+    const usuarioActualizado = await usuarioModel.update(id, data);
+
+    res.status(200).json({
+      mensaje: 'Perfil actualizado correctamente',
+      usuario: usuarioActualizado
+    });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'error', error: error.message });
+  }
+});
+ 
+
 //ruta de cierre de sesión
 router.post('/logout', (req, res) => {
   res.clearCookie('token');

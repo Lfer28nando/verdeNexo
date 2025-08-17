@@ -21,7 +21,8 @@ const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 //usuarioModel con validaciones:
 export class usuarioModel {
-  //registrar
+
+// RF-USU-01 - Registrar usuario.
   static async create({ nombre, email, password, telefono, direccion, documento }) {
     validaciones.nombre(nombre);
     validaciones.email(email);
@@ -50,7 +51,7 @@ export class usuarioModel {
      return await nuevoUsuario.save();
   }
 
-  //login
+// RF-USU-02 - Iniciar sesión.
   static async login({ email, password }) {
     validaciones.email(email);
     validaciones.password(password);
@@ -65,9 +66,29 @@ export class usuarioModel {
 
 
 }
+// RF-USU-03 - Ver perfil.
 static async getById(id) {
     return await Usuario.findById(id).select('-password -__v');
   }
+
+// RF-USU-04 - Editar perfil.
+static async update(id, data) {
+    if (data.nombre) validaciones.nombre(data.nombre);
+    if (data.email) validaciones.email(data.email);
+    if (data.password) {
+      validaciones.password(data.password);
+      data.password = await bcrypt.hash(data.password, 10); // Hashea la nueva contraseña
+    }
+    if (data.telefono) validaciones.telefono(data.telefono);
+    if (data.direccion) validaciones.direccion(data.direccion);
+    if (data.documento) validaciones.documento(data.documento);
+
+    const usuarioActualizado = await Usuario.findByIdAndUpdate(id, data, { new: true }).select('-password -__v');
+    if (!usuarioActualizado) throw new Error('Usuario no encontrado.');
+    return usuarioActualizado;
+  }
+
+
 }
 
 
