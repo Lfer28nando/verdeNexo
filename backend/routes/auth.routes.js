@@ -4,9 +4,8 @@ import jwt from 'jsonwebtoken';
 import { usuarioModel } from '../models/usuario.model.js';
 import enviarCorreo from '../utils/email.service.js';
 import cookieParser from 'cookie-parser';
-import { soloAdmin } from '../middlewares/auth.js';
-import { verificarToken } from '../middlewares/auth.js';
-
+import { soloAdmin, verificarToken } from '../middlewares/auth.js';
+import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
 //Instancia de Enrutador:
 const router = express.Router();
 
@@ -77,7 +76,82 @@ router.put('/me', verificarToken, async (req, res) => {
     res.status(400).json({ mensaje: 'error', error: error.message });
   }
 });
- 
+
+// RF-USU-05 - Eliminar cuenta.
+
+// 1) Solicitar código de verificación para desactivar cuenta
+router.post('/me/desactivar/request', verificarToken, async (req, res) => {
+  try {
+    // Crea OTP (6 dígitos) y envíalo por correo
+    const { codigo } = await crearTokenOTP(req.usuario.id, 'desactivar', 10); // 10 min
+    const perfil = await usuarioModel.getById(req.usuario.id);
+
+    await enviarCorreo(
+      perfil.email,
+      'Código para desactivar tu cuenta',
+      `
+      <p>Hola ${perfil.nombre},</p>
+      <p>Tu código para desactivar tu cuenta es: <b style="font-size:18px">${codigo}</b></p>
+      <p>El código vence en 10 minutos. Si no fuiste tú, ignora este mensaje.</p>
+      `
+    );
+
+    res.status(200).json({ mensaje: 'Código enviado al correo' });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo generar el código', error: error.message });
+  }
+});
+
+// 2) Confirmar desactivación con código
+router.post('/me/desactivar/confirm', verificarToken, async (req, res) => {
+  try {
+    const { codigo, reason } = req.body;
+    if (!codigo) return res.status(400).json({ mensaje: 'Código requerido' });
+
+    // Verifica OTP
+    await verificarTokenOTP(req.usuario.id, 'desactivar', codigo);
+
+    // Marca usuario como inactivo (reversible)
+    const usuarioActualizado = await usuarioModel.update(req.usuario.id, {
+      activo: false
+    });
+
+    // Limpia sesión
+    res.clearCookie('token');
+    res.status(200).json({ mensaje: 'Cuenta desactivada correctamente', usuario: usuarioActualizado });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo desactivar', error: error.message });
+  }
+});
+
+// RF-USU-05 (admin)
+// Desactivar usuario (admin) — sin código
+router.post('/admin/users/:id/desactivar', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const usuarioActualizado = await usuarioModel.update(req.params.id, {
+      activo: false
+    });
+    res.status(200).json({ mensaje: 'Usuario desactivado', usuario: usuarioActualizado });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'Error al desactivar', error: error.message });
+  }
+});
+
+// Reactivar usuario (admin)
+router.post('/admin/users/:id/reactivate', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const usuarioActualizado = await usuarioModel.update(req.params.id, {
+      activo: true,
+    });
+    res.status(200).json({ mensaje: 'Usuario reactivado', usuario: usuarioActualizado });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'Error al reactivar', error: error.message });
+  }
+});
+
+
+
 
 //ruta de cierre de sesión
 router.post('/logout', (req, res) => {

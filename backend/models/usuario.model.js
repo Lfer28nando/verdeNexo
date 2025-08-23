@@ -11,7 +11,8 @@ const usuarioSchema = new mongoose.Schema({
   documento: { type: String, required: false },
   telefono: { type: String, required: false },
   direccion: { type: String,required: false },
-});
+  activo: { type: Boolean, default: true },
+}, {timestamps: true});
 
 // Índice único pero sparse: permite múltiples documentos sin `documento` (null/absente) y garantiza que sean únicos cuando se proporciona
 usuarioSchema.index({ documento: 1 }, { unique: true, sparse: true });
@@ -57,10 +58,13 @@ export class usuarioModel {
     validaciones.password(password);
 
     const usuario = await Usuario.findOne({ email });
-    if (!usuario) throw new Error('emaill no encontrado.');
+    if (!usuario) throw new Error('email no encontrado.');
+    if (!usuario.activo) throw new Error('Cuenta desactivada. Contacta al soporte.');
 
     const passwordValida = await bcrypt.compare(password, usuario.password);
-    if (!passwordValida) throw new Error('Contraseña incorrectos.');
+    if (!passwordValida) throw new Error('Contraseña incorrecta.');
+
+
 
     return usuario;
 
@@ -87,10 +91,11 @@ static async update(id, data) {
     if (!usuarioActualizado) throw new Error('Usuario no encontrado.');
     return usuarioActualizado;
   }
-
-
 }
 
+//RF_USU-05 - Eliminar Usuario.
+
+//RF_USU-06 - 
 
 
 //validaciones:
