@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes.js';
 import productosRoutes from './routes/productos.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { verificarApiKey } from './middlewares/apikey.js';
 
 //Variables de entorno:
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,9 @@ app.use(cors({
   origin: 'http://localhost:4444',
   credentials: true
 }));
+
+//exigir API key para todo lo que sea /api
+app.use('/api', verificarApiKey);
 
 // Rutas
 app.use('/api/auth', authRoutes);
