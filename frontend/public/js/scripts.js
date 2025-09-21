@@ -1,85 +1,195 @@
 async function register(e) {
   e.preventDefault();
 
-  const nombre = document.getElementById('registerNombre').value;
-  const email = document.getElementById('registerEmail').value;
+  // Obtener valores de los campos
+  const nombre = document.getElementById('registerNombre').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
   const password = document.getElementById('registerPassword').value;
+  const confirmPassword = document.getElementById('registerConfirm').value;
+  const telefono = document.getElementById('registerTelefono').value.trim();
+  const politicas = document.getElementById('registerPoliticas').checked;
+
+  // Validaciones del lado del cliente
+  let hasErrors = false;
+
+  // Limpiar clases de error anteriores
+  document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+  // Validar nombre
+  if (!nombre || nombre.length < 3 || nombre.length > 25) {
+    document.getElementById('registerNombre').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    document.getElementById('registerEmail').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar contraseña
+  if (!password || password.length < 6 || !/\d/.test(password)) {
+    document.getElementById('registerPassword').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar confirmación de contraseña
+  if (password !== confirmPassword) {
+    document.getElementById('registerConfirm').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar teléfono (opcional, pero si se proporciona debe ser válido)
+  if (telefono && !/^\d{10}$/.test(telefono)) {
+    document.getElementById('registerTelefono').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar políticas
+  if (!politicas) {
+    document.getElementById('registerPoliticas').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  if (hasErrors) {
+    return false;
+  }
 
   try {
-    const res = await fetch('http://localhost:3333/api/auth/registro', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, email, password })
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
-
-      alert('Cuenta creada con éxito');
-      const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-      modal.hide();
-    } else {
-      alert(`Error: ${data.mensaje}`);
+    // Preparar datos para enviar
+    const userData = { nombre, email, password };
+    
+    // Solo incluir teléfono si se proporcionó
+    if (telefono) {
+      userData.telefono = telefono;
     }
+
+    const data = await apiService.post('/api/auth/registro', userData);
+
+    // Guardar usuario en localStorage si el registro fue exitoso
+    if (data.usuario) {
+      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    }
+
+    alert('Cuenta creada con éxito. ¡Bienvenido!');
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+    modal.hide();
+
+    // Limpiar formulario
+    document.getElementById('registerForm').reset();
+
+    // Actualizar UI para mostrar usuario logueado
+    updateUserInterface(data.usuario);
+
   } catch (error) {
     console.error('Error en el registro:', error);
-    alert('Error en el servidor');
+    alert(`Error: ${error.message}`);
   }
 
   return false;
+}
+
+// Función para actualizar la interfaz cuando un usuario se loguea
+function updateUserInterface(usuario) {
+  const botones = document.getElementById('botonesSesion');
+  const avatar = document.getElementById('avatarSesion');
+  
+  if (botones && avatar) {
+    botones.style.display = 'none';
+    avatar.style.display = 'block';
+    
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+      userNameElement.innerText = usuario.nombre;
+    }
+  }
 }
 
 
 async function login(e) {
   e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value;
+  const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
 
+  // Limpiar clases de error anteriores
+  document.querySelectorAll('#loginForm .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+  let hasErrors = false;
+
+  // Validar email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    document.getElementById('loginEmail').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  // Validar contraseña
+  if (!password || password.length < 1) {
+    document.getElementById('loginPassword').classList.add('is-invalid');
+    hasErrors = true;
+  }
+
+  if (hasErrors) {
+    return false;
+  }
+
+  // Deshabilitar botón durante el proceso
+  const submitBtn = document.getElementById('btnLogin');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Iniciando...';
+
   try {
-    const res = await fetch('http://localhost:3333/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include' // Para enviar cookies
-    });
+    const data = await apiService.post('/api/auth/login', { email, password });
 
-    const data = await res.json();
+    // 💾 Guarda usuario inmediatamente
+    localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
-    if (res.ok) {
-      // 💾 Guarda usuario inmediatamente
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    alert('Sesión iniciada correctamente');
 
-      alert('Sesión iniciada correctamente');
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+    modal.hide();
 
-      // Cerrar modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-      modal.hide();
+    // Limpiar formulario
+    document.getElementById('loginForm').reset();
 
-      // Mostrar panel sin esperar al reload
-      const botones = document.getElementById('botonesSesion');
-      const avatar = document.getElementById('avatarSesion');
-      botones.style.display = 'none';
-      avatar.style.display = 'block';
-      document.getElementById('userName').innerText = data.usuario.nombre;
+    // Actualizar interfaz
+    updateUserInterface(data.usuario);
 
-      // Redirigir según el rol
-      if (data.usuario.rol === 'admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/';
-      }
-
+    // Redirigir según el rol
+    if (data.usuario.rol === 'admin') {
+      window.location.href = '/admin';
     } else {
-      alert(`Error: ${data.mensaje}`);
+      window.location.href = '/';
     }
 
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
-    alert('Error en el servidor');
+    
+    // Mostrar error específico
+    let errorMessage = 'Error al iniciar sesión';
+    if (error.message.includes('Email no encontrado')) {
+      errorMessage = 'El correo electrónico no está registrado';
+      document.getElementById('loginEmail').classList.add('is-invalid');
+    } else if (error.message.includes('Contraseña incorrecta')) {
+      errorMessage = 'La contraseña es incorrecta';
+      document.getElementById('loginPassword').classList.add('is-invalid');
+    } else if (error.message.includes('Cuenta desactivada')) {
+      errorMessage = 'Tu cuenta está desactivada. Contacta al soporte.';
+    } else {
+      errorMessage = error.message;
+    }
+    
+    alert(errorMessage);
+  } finally {
+    // Restaurar botón
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
   }
 
   return false;
@@ -87,10 +197,7 @@ async function login(e) {
 
 async function cerrarSesion() {
   try {
-    await fetch('http://localhost:3333/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
+    await apiService.post('/api/auth/logout', {});
 
     // Limpiar localStorage
     localStorage.removeItem('usuario');
@@ -106,17 +213,10 @@ async function cerrarSesion() {
 
  async function verificarAccesoAdmin() {
     try {
-      const res = await fetch('http://localhost:3333/api/auth/admin', {
-        credentials: 'include'
-      });
-
-      if (res.ok) {
-        // ✅ Mostrar la página
-        document.documentElement.style.visibility = 'visible';
-      } else {
-        // ❌ Usuario no autorizado, redirigir sin alert
-        window.location.replace('/');
-      }
+      const data = await apiService.get('/api/auth/admin');
+      
+      // ✅ Mostrar la página
+      document.documentElement.style.visibility = 'visible';
     } catch (error) {
       // ❌ Error al verificar, redirigir sin alert
       window.location.replace('/');
@@ -142,18 +242,220 @@ document.addEventListener('DOMContentLoaded', () => {
     avatar.style.display = 'block';
 
     document.getElementById('avatarImg')?.addEventListener('click', () => {
-  const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
-  modal.show();
-});
-
+      const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
+      modal.show();
+    });
 
     // Mostrar nombre
-    document.getElementById('userName').innerText = usuario.nombre;
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+      userNameElement.innerText = usuario.nombre;
+    }
   } else {
     botones.style.display = 'block';
     avatar.style.display = 'none';
   }
+
+  // Validación en tiempo real para el formulario de registro
+  setupRegistrationValidation();
+  
+  // Validación en tiempo real para el formulario de login
+  setupLoginValidation();
 });
+
+// Configurar validación en tiempo real para el login
+function setupLoginValidation() {
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  const submitBtn = document.getElementById('btnLogin');
+
+  if (emailInput) {
+    emailInput.addEventListener('input', function() {
+      validateLoginField(this, 'email');
+      checkLoginFormValidity();
+    });
+
+    emailInput.addEventListener('blur', function() {
+      validateLoginField(this, 'email');
+    });
+  }
+
+  if (passwordInput) {
+    passwordInput.addEventListener('input', function() {
+      validateLoginField(this, 'password');
+      checkLoginFormValidity();
+    });
+
+    passwordInput.addEventListener('blur', function() {
+      validateLoginField(this, 'password');
+    });
+  }
+}
+
+// Validar campo individual del login
+function validateLoginField(field, type) {
+  const value = field.value.trim();
+  
+  field.classList.remove('is-valid', 'is-invalid');
+  
+  if (type === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (value && emailRegex.test(value)) {
+      field.classList.add('is-valid');
+      return true;
+    } else if (value) {
+      field.classList.add('is-invalid');
+      return false;
+    }
+  } else if (type === 'password') {
+    if (value && value.length >= 1) {
+      field.classList.add('is-valid');
+      return true;
+    } else if (value) {
+      field.classList.add('is-invalid');
+      return false;
+    }
+  }
+  
+  return false;
+}
+
+// Verificar validez del formulario de login
+function checkLoginFormValidity() {
+  const email = document.getElementById('loginEmail')?.value.trim();
+  const password = document.getElementById('loginPassword')?.value;
+  const submitBtn = document.getElementById('btnLogin');
+
+  if (!submitBtn) return;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isValid = email && emailRegex.test(email) && password && password.length >= 1;
+
+  submitBtn.disabled = !isValid;
+}
+function setupRegistrationValidation() {
+  const passwordInput = document.getElementById('registerPassword');
+  const confirmInput = document.getElementById('registerConfirm');
+  const submitBtn = document.getElementById('btnRegistrar');
+  const politicasCheckbox = document.getElementById('registerPoliticas');
+
+  if (passwordInput) {
+    passwordInput.addEventListener('input', function() {
+      updatePasswordStrength(this.value);
+      checkFormValidity();
+    });
+  }
+
+  if (confirmInput) {
+    confirmInput.addEventListener('input', function() {
+      validatePasswordMatch();
+      checkFormValidity();
+    });
+  }
+
+  if (politicasCheckbox) {
+    politicasCheckbox.addEventListener('change', checkFormValidity);
+  }
+
+  // Validar otros campos cuando cambian
+  ['registerNombre', 'registerEmail', 'registerTelefono'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.addEventListener('input', checkFormValidity);
+    }
+  });
+}
+
+// Verificar si el formulario es válido para habilitar/deshabilitar el botón
+function checkFormValidity() {
+  const nombre = document.getElementById('registerNombre')?.value.trim();
+  const email = document.getElementById('registerEmail')?.value.trim();
+  const password = document.getElementById('registerPassword')?.value;
+  const confirm = document.getElementById('registerConfirm')?.value;
+  const politicas = document.getElementById('registerPoliticas')?.checked;
+  const submitBtn = document.getElementById('btnRegistrar');
+
+  if (!submitBtn) return;
+
+  const isValid = nombre && nombre.length >= 3 && 
+                  email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+                  password && password.length >= 6 && /\d/.test(password) &&
+                  password === confirm &&
+                  politicas;
+
+  submitBtn.disabled = !isValid;
+}
+
+// Validar que las contraseñas coincidan
+function validatePasswordMatch() {
+  const password = document.getElementById('registerPassword')?.value;
+  const confirm = document.getElementById('registerConfirm')?.value;
+  const confirmInput = document.getElementById('registerConfirm');
+
+  if (confirmInput && confirm) {
+    if (password === confirm) {
+      confirmInput.classList.remove('is-invalid');
+      confirmInput.classList.add('is-valid');
+    } else {
+      confirmInput.classList.remove('is-valid');
+      confirmInput.classList.add('is-invalid');
+    }
+  }
+}
+
+// Actualizar indicador de fortaleza de contraseña
+function updatePasswordStrength(password) {
+  const meters = document.querySelectorAll('.meter-seg');
+  const meterText = document.getElementById('meterText');
+  
+  if (!meters.length || !meterText) return;
+
+  let strength = 0;
+  let text = 'Muy débil';
+  let color = '#dc3545';
+
+  if (password.length >= 6) strength++;
+  if (/[a-z]/.test(password)) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/\d/.test(password)) strength++;
+  if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+  switch (strength) {
+    case 0:
+    case 1:
+      text = 'Muy débil';
+      color = '#dc3545';
+      break;
+    case 2:
+      text = 'Débil';
+      color = '#fd7e14';
+      break;
+    case 3:
+      text = 'Regular';
+      color = '#ffc107';
+      break;
+    case 4:
+      text = 'Fuerte';
+      color = '#198754';
+      break;
+    case 5:
+      text = 'Muy fuerte';
+      color = '#0d6efd';
+      break;
+  }
+
+  // Actualizar barras
+  meters.forEach((meter, index) => {
+    if (index < strength) {
+      meter.style.backgroundColor = color;
+    } else {
+      meter.style.backgroundColor = '#e9ecef';
+    }
+  });
+
+  meterText.textContent = text;
+  meterText.style.color = color;
+}
 
 
 
@@ -170,17 +472,11 @@ document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
   formData.append('foto', fileInput.files[0]);
 
   try {
-    const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:3333/api/usuarios/foto', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    });
-
-    const data = await res.json();
+    const data = await apiService.postFile('/api/usuarios/foto', formData);
     alert(data.mensaje || 'Foto subida');
   } catch (err) {
-    alert('Error al subir la foto');
+    console.error('Error al subir la foto:', err);
+    alert(`Error al subir la foto: ${err.message}`);
   }
 });
 
@@ -193,7 +489,8 @@ document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
   let elementoEditando = null;
 
   document.addEventListener("DOMContentLoaded", () => {
-    const formularios = document.querySelectorAll("form");
+    // Solo aplicar a formularios que NO sean de autenticación
+    const formularios = document.querySelectorAll("form:not(#loginForm):not(#registerForm)");
   
     formularios.forEach(formulario => {
       formulario.addEventListener("submit", function (evento) {
@@ -221,7 +518,10 @@ document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
               <button class="btn btn-sm btn-danger">Eliminar</button>
             </td>`;
           nuevaFila.innerHTML = celdas;
-          tabla.appendChild(nuevaFila);
+          const tablaBody = document.querySelector("table tbody");
+          if (tablaBody) {
+            tablaBody.appendChild(nuevaFila);
+          }
           alert("Registro exitoso ");
         }
   

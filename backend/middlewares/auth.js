@@ -1,5 +1,6 @@
 // Importaciones;
 import jwt from 'jsonwebtoken';
+import Usuario from '../models/usuario.model.js';
 import enviarCorreo from '../utils/email.service.js';
 import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
 

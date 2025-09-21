@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Registro VerdeNexo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="frontend/public/css/styles.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2>Prueba de Registro</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Abrir Formulario de Registro
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-register">
+            <div class="modal-content register-card">
+                <div class="modal-header register-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="register-logo" aria-hidden="true"></span>
+                        <div>
+                            <h5 class="modal-title mb-0" id="registerTitle">Registrarse</h5>
+                            <small class="text-light">Crear una cuenta VerdeNexo</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <form id="registerForm" onsubmit="return register(event)" novalidate>
+                    <div class="modal-body register-body">
+                        <!-- Nombre -->
+                        <div class="mb-3">
+                            <label for="registerNombre" class="form-label">Nombre completo<span class="text-danger">*</span></label>
+                            <input type="text" id="registerNombre" class="form-control register-input" placeholder="Ingresa tu nombre" required>
+                            <div class="invalid-feedback">Escribe tu nombre completo (3-25 caracteres).</div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
+                            <input type="email" id="registerEmail" class="form-control register-input" placeholder="ejemplo@correo.com" required>
+                            <div class="invalid-feedback">Ingresa un correo válido.</div>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="mb-3">
+                            <label for="registerTelefono" class="form-label">Teléfono</label>
+                            <input type="tel" id="registerTelefono" inputmode="tel" class="form-control register-input" placeholder="3001234567" pattern="[0-9]{10}">
+                            <div class="invalid-feedback">Ingresa un teléfono válido (10 dígitos).</div>
+                        </div>
+
+                        <!-- Contraseña -->
+                        <div class="mb-2">
+                            <label for="registerPassword" class="form-label">Contraseña<span class="text-danger">*</span></label>
+                            <input type="password" id="registerPassword" class="form-control register-input" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                            <div class="form-text">Debe contener al menos 6 caracteres y un número.</div>
+                            <!-- Barra de fortaleza -->
+                            <div class="password-meter mt-2">
+                                <span class="meter-seg"></span>
+                                <span class="meter-seg"></span>
+                                <span class="meter-seg"></span>
+                                <span class="meter-seg"></span>
+                            </div>
+                            <small id="meterText" class="text-muted">Fortaleza de contraseña</small>
+                            <div class="invalid-feedback">La contraseña debe tener al menos 6 caracteres y un número.</div>
+                        </div>
+
+                        <!-- Confirmar -->
+                        <div class="mb-3">
+                            <label for="registerConfirm" class="form-label">Confirmar contraseña<span class="text-danger">*</span></label>
+                            <input type="password" id="registerConfirm" class="form-control register-input" placeholder="Confirme contraseña" required>
+                            <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+                        </div>
+
+                        <!-- Políticas -->
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="registerPoliticas" required>
+                            <label class="form-check-label" for="registerPoliticas">
+                                Acepto las <a href="#" class="link-dark">políticas de privacidad</a> y
+                                <a href="#" class="link-dark">términos de servicio</a>.
+                            </label>
+                            <div class="invalid-feedback">Debes aceptar las políticas para continuar.</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer register-footer">
+                        <button type="submit" id="btnRegistrar" class="btn register-submit w-100" disabled>Registrarse</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="frontend/public/js/config.js"></script>
+    <script src="frontend/public/js/api-service.js"></script>
+    <script src="frontend/public/js/scripts.js"></script>
+</body>
+</html>

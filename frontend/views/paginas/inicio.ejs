@@ -95,43 +95,150 @@
  
 <!-- modales -->
 <!-- modal del login -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form onsubmit="return login(event)">
-        <div class="modal-header">
-          <h5 class="modal-title">Iniciar Sesión</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-register">
+    <div class="modal-content register-card">
+      <div class="modal-header register-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="register-logo" aria-hidden="true"></span>
+          <div>
+            <h5 class="modal-title mb-0" id="loginTitle">Iniciar Sesión</h5>
+            <small class="text-light">Accede a tu cuenta VerdeNexo</small>
+          </div>
         </div>
-        <div class="modal-body">
-          <input type="email" id="loginEmail" class="form-control mb-3" placeholder="Correo electrónico" required>
-          <input type="password" id="loginPassword" class="form-control mb-3" placeholder="password" required>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <form id="loginForm" onsubmit="return login(event)" novalidate>
+        <div class="modal-body register-body">
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="loginEmail" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
+            <input type="email" id="loginEmail" class="form-control register-input" placeholder="ejemplo@correo.com" required>
+            <div class="invalid-feedback">Ingresa un correo válido.</div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="loginPassword" class="form-label">Contraseña<span class="text-danger">*</span></label>
+            <input type="password" id="loginPassword" class="form-control register-input" placeholder="Tu contraseña" required>
+            <div class="invalid-feedback">La contraseña es requerida.</div>
+          </div>
+
+          <!-- Recordar sesión y recuperar contraseña -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="loginRecordar">
+              <label class="form-check-label" for="loginRecordar">
+                Recordarme
+              </label>
+            </div>
+            <a href="#" class="link-dark small">¿Olvidaste tu contraseña?</a>
+          </div>
         </div>
-        <div class="modal-footer d-flex justify-content-between align-items-center">
-          <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn loom-btn px-4" type="submit">Entrar</button>
+
+        <div class="modal-footer register-footer">
+          <button type="submit" id="btnLogin" class="btn register-submit w-100">Iniciar Sesión</button>
+          <div class="w-100 text-center mt-2">
+            <small>¿No tienes una cuenta? <a href="#" data-bs-target="#registerModal" data-bs-toggle="modal" data-bs-dismiss="modal">Registrarse</a></small>
+          </div>
         </div>
       </form>
     </div>
   </div>
 </div>
-<!-- modal del regis -->
-<div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form onsubmit="return register(event)">
-        <div class="modal-header">
-          <h5 class="modal-title">Crear Cuenta</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Modal: Registro -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-register">
+    <div class="modal-content register-card">
+      <div class="modal-header register-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="register-logo" aria-hidden="true"></span>
+          <div>
+            <h5 class="modal-title mb-0" id="registerTitle">Registrarse</h5>
+            <small class="text-muted">Crear una cuenta VerdeNexo</small>
+          </div>
         </div>
-        <div class="modal-body">
-          <input type="text" id="registerNombre" class="form-control mb-3" placeholder="Nombre completo" required>
-          <input type="email" id="registerEmail" class="form-control mb-3" placeholder="Correo electrónico" required>
-          <input type="password" id="registerPassword" class="form-control mb-3" placeholder="password" required>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <form id="registerForm" onsubmit="return register(event)" novalidate>
+        <div class="modal-body register-body">
+          <!-- Nombre -->
+          <div class="mb-3">
+            <label for="registerNombre" class="form-label">Nombre completo<span class="text-danger">*</span></label>
+            <input type="text" id="registerNombre" class="form-control register-input" placeholder="Ingresa tu nombre" required>
+            <div class="invalid-feedback">Escribe tu nombre completo.</div>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="registerEmail" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
+            <input type="email" id="registerEmail" class="form-control register-input" placeholder="ejemplo@correo.com" required>
+            <div class="invalid-feedback">Ingresa un correo válido.</div>
+          </div>
+
+          <!-- Teléfono -->
+          <div class="mb-3">
+            <label for="registerTelefono" class="form-label">Teléfono</label>
+            <input type="tel" id="registerTelefono" inputmode="tel" class="form-control register-input" placeholder="(+57) 555-5555555" pattern="[0-9]{10}">
+            <div class="invalid-feedback">Ingresa un teléfono válido (10 dígitos).</div>
+          </div>
+
+<!-- Rol (bloqueado en Cliente) -->
+<div class="mb-3">
+  <label for="registerRol" class="form-label">Rol</label>
+  <select id="registerRol" class="form-select register-input" disabled>
+    <option value="cliente" selected>Cliente</option>
+  </select>
+  <!-- Input oculto para que se envíe al backend -->
+  <input type="hidden" name="rol" value="cliente">
+</div>
+
+
+          <!-- Contraseña -->
+          <div class="mb-2">
+            <label for="registerPassword" class="form-label">Contraseña<span class="text-danger">*</span></label>
+            <input type="password" id="registerPassword" class="form-control register-input" placeholder="Mínimo 6 caracteres" minlength="6" required aria-describedby="psHelp">
+            <div id="psHelp" class="form-text">Debe contener al menos 6 caracteres y un número.</div>
+            <!-- Barra de fortaleza -->
+            <div class="password-meter mt-2" aria-hidden="true">
+              <span class="meter-seg"></span>
+              <span class="meter-seg"></span>
+              <span class="meter-seg"></span>
+              <span class="meter-seg"></span>
+            </div>
+            <small id="meterText" class="text-muted">Fortaleza de contraseña</small>
+            <div class="invalid-feedback">La contraseña debe tener al menos 6 caracteres y un número.</div>
+          </div>
+
+          <!-- Confirmar -->
+          <div class="mb-3">
+            <label for="registerConfirm" class="form-label">Confirmar contraseña<span class="text-danger">*</span></label>
+            <input type="password" id="registerConfirm" class="form-control register-input" placeholder="Confirme contraseña" required>
+            <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+          </div>
+
+          <!-- Políticas -->
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="registerPoliticas" required>
+            <label class="form-check-label" for="registerPoliticas">
+              Acepto el tratamiento de mis datos personales conforme a
+              <a href="#" class="link-dark">las políticas de privacidad</a> y
+              <a href="#" class="link-dark">términos de servicio</a> de VerdeNexo.
+            </label>
+            <div class="invalid-feedback">Debes aceptar las políticas para continuar.</div>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted">Versión 2.1 - Fecha de aceptación: 10/08/2025</small>
+          </div>
         </div>
-        <div class="modal-footer d-flex justify-content-between align-items-center">
-          <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn loom-btn px-4" type="submit">Registrarse</button>
+
+        <div class="modal-footer register-footer">
+          <button type="submit" id="btnRegistrar" class="btn register-submit w-100" disabled>Registrarse</button>
+          <div class="w-100 text-center mt-2">
+            <small>¿Ya tienes una cuenta? <a href="#" data-bs-target="#loginModal" data-bs-toggle="modal" data-bs-dismiss="modal">Iniciar sesión</a></small>
+          </div>
         </div>
       </form>
     </div>

@@ -12,8 +12,8 @@ import { verificarApiKey } from './middlewares/apikey.js';
 //Variables de entorno:
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Cargar .env desde la carpeta raíz del proyecto (uno arriba de /backend)
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+// Cargar .env desde la carpeta backend actual
+dotenv.config();
 
 //Instancia de Express:
 const app = express();

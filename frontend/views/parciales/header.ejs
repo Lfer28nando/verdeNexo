@@ -9,51 +9,74 @@
 </head>
 <body>
 
-  <!-- barra de navegación -->
   <nav class="navbar navbar-expand-lg navbar-loom sticky-top">
-    <div class="container">
-      <a class="navbar-brand navbar-brand-loom" href="index.html">VERDE NEXO</a>
-      <button class="navbar-toggler navbar-toggler-loom" type="button" data-bs-toggle="collapse" data-bs-target="#navbarloom">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarloom">
-        <ul class="navbar-nav ms-auto mb-3 mb-lg-0">
-          <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">productos</a></li>
-          <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">acerca de nosotros</a></li>
-          <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">blog</a></li>
-          <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">contacto</a></li>
-          <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">servicios</a></li>
+  <div class="container-fluid px-4">
+
+    <!-- Izquierda: Secciones -->
+    <div class="collapse navbar-collapse order-1 order-lg-0" id="navbarloom" style="flex: 1;">
+      <ul class="navbar-nav mb-3 mb-lg-0">
+         <li class="nav-item"><a class="nav-link nav-link-loom" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link nav-link-loom" href="catalogo.html">Catálogo</a></li>
+        <li class="nav-item"><a class="nav-link nav-link-loom" href="servicios.html">Servicios</a></li>
+        <li class="nav-item"><a class="nav-link nav-link-loom" href="blog.html">Blog</a></li>
+        <li class="nav-item"><a class="nav-link nav-link-loom" href="contacto.html">Contacto</a></li>
+      </ul>
+    </div>
+
+    <!-- Centro: Logo -->
+    <div class="text-center order-0" style="flex: 1;">
+      <a class="navbar-brand navbar-brand-loom" href="index.html">
+        <img src="/img/logo.png" alt="Verde Nexo" height="45">
+      </a>
+    </div>
+
+    <!-- Derecha: Buscador + Sesión + Carrito -->
+    <div class="d-flex align-items-center justify-content-end order-2" style="flex: 1; gap: 0.75rem;">
+
+      <!-- Buscador -->
+      <form class="d-none d-lg-flex" role="search" style="min-width: 200px;">
+        <div class="input-group loom-search-group">
+          <span class="input-group-text loom-search-icon">
+            <img src="/img/search-alt.png" alt="Buscar" width="16" height="16">
+          </span>
+          <input class="form-control loom-search-input" type="search" placeholder="Buscar..." aria-label="Buscar">
+        </div>
+      </form>
+
+      <!-- Botones visibles si NO hay sesión -->
+      <div id="botonesSesion" class="d-flex" style="gap: 0.75rem;">
+        <button class="btn loom-btn-square loom-btn-sesiones" data-bs-toggle="modal" data-bs-target="#loginModal">
+          <img src="img/log-in-alt.png" alt="Iniciar sesión" width="20" height="20" class="loom-icon-hover">
+        </button>
+        <button class="btn loom-btn-square loom-btn-sesiones" data-bs-toggle="modal" data-bs-target="#registerModal">
+          <img src="img/user-plus-alt.png" alt="Registrarse" width="20" height="20" class="loom-icon-hover">
+        </button>
+      </div>
+
+      <!-- Avatar visible si hay sesión -->
+      <div id="avatarSesion" style="display: none;">
+        <img id="avatarImg" src="/img/default-avatar.png" alt="Usuario" class="rounded-circle" width="38" height="38" style="cursor: pointer; border: 2px solid #e9ecef;">
+      </div>
+
+      <!-- Carrito -->
+      <div class="dropdown">
+        <button class="btn loom-btn-square position-relative" id="carritoToggle" data-bs-toggle="dropdown" aria-expanded="false">
+          <img src="/img/shopping-cart-alt.png" alt="carrito" width="20" height="20" class="loom-icon-hover">
+          <span id="carrito-contador" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">0</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end p-3" id="carritoDropdown" style="min-width: 300px;">
+          <li><strong>Carrito</strong></li>
+          <li><hr class="dropdown-divider"></li>
+          <li id="carrito-lista"></li>
+          <li class="mt-2 fw-bold" id="carrito-total"></li>
+          <li><button class="btn btn-sm btn-outline-danger w-100 mt-2" onclick="vaciarCarrito()">Vaciar carrito</button></li>
         </ul>
-        <div class="ms-lg-3 d-flex gap-2 align-items-center">
-        <!-- Botones visibles solo si NO hay sesión -->
-          <div id="botonesSesion">
-           <button class="btn loom-btn-sesiones" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</button>
-           <button class="btn loom-btn-sesiones" data-bs-toggle="modal" data-bs-target="#registerModal">Crear Cuenta</button>
-          </div>
-
-        <!-- Avatar visible solo si hay sesión -->
-          <div id="avatarSesion" style="display: none;">
-            <img id="avatarImg" src="/img/default-avatar.png" alt="Usuario" class="rounded-circle" width="38" height="38" style="cursor: pointer;">
-          </div>
-        </div>
-
-
-          <!-- carrito -->
-          <div class="dropdown">
-            <button class="btn rounded-0 px-4 position-relative" id="carritoToggle" data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="/img/c1.png" alt="carrito" width="33" height="33">
-              <span id="carrito-contador" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end p-3" id="carritoDropdown" style="min-width: 300px;">
-              <li><strong>Carrito</strong></li>
-              <li><hr class="dropdown-divider"></li>
-              <li id="carrito-lista"></li>
-              <li class="mt-2 fw-bold" id="carrito-total"></li>
-              <li><button class="btn btn-sm btn-outline-danger w-100 mt-2" onclick="vaciarCarrito()">Vaciar carrito</button></li>
-            </ul>
-          </div>
-
-        </div>
       </div>
     </div>
-  </nav>
+
+    <!-- Toggler -->
+    <button class="navbar-toggler navbar-toggler-loom order-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarloom">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </div>
+</nav>
