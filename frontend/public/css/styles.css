@@ -102,6 +102,19 @@
     box-shadow: 0 4px 8px rgba(26, 26, 26, 0.15);
 }
 
+/* Control de visibilidad de sesión */
+#botonesSesion[style*="display: none"] {
+    display: none !important;
+}
+
+#avatarSesion[style*="display: block"] {
+    display: block !important;
+}
+
+#avatarSesion[style*="display: none"] {
+    display: none !important;
+}
+
 /* Efecto de agrandar iconos en hover */
 .loom-icon-hover {
     transition: transform 0.3s ease;

@@ -94,17 +94,25 @@ async function register(e) {
 
 // Función para actualizar la interfaz cuando un usuario se loguea
 function updateUserInterface(usuario) {
+  console.log('updateUserInterface llamada con:', usuario);
   const botones = document.getElementById('botonesSesion');
   const avatar = document.getElementById('avatarSesion');
   
+  console.log('Elementos encontrados - botones:', botones, 'avatar:', avatar);
+  
   if (botones && avatar) {
+    console.log('Ocultando botones y mostrando avatar');
     botones.style.display = 'none';
+    botones.classList.add('d-none');
     avatar.style.display = 'block';
+    avatar.classList.remove('d-none');
     
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
       userNameElement.innerText = usuario.nombre;
     }
+  } else {
+    console.log('No se encontraron los elementos necesarios');
   }
 }
 
@@ -237,9 +245,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const botones = document.getElementById('botonesSesion');
   const avatar = document.getElementById('avatarSesion');
 
+  console.log('Usuario:', usuario);
+  console.log('Botones element:', botones);
+  console.log('Avatar element:', avatar);
+
   if (usuario) {
+    console.log('Usuario logueado - ocultando botones');
     botones.style.display = 'none';
+    botones.classList.add('d-none');
     avatar.style.display = 'block';
+    avatar.classList.remove('d-none');
 
     document.getElementById('avatarImg')?.addEventListener('click', () => {
       const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
@@ -252,8 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
       userNameElement.innerText = usuario.nombre;
     }
   } else {
-    botones.style.display = 'block';
+    console.log('Sin usuario - mostrando botones');
+    botones.style.display = 'flex';
+    botones.classList.remove('d-none');
     avatar.style.display = 'none';
+    avatar.classList.add('d-none');
   }
 
   // Validación en tiempo real para el formulario de registro
