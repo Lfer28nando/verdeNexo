@@ -482,6 +482,21 @@ function solicitarPermiso() {
   alert('Tu solicitud ha sido enviada. (Aquí va la lógica real luego)');
 }
 
+// Toggle para mostrar/ocultar sección de upload de foto
+function togglePhotoUpload() {
+  const section = document.getElementById('photoUploadSection');
+  if (section.style.display === 'none') {
+    section.style.display = 'block';
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+// Editar perfil
+function editarPerfil() {
+  alert('Funcionalidad de editar perfil (implementar luego)');
+}
+
 // Subir foto
 document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -492,6 +507,13 @@ document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
   try {
     const data = await apiService.postFile('/api/usuarios/foto', formData);
     alert(data.mensaje || 'Foto subida');
+    togglePhotoUpload(); // Ocultar sección después de subir
+    
+    // Actualizar avatar en el modal
+    const userAvatarModal = document.getElementById('userAvatarModal');
+    if (userAvatarModal && data.urlFoto) {
+      userAvatarModal.src = data.urlFoto;
+    }
   } catch (err) {
     console.error('Error al subir la foto:', err);
     alert(`Error al subir la foto: ${err.message}`);

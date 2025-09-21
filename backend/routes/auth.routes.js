@@ -2,7 +2,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { UsuarioController as usuarioModel } from '../controllers/usuario.controller.js';
-import enviarCorreo from '../utils/email.service.js';
+import enviarCorreo, { enviarCorreoBienvenida } from '../utils/email.service.js';
 import cookieParser from 'cookie-parser';
 import { soloAdmin, verificarToken } from '../middlewares/auth.js';
 import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
@@ -19,8 +19,44 @@ router.post('/registro', async (req, res) => {
     const { nombre, email, password, telefono, direccion, documento } = req.body;
     // Usamos usuarioModel.create para registrar y validar
     const nuevoUsuario = await usuarioModel.create({ nombre, email, password, telefono, direccion, documento });
-    await enviarCorreo(email, 'Bienvenido a VerdeNexo', `<p>Hola ${nombre}, tu cuenta ha sido creada exitosamente.</p>`);
-    res.status(201).json({ mensaje: 'Usuario registrado y correo enviado', usuario: nuevoUsuario });
+    
+    // Enviar correo de bienvenida profesional
+    const resultadoCorreo = await enviarCorreoBienvenida(email, {
+      projectName: 'Verde Nexo',
+      ctaUrl: process.env.WEBSITE_URL || 'http://localhost:3000',
+      ctaText: 'Explorar plantas',
+      colors: {
+        lightBg: '#F0F9F4',
+        primary: '#166534',
+        accent: '#22C55E',
+        text: '#111827',
+        footerBg: '#F9FAFB'
+      }
+    });
+
+    if (resultadoCorreo.ok) {
+      res.status(201).json({ 
+        mensaje: 'Usuario registrado exitosamente', 
+        usuario: {
+          id: nuevoUsuario._id,
+          nombre: nuevoUsuario.nombre,
+          email: nuevoUsuario.email,
+          rol: nuevoUsuario.rol
+        }
+      });
+    } else {
+      // Usuario creado pero falló el correo
+      res.status(201).json({ 
+        mensaje: 'Usuario registrado, pero no se pudo enviar el correo de bienvenida', 
+        usuario: {
+          id: nuevoUsuario._id,
+          nombre: nuevoUsuario.nombre,
+          email: nuevoUsuario.email,
+          rol: nuevoUsuario.rol
+        },
+        advertencia: 'Correo no enviado'
+      });
+    }
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al registrar el usuario', error: error.message });
   }
