@@ -1,10 +1,16 @@
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Verificar que estamos en una página que tiene el contenedor de productos
+        const contenedor = document.getElementById('lista-productos');
+        if (!contenedor) {
+            console.log('Contenedor lista-productos no encontrado en esta página, saltando carga de productos');
+            return;
+        }
+
         // Hacemos una petición GET al backend para obtener los productos usando el servicio centralizado
         const response = await apiService.get('/api/productos');
         
         console.log(response); // Mostramos la respuesta completa en la consola para verificar que se ha recibido correctamente
-        const contenedor = document.getElementById('lista-productos'); // getElementById busca una etiqueta que tenga ese id en el HTML, en este caso 'lista-productos', que es donde vamos a mostrar los productos
         
         // Verificamos que la respuesta sea exitosa y que contenga productos
         if (response.success && response.data && Array.isArray(response.data)) {

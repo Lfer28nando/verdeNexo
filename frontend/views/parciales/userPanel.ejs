@@ -76,6 +76,24 @@
             </div>
           </div>
 
+          <div class="action-item" onclick="abrirMetodosPago()">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <div class="action-content">
+              <span class="action-title">Métodos de pago</span>
+              <span class="action-subtitle">Gestiona tus tarjetas y cuentas</span>
+            </div>
+            <div class="action-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9,18 15,12 9,6"></polyline>
+              </svg>
+            </div>
+          </div>
+
           <div class="action-item" onclick="togglePhotoUpload()">
             <div class="action-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -231,6 +249,32 @@
           </div>
         </div>
 
+        <!-- Sección de opciones avanzadas -->
+        <div class="advanced-options mt-4 pt-3" style="border-top: 1px solid #e9ecef;">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="mb-0 text-muted">Opciones avanzadas</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleAdvancedOptions">
+              <span id="advancedToggleText">Mostrar</span>
+            </button>
+          </div>
+          
+          <div id="advancedFields" style="display: none;">
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <small>Las siguientes acciones son permanentes y no se pueden deshacer.</small>
+            </div>
+            
+            <button type="button" onclick="abrirEliminarCuenta()" class="btn btn-outline-danger btn-sm w-100">
+              <i class="fas fa-trash-alt me-2"></i>
+              Eliminar mi cuenta permanentemente
+            </button>
+            
+            <small class="text-muted d-block mt-2">
+              Esta acción eliminará todos tus datos, historial de compras y métodos de pago de forma permanente.
+            </small>
+          </div>
+        </div>
+
         <div class="modal-footer register-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" id="btnActualizar" class="btn register-submit">
@@ -242,6 +286,452 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Métodos de Pago -->
+<div class="modal fade" id="metodoPagoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content register-card">
+      <div class="modal-header user-panel-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="payment-icon-container">
+            <i class="fas fa-credit-card" style="font-size: 24px; color: #166534;"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0">Métodos de Pago</h5>
+            <small class="text-muted">Gestiona tus tarjetas y cuentas bancarias</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      
+      <div class="modal-body user-panel-body">
+        <!-- Tabs para métodos de pago -->
+        <ul class="nav nav-tabs mb-4" id="paymentTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="cards-tab" data-bs-toggle="tab" data-bs-target="#cards" type="button" role="tab">
+              <i class="fas fa-credit-card me-2"></i>Tarjetas
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">
+              <i class="fas fa-university me-2"></i>Cuentas Bancarias
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="paymentTabContent">
+          <!-- Tab de Tarjetas -->
+          <div class="tab-pane fade show active" id="cards" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">Mis Tarjetas</h6>
+              <button type="button" class="btn btn-outline-success btn-sm" onclick="abrirFormularioTarjeta()">
+                <i class="fas fa-plus me-1"></i>Agregar Tarjeta
+              </button>
+            </div>
+            
+            <div id="tarjetasList" class="payment-methods-list">
+              <!-- Las tarjetas se cargarán dinámicamente -->
+            </div>
+
+            <!-- Formulario para agregar tarjeta (oculto inicialmente) -->
+            <div id="formularioTarjeta" style="display: none;" class="mt-4 p-3 border rounded">
+              <h6 class="mb-3">Agregar Nueva Tarjeta</h6>
+              <form id="formTarjeta">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="tarjetaAlias" class="form-label">Alias</label>
+                    <input type="text" class="form-control" id="tarjetaAlias" placeholder="Mi tarjeta principal" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="tarjetaTipo" class="form-label">Tipo</label>
+                    <select class="form-select" id="tarjetaTipo" required>
+                      <option value="">Seleccionar...</option>
+                      <option value="credito">Crédito</option>
+                      <option value="debito">Débito</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="tarjetaNumero" class="form-label">Número de tarjeta</label>
+                  <input type="text" class="form-control" id="tarjetaNumero" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="tarjetaTitular" class="form-label">Titular</label>
+                    <input type="text" class="form-control" id="tarjetaTitular" placeholder="Nombre como aparece en la tarjeta" required>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label for="tarjetaVencimiento" class="form-label">MM/YY</label>
+                    <input type="text" class="form-control" id="tarjetaVencimiento" placeholder="12/28" maxlength="5" required>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label for="tarjetaBanco" class="form-label">Banco</label>
+                    <input type="text" class="form-control" id="tarjetaBanco" placeholder="Bancolombia">
+                  </div>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="submit" class="btn btn-success btn-sm">Agregar Tarjeta</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="cancelarFormularioTarjeta()">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Tab de Cuentas Bancarias -->
+          <div class="tab-pane fade" id="accounts" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">Mis Cuentas Bancarias</h6>
+              <button type="button" class="btn btn-outline-success btn-sm" onclick="abrirFormularioCuenta()">
+                <i class="fas fa-plus me-1"></i>Agregar Cuenta
+              </button>
+            </div>
+            
+            <div id="cuentasList" class="payment-methods-list">
+              <!-- Las cuentas se cargarán dinámicamente -->
+            </div>
+
+            <!-- Formulario para agregar cuenta bancaria (oculto inicialmente) -->
+            <div id="formularioCuenta" style="display: none;" class="mt-4 p-3 border rounded">
+              <h6 class="mb-3">Agregar Nueva Cuenta Bancaria</h6>
+              <form id="formCuenta">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="cuentaAlias" class="form-label">Alias</label>
+                    <input type="text" class="form-control" id="cuentaAlias" placeholder="Cuenta principal" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="cuentaBanco" class="form-label">Banco</label>
+                    <input type="text" class="form-control" id="cuentaBanco" placeholder="Bancolombia" required>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="cuentaTipo" class="form-label">Tipo de cuenta</label>
+                    <select class="form-select" id="cuentaTipo" required>
+                      <option value="">Seleccionar...</option>
+                      <option value="ahorros">Ahorros</option>
+                      <option value="corriente">Corriente</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="cuentaNumero" class="form-label">Número de cuenta</label>
+                    <input type="text" class="form-control" id="cuentaNumero" placeholder="1234567890" required>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="cuentaTitular" class="form-label">Titular</label>
+                  <input type="text" class="form-control" id="cuentaTitular" placeholder="Nombre del titular" required>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="submit" class="btn btn-success btn-sm">Agregar Cuenta</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="cancelarFormularioCuenta()">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Recuperar Contraseña - Solicitar -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content register-card">
+      <div class="modal-header register-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="register-logo"></div>
+          <div>
+            <h5 class="modal-title mb-0">Recuperar Contraseña</h5>
+            <small class="opacity-75">Ingresa tu email para enviarte un código de verificación</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body register-body">
+        <form id="forgotPasswordForm" onsubmit="return solicitarResetPassword(event)">
+          <div class="mb-3">
+            <label for="forgotEmail" class="form-label">
+              <i class="fas fa-envelope me-2"></i>Correo electrónico
+            </label>
+            <input 
+              type="email" 
+              class="form-control register-input" 
+              id="forgotEmail" 
+              placeholder="tu@email.com"
+              required
+            >
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>
+              Te enviaremos un código de 6 dígitos para restablecer tu contraseña
+            </div>
+          </div>
+          
+          <button type="submit" class="btn register-submit w-100" id="btnSolicitarReset">
+            <span class="btn-text">
+              <i class="fas fa-paper-plane me-2"></i>Enviar código
+            </span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Enviando...
+            </span>
+          </button>
+        </form>
+      </div>
+      <div class="register-footer">
+        <div class="text-center">
+          <small class="text-muted">
+            ¿Recordaste tu contraseña? 
+            <a href="#" class="link-dark" onclick="abrirLogin()">Inicia sesión</a>
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Recuperar Contraseña - Confirmar -->
+<div class="modal fade" id="confirmResetModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content register-card">
+      <div class="modal-header register-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="register-logo"></div>
+          <div>
+            <h5 class="modal-title mb-0">Confirmar Nueva Contraseña</h5>
+            <small class="opacity-75">Ingresa el código que recibiste y tu nueva contraseña</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body register-body">
+        <form id="confirmResetForm" onsubmit="return confirmarResetPassword(event)">
+          <div class="mb-3">
+            <label for="codigoReset" class="form-label">
+              <i class="fas fa-key me-2"></i>Código de verificación
+            </label>
+            <input 
+              type="text" 
+              class="form-control register-input text-center" 
+              id="codigoReset" 
+              placeholder="123456"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              required
+              style="font-family: 'Courier New', monospace; letter-spacing: 2px; font-size: 1.2rem;"
+            >
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>
+              Revisa tu bandeja de entrada y spam
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="nuevaPassword" class="form-label">
+              <i class="fas fa-lock me-2"></i>Nueva contraseña
+            </label>
+            <input 
+              type="password" 
+              class="form-control register-input" 
+              id="nuevaPassword" 
+              placeholder="Mínimo 6 caracteres con al menos 1 número"
+              required
+            >
+          </div>
+          
+          <div class="mb-3">
+            <label for="confirmarPassword" class="form-label">
+              <i class="fas fa-lock me-2"></i>Confirmar nueva contraseña
+            </label>
+            <input 
+              type="password" 
+              class="form-control register-input" 
+              id="confirmarPassword" 
+              placeholder="Repite la nueva contraseña"
+              required
+            >
+          </div>
+          
+          <button type="submit" class="btn register-submit w-100" id="btnConfirmarReset">
+            <span class="btn-text">
+              <i class="fas fa-check me-2"></i>Cambiar contraseña
+            </span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Cambiando...
+            </span>
+          </button>
+        </form>
+      </div>
+      <div class="register-footer">
+        <div class="text-center">
+          <small class="text-muted">
+            ¿No recibiste el código? 
+            <a href="#" class="link-dark" onclick="abrirRecuperarPassword()">Solicitar nuevo código</a>
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Eliminar Cuenta - Solicitar -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content register-card">
+      <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-exclamation-triangle" style="color: #dc3545; font-size: 12px;"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0">Eliminar mi cuenta</h5>
+            <small class="opacity-75">Esta acción desactivará permanentemente tu cuenta</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body register-body">
+        <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>¡Atención!</strong> Esta acción es irreversible. Tu cuenta será desactivada permanentemente y no podrás recuperarla.
+        </div>
+        
+        <div class="mb-3">
+          <h6>Esto significa que:</h6>
+          <ul class="text-muted small">
+            <li>No podrás iniciar sesión nuevamente</li>
+            <li>Perderás acceso a todos tus datos</li>
+            <li>Tus métodos de pago serán eliminados</li>
+            <li>Tu historial de compras no será accesible</li>
+          </ul>
+        </div>
+
+        <form id="deleteAccountForm" onsubmit="return solicitarEliminarCuenta(event)">
+          <div class="mb-3">
+            <label for="deletePassword" class="form-label">
+              <i class="fas fa-lock me-2"></i>Confirma tu contraseña actual
+            </label>
+            <input 
+              type="password" 
+              class="form-control register-input" 
+              id="deletePassword" 
+              placeholder="Tu contraseña actual"
+              required
+            >
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>
+              Te enviaremos un código de verificación para confirmar la eliminación
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+              <label class="form-check-label" for="confirmDelete">
+                Entiendo que esta acción es irreversible y deseo eliminar mi cuenta
+              </label>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn w-100" id="btnSolicitarEliminar" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
+            <span class="btn-text">
+              <i class="fas fa-paper-plane me-2"></i>Enviar código de confirmación
+            </span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Enviando...
+            </span>
+          </button>
+        </form>
+      </div>
+      <div class="register-footer">
+        <div class="text-center">
+          <small class="text-muted">
+            ¿Cambiaiste de opinión? 
+            <a href="#" class="link-dark" data-bs-dismiss="modal">Cancelar y volver</a>
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Eliminar Cuenta - Confirmar -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content register-card">
+      <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 24px; height: 24px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-key" style="color: #dc3545; font-size: 12px;"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0">Confirmación final</h5>
+            <small class="opacity-75">Ingresa el código para eliminar tu cuenta</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body register-body">
+        <div class="alert alert-warning" role="alert">
+          <i class="fas fa-clock me-2"></i>
+          Hemos enviado un código de verificación a tu email. Tienes <strong>10 minutos</strong> para completar este proceso.
+        </div>
+
+        <form id="confirmDeleteForm" onsubmit="return confirmarEliminarCuenta(event)">
+          <div class="mb-3">
+            <label for="codigoEliminar" class="form-label">
+              <i class="fas fa-key me-2"></i>Código de verificación
+            </label>
+            <input 
+              type="text" 
+              class="form-control register-input text-center" 
+              id="codigoEliminar" 
+              placeholder="123456"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              required
+              style="font-family: 'Courier New', monospace; letter-spacing: 2px; font-size: 1.2rem;"
+            >
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i>
+              Revisa tu bandeja de entrada y spam
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <div class="p-3 bg-light border-start border-4 border-danger">
+              <strong class="text-danger">Última oportunidad</strong>
+              <p class="mb-0 text-muted small mt-1">
+                Una vez confirmado, tu cuenta será desactivada inmediatamente y no podrás recuperarla.
+              </p>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn w-100" id="btnConfirmarEliminar" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;">
+            <span class="btn-text">
+              <i class="fas fa-trash me-2"></i>Eliminar mi cuenta definitivamente
+            </span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Eliminando...
+            </span>
+          </button>
+        </form>
+      </div>
+      <div class="register-footer">
+        <div class="text-center">
+          <small class="text-muted">
+            ¿No recibiste el código? 
+            <a href="#" class="link-dark" onclick="abrirEliminarCuenta()">Solicitar nuevo código</a>
+          </small>
+        </div>
+      </div>
     </div>
   </div>
 </div>

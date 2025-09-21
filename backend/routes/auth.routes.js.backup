@@ -1,7 +1,6 @@
 //Importaciones:
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import { UsuarioController as usuarioModel } from '../controllers/usuario.controller.js';
 import enviarCorreo, { enviarCorreoBienvenida } from '../utils/email.service.js';
 import cookieParser from 'cookie-parser';
@@ -330,97 +329,19 @@ router.get('/admin/users', verificarToken, soloAdmin, async (req, res) => {
     res.status(400).json({ mensaje: 'No se pudo listar usuarios', error: error.message });
   }
 });
-// Cambiar rol de un usuario (con validación de contraseña y auditoría)
+// Cambiar rol de un usuario
 router.patch('/admin/users/:id/rol', verificarToken, soloAdmin, async (req, res) => {
   try {
-    console.log('[DEBUG] Iniciando cambio de rol...');
-    console.log('[DEBUG] Usuario admin:', req.usuario);
-    console.log('[DEBUG] Body:', req.body);
-    console.log('[DEBUG] Params:', req.params);
-
     const { id } = req.params;
-    const { rol, motivo, passwordAdmin } = req.body;
+    const { rol } = req.body;
 
-    // Validaciones básicas
     if (!rol) return res.status(400).json({ mensaje: 'Campo rol es requerido' });
-    if (!motivo || motivo.trim().length < 10) {
-      return res.status(400).json({ mensaje: 'Motivo del cambio es requerido (mínimo 10 caracteres)' });
-    }
-    if (!passwordAdmin) {
-      return res.status(400).json({ mensaje: 'Contraseña del administrador es requerida' });
-    }
-
     // Evitar que un admin cambie su propio rol
-    if (id === req.usuario.id) {
-      return res.status(400).json({ mensaje: 'No puedes cambiar tu propio rol por seguridad.' });
-    }
+    if (id === req.usuario.id) return res.status(400).json({ mensaje: 'No puedes cambiar tu propio rol.' });
 
-    console.log('[DEBUG] Validaciones básicas pasadas');
-
-    // Verificar contraseña del administrador
-    const adminUsuario = await usuarioModel.getById(req.usuario.id);
-    if (!adminUsuario) {
-      return res.status(404).json({ mensaje: 'Administrador no encontrado' });
-    }
-
-    console.log('[DEBUG] Admin encontrado:', adminUsuario.email);
-
-    if (!adminUsuario.password) {
-      console.log('[ERROR] El administrador no tiene contraseña configurada');
-      return res.status(500).json({ mensaje: 'Error de configuración del administrador' });
-    }
-
-    const passwordValida = await bcrypt.compare(passwordAdmin, adminUsuario.password);
-    if (!passwordValida) {
-      // Log de intento de cambio de rol no autorizado
-      console.log(`[SECURITY ALERT] Intento de cambio de rol no autorizado por admin ${adminUsuario.email} - Contraseña incorrecta`);
-      return res.status(401).json({ mensaje: 'Contraseña de administrador incorrecta' });
-    }
-
-    console.log('[DEBUG] Contraseña del admin validada');
-
-    // Obtener información del usuario objetivo
-    const usuarioObjetivo = await usuarioModel.getById(id);
-    if (!usuarioObjetivo) {
-      return res.status(404).json({ mensaje: 'Usuario objetivo no encontrado' });
-    }
-
-    console.log('[DEBUG] Usuario objetivo encontrado:', usuarioObjetivo.email);
-
-    // Realizar el cambio de rol
     const actualizado = await usuarioModel.changeRole(id, rol);
-
-    console.log('[DEBUG] Rol cambiado exitosamente');
-
-    // Log de auditoría del cambio exitoso
-    const logAuditoria = {
-      timestamp: new Date().toISOString(),
-      accion: 'CAMBIO_ROL',
-      adminId: req.usuario.id,
-      adminNombre: adminUsuario.nombre,
-      adminEmail: adminUsuario.email,
-      usuarioObjetivoId: id,
-      usuarioObjetivoNombre: usuarioObjetivo.nombre,
-      usuarioObjetivoEmail: usuarioObjetivo.email,
-      rolAnterior: usuarioObjetivo.rol,
-      rolNuevo: rol,
-      motivo: motivo.trim(),
-      ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent']
-    };
-
-    console.log('[AUDIT] Cambio de rol:', JSON.stringify(logAuditoria, null, 2));
-
-    res.status(200).json({ 
-      mensaje: `Rol actualizado correctamente de ${usuarioObjetivo.rol} a ${rol}`, 
-      usuario: actualizado,
-      auditoria: {
-        timestamp: logAuditoria.timestamp,
-        accion: 'Cambio de rol registrado en logs de auditoría'
-      }
-    });
+    res.status(200).json({ mensaje: 'Rol actualizado correctamente', usuario: actualizado });
   } catch (error) {
-    console.error('[ERROR] Error en cambio de rol:', error);
     res.status(400).json({ mensaje: 'No se pudo cambiar el rol', error: error.message });
   }
 });
@@ -673,6 +594,88 @@ router.patch('/me/metodos-pago/predeterminado', verificarToken, async (req, res)
     res.status(400).json({ mensaje: 'No se pudo establecer como predeterminado', error: error.message });
   }
 });
+
+
+//Ruta Privada: admin
+  }
+});
+
+
+
+
+
+  }
+});
+
+// ===== MÉTODOS DE PAGO =====
+
+// Obtener métodos de pago del usuario
+router.get('/me/metodos-pago', verificarToken, async (req, res) => {
+  try {
+    const metodosPago = await usuarioModel.obtenerMetodosPago(req.usuario.id);
+    res.status(200).json(metodosPago);
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudieron obtener los métodos de pago', error: error.message });
+  }
+});
+
+// Agregar tarjeta
+router.post('/me/metodos-pago/tarjetas', verificarToken, async (req, res) => {
+  try {
+    const { alias, tipo, numeroCompleto, titular, fechaVencimiento, banco } = req.body;
+    const tarjeta = await usuarioModel.agregarTarjeta(req.usuario.id, {
+      alias, tipo, numeroCompleto, titular, fechaVencimiento, banco
+    });
+    res.status(201).json({ mensaje: 'Tarjeta agregada correctamente', tarjeta });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo agregar la tarjeta', error: error.message });
+  }
+});
+
+// Agregar cuenta bancaria
+router.post('/me/metodos-pago/cuentas', verificarToken, async (req, res) => {
+  try {
+    const { alias, banco, tipoCuenta, numeroCuenta, titular } = req.body;
+    const cuenta = await usuarioModel.agregarCuentaBancaria(req.usuario.id, {
+      alias, banco, tipoCuenta, numeroCuenta, titular
+    });
+    res.status(201).json({ mensaje: 'Cuenta bancaria agregada correctamente', cuenta });
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo agregar la cuenta bancaria', error: error.message });
+  }
+});
+
+// Eliminar tarjeta
+router.delete('/me/metodos-pago/tarjetas/:tarjetaId', verificarToken, async (req, res) => {
+  try {
+    const resultado = await usuarioModel.eliminarTarjeta(req.usuario.id, req.params.tarjetaId);
+    res.status(200).json(resultado);
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo eliminar la tarjeta', error: error.message });
+  }
+});
+
+// Eliminar cuenta bancaria
+router.delete('/me/metodos-pago/cuentas/:cuentaId', verificarToken, async (req, res) => {
+  try {
+    const resultado = await usuarioModel.eliminarCuentaBancaria(req.usuario.id, req.params.cuentaId);
+    res.status(200).json(resultado);
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo eliminar la cuenta bancaria', error: error.message });
+  }
+});
+
+// Establecer método de pago predeterminado
+router.patch('/me/metodos-pago/predeterminado', verificarToken, async (req, res) => {
+  try {
+    const { tipo, metodoPagoId } = req.body;
+    const resultado = await usuarioModel.establecerPredeterminado(req.usuario.id, tipo, metodoPagoId);
+    res.status(200).json(resultado);
+  } catch (error) {
+    res.status(400).json({ mensaje: 'No se pudo establecer como predeterminado', error: error.message });
+  }
+});
+
 
 //Ruta Privada: admin
 router.get('/admin', verificarToken, soloAdmin, async (req, res) => {

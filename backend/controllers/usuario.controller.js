@@ -225,5 +225,198 @@ export class UsuarioController {
     return user;
   }
 
+  // ===== MÉTODOS DE PAGO =====
+
+  // Agregar tarjeta
+  static async agregarTarjeta(userId, tarjetaData) {
+    const { alias, tipo, numeroCompleto, titular, fechaVencimiento, banco } = tarjetaData;
+    
+    // Validaciones
+    if (!alias || alias.length < 3) throw new Error('El alias debe tener al menos 3 caracteres.');
+    if (!['credito', 'debito'].includes(tipo)) throw new Error('Tipo de tarjeta inválido.');
+    if (!numeroCompleto || !/^\d{13,19}$/.test(numeroCompleto.replace(/\s/g, ''))) {
+      throw new Error('Número de tarjeta inválido.');
+    }
+    if (!titular || titular.length < 3) throw new Error('Titular inválido.');
+    if (!fechaVencimiento || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(fechaVencimiento)) {
+      throw new Error('Fecha de vencimiento inválida (MM/YY).');
+    }
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+
+    // Inicializar métodos de pago si no existen
+    if (!usuario.metodosPago) {
+      usuario.metodosPago = { tarjetas: [], cuentasBancarias: [] };
+    }
+    if (!usuario.metodosPago.tarjetas) {
+      usuario.metodosPago.tarjetas = [];
+    }
+
+    // Generar ID único para la tarjeta
+    const tarjetaId = `tarjeta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Obtener solo los últimos 4 dígitos
+    const ultimosDigitos = numeroCompleto.replace(/\s/g, '').slice(-4);
+    
+    // Verificar si ya existe una tarjeta con los mismos últimos dígitos
+    const tarjetaExistente = usuario.metodosPago.tarjetas.find(
+      t => t.ultimosDigitos === ultimosDigitos && t.titular === titular
+    );
+    if (tarjetaExistente) {
+      throw new Error('Ya tienes registrada una tarjeta con estos datos.');
+    }
+
+    const nuevaTarjeta = {
+      id: tarjetaId,
+      alias,
+      tipo,
+      ultimosDigitos,
+      titular,
+      fechaVencimiento,
+      banco: banco || '',
+      predeterminada: usuario.metodosPago.tarjetas.length === 0, // Primera tarjeta es predeterminada
+      fechaCreacion: new Date()
+    };
+
+    usuario.metodosPago.tarjetas.push(nuevaTarjeta);
+    await usuario.save();
+
+    return nuevaTarjeta;
+  }
+
+  // Agregar cuenta bancaria
+  static async agregarCuentaBancaria(userId, cuentaData) {
+    const { alias, banco, tipoCuenta, numeroCuenta, titular } = cuentaData;
+    
+    // Validaciones
+    if (!alias || alias.length < 3) throw new Error('El alias debe tener al menos 3 caracteres.');
+    if (!banco || banco.length < 3) throw new Error('Banco inválido.');
+    if (!['ahorros', 'corriente'].includes(tipoCuenta)) throw new Error('Tipo de cuenta inválido.');
+    if (!numeroCuenta || !/^\d{8,20}$/.test(numeroCuenta)) {
+      throw new Error('Número de cuenta inválido.');
+    }
+    if (!titular || titular.length < 3) throw new Error('Titular inválido.');
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+
+    // Inicializar métodos de pago si no existen
+    if (!usuario.metodosPago) {
+      usuario.metodosPago = { tarjetas: [], cuentasBancarias: [] };
+    }
+    if (!usuario.metodosPago.cuentasBancarias) {
+      usuario.metodosPago.cuentasBancarias = [];
+    }
+
+    // Generar ID único para la cuenta
+    const cuentaId = `cuenta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Verificar si ya existe la cuenta
+    const cuentaExistente = usuario.metodosPago.cuentasBancarias.find(
+      c => c.numeroCuenta === numeroCuenta && c.banco === banco
+    );
+    if (cuentaExistente) {
+      throw new Error('Ya tienes registrada esta cuenta bancaria.');
+    }
+
+    const nuevaCuenta = {
+      id: cuentaId,
+      alias,
+      banco,
+      tipoCuenta,
+      numeroCuenta, // En producción, esto debería estar encriptado
+      titular,
+      predeterminada: usuario.metodosPago.cuentasBancarias.length === 0, // Primera cuenta es predeterminada
+      fechaCreacion: new Date()
+    };
+
+    usuario.metodosPago.cuentasBancarias.push(nuevaCuenta);
+    await usuario.save();
+
+    return nuevaCuenta;
+  }
+
+  // Eliminar tarjeta
+  static async eliminarTarjeta(userId, tarjetaId) {
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario.metodosPago || !usuario.metodosPago.tarjetas) {
+      throw new Error('No tienes tarjetas registradas.');
+    }
+
+    const index = usuario.metodosPago.tarjetas.findIndex(t => t.id === tarjetaId);
+    if (index === -1) throw new Error('Tarjeta no encontrada.');
+
+    usuario.metodosPago.tarjetas.splice(index, 1);
+    await usuario.save();
+
+    return { mensaje: 'Tarjeta eliminada correctamente.' };
+  }
+
+  // Eliminar cuenta bancaria
+  static async eliminarCuentaBancaria(userId, cuentaId) {
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario.metodosPago || !usuario.metodosPago.cuentasBancarias) {
+      throw new Error('No tienes cuentas bancarias registradas.');
+    }
+
+    const index = usuario.metodosPago.cuentasBancarias.findIndex(c => c.id === cuentaId);
+    if (index === -1) throw new Error('Cuenta bancaria no encontrada.');
+
+    usuario.metodosPago.cuentasBancarias.splice(index, 1);
+    await usuario.save();
+
+    return { mensaje: 'Cuenta bancaria eliminada correctamente.' };
+  }
+
+  // Establecer método de pago predeterminado
+  static async establecerPredeterminado(userId, tipo, metodoPagoId) {
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario.metodosPago) throw new Error('No tienes métodos de pago registrados.');
+
+    if (tipo === 'tarjeta') {
+      if (!usuario.metodosPago.tarjetas) throw new Error('No tienes tarjetas registradas.');
+      
+      // Quitar predeterminado de todas las tarjetas
+      usuario.metodosPago.tarjetas.forEach(t => t.predeterminada = false);
+      
+      // Establecer la nueva predeterminada
+      const tarjeta = usuario.metodosPago.tarjetas.find(t => t.id === metodoPagoId);
+      if (!tarjeta) throw new Error('Tarjeta no encontrada.');
+      tarjeta.predeterminada = true;
+      
+    } else if (tipo === 'cuenta') {
+      if (!usuario.metodosPago.cuentasBancarias) throw new Error('No tienes cuentas bancarias registradas.');
+      
+      // Quitar predeterminado de todas las cuentas
+      usuario.metodosPago.cuentasBancarias.forEach(c => c.predeterminada = false);
+      
+      // Establecer la nueva predeterminada
+      const cuenta = usuario.metodosPago.cuentasBancarias.find(c => c.id === metodoPagoId);
+      if (!cuenta) throw new Error('Cuenta bancaria no encontrada.');
+      cuenta.predeterminada = true;
+      
+    } else {
+      throw new Error('Tipo de método de pago inválido.');
+    }
+
+    await usuario.save();
+    return { mensaje: 'Método de pago predeterminado actualizado.' };
+  }
+
+  // Obtener métodos de pago del usuario
+  static async obtenerMetodosPago(userId) {
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw new Error('Usuario no encontrado.');
+    
+    return {
+      tarjetas: usuario.metodosPago?.tarjetas || [],
+      cuentasBancarias: usuario.metodosPago?.cuentasBancarias || []
+    };
+  }
+
 }
 

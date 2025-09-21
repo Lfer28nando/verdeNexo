@@ -120,7 +120,204 @@
         </div>
     </div>
 </div>
+<!-- visitas a la pagina - cierre -->
+
+<!-- Gestión de Usuarios y Roles -->
+<div class="col-12 mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-users me-2"></i>
+                Gestión de Usuarios y Roles
+            </h5>
+            <button class="btn btn-primary btn-sm" onclick="window.adminRoles.cargarUsuarios()">
+                <i class="fas fa-sync-alt me-1"></i>
+                Actualizar
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Filtros -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="filtroRol" class="form-label">Filtrar por rol:</label>
+                    <select id="filtroRol" class="form-select" onchange="window.adminRoles.aplicarFiltros()">
+                        <option value="">Todos los roles</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="buscarUsuario" class="form-label">Buscar usuario:</label>
+                    <input type="text" id="buscarUsuario" class="form-control" placeholder="Nombre o email...">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary" onclick="window.adminRoles.limpiarFiltros()">
+                        <i class="fas fa-times me-1"></i>
+                        Limpiar filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingUsuarios" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando usuarios...</p>
+            </div>
+
+            <!-- Tabla de usuarios -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol Actual</th>
+                            <th>Estado</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuarios">
+                        <!-- Los usuarios se cargarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación de usuarios">
+                <ul class="pagination justify-content-center" id="paginacionUsuarios">
+                    <!-- La paginación se generará dinámicamente -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<!-- Gestión de Usuarios y Roles - cierre -->
+
+</div>
 
 <%- include('../parciales/userPanel') %>
+
+<!-- Modal de Confirmación de Cambio de Rol -->
+<div class="modal fade" id="modalCambioRol" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-shield-alt me-2 text-warning"></i>
+          Cambio de Rol - Autorización Requerida
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Alerta de seguridad -->
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <div>
+            <strong>¡Acción de alta seguridad!</strong><br>
+            <small>Este cambio afectará los permisos del usuario y requiere autorización administrativa.</small>
+          </div>
+        </div>
+        
+        <!-- Información del usuario -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <h6 class="text-muted mb-3">Información del Usuario</h6>
+            <p class="mb-2"><strong>Nombre:</strong> <span id="usuarioNombreCambio"></span></p>
+            <p class="mb-2"><strong>Email:</strong> <span id="usuarioEmailCambio"></span></p>
+            <p class="mb-0"><strong>ID:</strong> <small class="text-muted" id="usuarioIdCambio"></small></p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-muted mb-3">Cambio de Rol</h6>
+            <div class="d-flex align-items-center mb-2">
+              <span class="me-2">De:</span>
+              <span id="rolActualCambio" class="badge"></span>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+              <span class="me-2">A:</span>
+              <span id="rolNuevoCambio" class="badge"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Permisos del nuevo rol -->
+        <div class="mb-4">
+          <h6 class="text-muted mb-2">Permisos del nuevo rol:</h6>
+          <div class="bg-light p-3 rounded">
+            <ul id="permisosNuevoRol" class="mb-0">
+              <!-- Se llenarán dinámicamente -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Formulario de autorización -->
+        <form id="formCambioRol">
+          <!-- Motivo del cambio (obligatorio) -->
+          <div class="mb-3">
+            <label for="motivoCambio" class="form-label">
+              <i class="fas fa-edit me-1"></i>
+              Motivo del cambio <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="motivoCambio" rows="3" 
+                      placeholder="Explica el motivo del cambio de rol..." required></textarea>
+            <div class="form-text">Este motivo quedará registrado en los logs de auditoría.</div>
+          </div>
+
+          <!-- Confirmación de contraseña del admin -->
+          <div class="mb-3">
+            <label for="passwordAdmin" class="form-label">
+              <i class="fas fa-key me-1"></i>
+              Confirma tu contraseña <span class="text-danger">*</span>
+            </label>
+            <input type="password" class="form-control" id="passwordAdmin" 
+                   placeholder="Tu contraseña de administrador" required>
+            <div class="form-text">Requerido para autorizar cambios de rol.</div>
+          </div>
+
+          <!-- Confirmación adicional para admin -->
+          <div id="confirmacionAdmin" class="mb-3" style="display: none;">
+            <div class="alert alert-warning">
+              <i class="fas fa-crown me-2"></i>
+              <strong>¡Atención!</strong> Estás otorgando permisos de administrador.
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="confirmarAdmin">
+                <label class="form-check-label" for="confirmarAdmin">
+                  Confirmo que entiendo que este usuario tendrá acceso completo al sistema
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmación final -->
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="confirmarCambio" required>
+            <label class="form-check-label" for="confirmarCambio">
+              He verificado toda la información y confirmo que deseo realizar este cambio
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Cancelar
+        </button>
+        <button type="button" id="btnConfirmarCambio" class="btn btn-danger">
+          <span class="btn-text">
+            <i class="fas fa-shield-alt me-1"></i>
+            Autorizar Cambio
+          </span>
+          <span class="btn-loading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Procesando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <%- include('../parciales/footer') %>

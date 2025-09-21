@@ -55,9 +55,21 @@
   <script src="/js/config.js"></script>
   <script src="/js/api-service.js"></script>
   
+  <!-- Módulos de funcionalidad (en orden de dependencias) -->
+  <script src="/js/modules/auth.js"></script>
+  <script src="/js/modules/user-management.js"></script>
+  <script src="/js/modules/payment-methods.js"></script>
+  <script src="/js/modules/admin-roles.js"></script>
+  <script src="/js/modules/general.js"></script>
+  
   <!-- Scripts específicos de la aplicación -->
   <script src="/js/productos.js"></script>
   <script src="/js/carrito.js"></script>
+  
+  <!-- Archivo principal que coordina todo -->
+  <script src="/js/main.js"></script>
+  
+  <!-- Scripts legacy (mantenido para compatibilidad) -->
   <script src="/js/scripts.js"></script>
 </body>
 </html>

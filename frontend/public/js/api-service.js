@@ -67,6 +67,22 @@ class ApiService {
         }
     }
 
+    // Método PATCH
+    async patch(endpoint, data) {
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'PATCH',
+                headers: CONFIG.getDefaultHeaders(),
+                body: JSON.stringify(data),
+                credentials: 'include'
+            });
+            return await this.handleResponse(response);
+        } catch (error) {
+            console.error('Error en petición PATCH:', error);
+            throw error;
+        }
+    }
+
     // Método DELETE
     async delete(endpoint) {
         try {

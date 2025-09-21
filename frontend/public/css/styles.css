@@ -1148,3 +1148,884 @@
   background: linear-gradient(135deg, #007bff, #339dff);
   color: white;
 }
+
+/* ======================== ESTILOS PARA MÉTODOS DE PAGO ======================== */
+
+/* Modal de métodos de pago */
+.metodos-pago-modal {
+  max-width: 800px;
+}
+
+.metodos-pago-header {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 12px 12px 0 0;
+  color: white;
+  padding: 1.5rem;
+}
+
+.metodos-pago-body {
+  padding: 1.5rem;
+}
+
+/* Tabs de métodos de pago */
+.nav-pills-metodos {
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 1.5rem;
+}
+
+.nav-pills-metodos .nav-link {
+  border-radius: 8px 8px 0 0;
+  padding: 0.75rem 1rem;
+  margin-right: 0.5rem;
+  background: transparent;
+  border: 1px solid #e9ecef;
+  border-bottom: none;
+  color: #6c757d;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-pills-metodos .nav-link:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.nav-pills-metodos .nav-link.active {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+/* Tarjetas de métodos de pago */
+.metodo-pago-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.metodo-pago-card:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.tarjeta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tarjeta-tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tipo-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tipo-credito {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+}
+
+.tipo-debito {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+}
+
+.tipo-ahorros {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+}
+
+.tipo-corriente {
+  background: linear-gradient(135deg, #17a2b8, #117a8b);
+  color: white;
+}
+
+/* Iconos de métodos de pago */
+.metodo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.icon-tarjeta {
+  background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.icon-cuenta {
+  background: linear-gradient(135deg, #17a2b8, #117a8b);
+}
+
+/* Indicador de predeterminado */
+.predeterminado-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  color: #212529;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Número de tarjeta/cuenta */
+.numero-display {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #333;
+  letter-spacing: 1px;
+}
+
+/* Información del titular */
+.titular-info {
+  margin: 0.75rem 0;
+}
+
+.titular-nombre {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.banco-info {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Botones de acción en tarjetas */
+.metodo-actions {
+  margin-top: 1rem;
+}
+
+.btn-metodo {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-predeterminado {
+  background: linear-gradient(135deg, #ffc107, #e0a800);
+  border: none;
+  color: #212529;
+}
+
+.btn-predeterminado:hover {
+  background: linear-gradient(135deg, #e0a800, #d39e00);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.btn-eliminar {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  border: none;
+  color: white;
+}
+
+.btn-eliminar:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Formularios de agregar métodos */
+.form-agregar {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e9ecef;
+}
+
+.form-agregar h5 {
+  color: #495057;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group-metodo {
+  margin-bottom: 1rem;
+}
+
+.form-group-metodo label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control-metodo {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control-metodo:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+  outline: none;
+}
+
+.form-control-metodo.is-valid {
+  border-color: #28a745;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.94-.94 1.44 1.44L7.39 4.5l.94.94L5.64 8.19z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.form-control-metodo.is-invalid {
+  border-color: #dc3545;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 2.4 2.4M8.2 4.6l-2.4 2.4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* Botones de envío */
+.btn-agregar-metodo {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.btn-agregar-metodo:hover {
+  background: linear-gradient(135deg, #218838, #1c7430);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Lista vacía */
+.lista-vacia {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.lista-vacia i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.lista-vacia h6 {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+/* Grid responsivo para métodos */
+.metodos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Formateo especial para números */
+.numero-tarjeta-input {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.fecha-vencimiento-input {
+  font-family: 'Courier New', monospace;
+}
+
+/* Tooltip para información adicional */
+.info-tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.info-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.info-tooltip:hover::after {
+  opacity: 1;
+}
+
+/* Animaciones */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metodo-pago-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .metodos-pago-modal {
+    max-width: 95%;
+    margin: 0.5rem;
+  }
+  
+  .metodos-pago-header,
+  .metodos-pago-body {
+    padding: 1rem;
+  }
+  
+  .form-agregar {
+    padding: 1rem;
+  }
+  
+  .metodos-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-pills-metodos {
+    flex-direction: column;
+  }
+  
+  .nav-pills-metodos .nav-link {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+  }
+}
+
+@media (max-width: 576px) {
+  .tarjeta-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .predeterminado-badge {
+    position: static;
+    align-self: flex-start;
+  }
+  
+  .metodo-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .btn-metodo {
+    width: 100%;
+  }
+}
+
+/* ============= ESTILOS PARA ELIMINACIÓN DE CUENTA ============= */
+
+/* Zona de peligro */
+.danger-zone {
+  border: 2px solid #dc3545;
+  border-radius: 8px;
+  background-color: #fff5f5;
+  margin-top: 2rem;
+  transition: all 0.3s ease;
+}
+
+.danger-zone:hover {
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1);
+}
+
+.danger-zone-header {
+  background-color: #dc3545;
+  color: white;
+  padding: 1rem 1.25rem;
+  margin: -1px;
+  border-radius: 6px 6px 0 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.danger-zone-body {
+  padding: 1.25rem;
+}
+
+.danger-zone p {
+  color: #721c24;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Botón de eliminar cuenta */
+.btn-delete-account {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-delete-account:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete-account:active {
+  transform: translateY(0);
+}
+
+.btn-delete-account:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Estilos para modales de eliminación */
+.modal-delete .modal-header {
+  background-color: #dc3545;
+  color: white;
+  border-bottom: none;
+}
+
+.modal-delete .modal-title {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-delete .btn-close {
+  filter: invert(1);
+}
+
+.modal-delete .alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-delete .alert-danger strong {
+  font-weight: 600;
+}
+
+.modal-delete .list-unstyled {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.modal-delete .list-unstyled li {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.modal-delete .list-unstyled li:before {
+  content: "•";
+  color: #dc3545;
+  font-weight: bold;
+  position: absolute;
+  left: -1rem;
+}
+
+/* Formulario de eliminación */
+.delete-form .form-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.delete-form .form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.delete-form .form-check-input:checked {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.delete-form .form-check-label {
+  font-weight: 500;
+  color: #495057;
+  cursor: pointer;
+}
+
+/* Campo de código de verificación */
+.codigo-input {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.25rem;
+  padding: 0.75rem;
+  border: 2px solid #ced4da;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.codigo-input:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.codigo-input.is-valid {
+  border-color: #198754;
+}
+
+.codigo-input.is-invalid {
+  border-color: #dc3545;
+}
+
+/* Botones de acción en modales */
+.btn-confirm-delete {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm-delete:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-1px);
+}
+
+.btn-confirm-delete:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+.btn-cancel-delete {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel-delete:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+/* Estados de carga para botones */
+.btn-loading {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-loading .spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.125rem;
+}
+
+/* Iconos de advertencia */
+.warning-icon {
+  color: #ffc107;
+  font-size: 1.25rem;
+}
+
+.danger-icon {
+  color: #dc3545;
+  font-size: 1.25rem;
+}
+
+/* Responsive para modales de eliminación */
+@media (max-width: 576px) {
+  .modal-delete .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .danger-zone-header {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .danger-zone-body {
+    padding: 1rem;
+  }
+  
+  .btn-delete-account {
+    width: 100%;
+    padding: 0.875rem;
+  }
+  
+  .btn-confirm-delete,
+  .btn-cancel-delete {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .codigo-input {
+    font-size: 1.1rem;
+    letter-spacing: 0.2rem;
+  }
+}
+
+/* ============= ESTILOS PARA GESTIÓN DE ROLES ADMIN ============= */
+
+/* Usuario avatar en tabla */
+.user-avatar i {
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.user-avatar:hover i {
+  color: #495057;
+}
+
+/* Badges de roles */
+.badge.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+/* Tabla de usuarios */
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+/* Dropdown de acciones */
+.dropdown-toggle::after {
+  margin-left: 0.5rem;
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(2px);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: #f8d7da;
+  color: #721c24 !important;
+}
+
+/* Modal de cambio de rol */
+.modal-content {
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.modal-header .modal-title {
+  font-weight: 600;
+  color: #495057;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  background-color: #ffffff;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Formulario de autorización segura */
+#formCambioRol .form-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+#formCambioRol .form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+#formCambioRol .is-valid {
+  border-color: #198754;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.82 1.82 2.86-2.86.94.94L4.07 9.5z'/%3e%3c/svg%3e");
+}
+
+#formCambioRol .is-invalid {
+  border-color: #dc3545;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.5 5.5 1 1m0 0 1 1m-1-1 1-1m-1 1-1 1'/%3e%3c/svg%3e");
+}
+
+/* Alertas de seguridad específicas */
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+  border-left: 4px solid #dc3545;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+  color: #664d03;
+  border-left: 4px solid #ffc107;
+}
+
+/* Checkboxes de confirmación */
+.form-check-input:checked {
+  background-color: #198754;
+  border-color: #198754;
+}
+
+.form-check-input:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Botón de autorización */
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #b02a37 0%, #9a242e 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading estados */
+.btn-loading {
+  display: inline-flex !important;
+  align-items: center;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Filtros de administración */
+.form-select:focus,
+.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Cards de estadísticas admin */
+.loom-charts-1,
+.loom-charts-2,
+.loom-charts-3,
+.loom-charts-4 {
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+
+.loom-charts-1:hover,
+.loom-charts-2:hover,
+.loom-charts-3:hover,
+.loom-charts-4:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsividad para gestión de roles */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+  
+  .btn-group .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .dropdown-menu {
+    font-size: 0.9rem;
+  }
+  
+  .user-avatar i {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .table-responsive table {
+    font-size: 0.8rem;
+  }
+  
+  .badge {
+    font-size: 0.7rem;
+  }
+}
