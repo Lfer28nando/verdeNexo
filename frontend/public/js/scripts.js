@@ -111,62 +111,9 @@ function updateUserInterface(usuario) {
     if (userNameElement) {
       userNameElement.innerText = usuario.nombre;
     }
-
-    // Actualizar información del rol en el panel de usuario
-    updateUserRoleDisplay(usuario.rol);
   } else {
     console.log('No se encontraron los elementos necesarios');
   }
-}
-
-// Función para actualizar la visualización del rol del usuario
-function updateUserRoleDisplay(rol) {
-  const userRoleElement = document.getElementById('userRole');
-  const adminPanelAction = document.getElementById('adminPanelAction');
-  const vendedorAction = document.getElementById('vendedorAction');
-
-  if (userRoleElement) {
-    // Limpiar clases anteriores
-    userRoleElement.classList.remove('rol-admin', 'rol-vendedor', 'rol-cliente');
-    
-    // Actualizar texto y clase según el rol
-    switch (rol) {
-      case 'admin':
-        userRoleElement.textContent = 'Administrador';
-        userRoleElement.classList.add('rol-admin');
-        // Mostrar botón de panel admin y ocultar botón de ser vendedor
-        if (adminPanelAction) adminPanelAction.style.display = 'flex';
-        if (vendedorAction) vendedorAction.style.display = 'none';
-        break;
-      case 'vendedor':
-        userRoleElement.textContent = 'Vendedor';
-        userRoleElement.classList.add('rol-vendedor');
-        // Ocultar ambos botones especiales
-        if (adminPanelAction) adminPanelAction.style.display = 'none';
-        if (vendedorAction) vendedorAction.style.display = 'none';
-        break;
-      case 'cliente':
-      default:
-        userRoleElement.textContent = 'Cliente';
-        userRoleElement.classList.add('rol-cliente');
-        // Ocultar panel admin y mostrar botón de ser vendedor
-        if (adminPanelAction) adminPanelAction.style.display = 'none';
-        if (vendedorAction) vendedorAction.style.display = 'flex';
-        break;
-    }
-  }
-}
-
-// Función para ir al panel de administrador
-function irAPanelAdmin() {
-  // Cerrar el modal del panel de usuario
-  const modal = bootstrap.Modal.getInstance(document.getElementById('userPanelModal'));
-  if (modal) {
-    modal.hide();
-  }
-  
-  // Redirigir al panel de administrador
-  window.location.href = '/admin';
 }
 
 
@@ -319,9 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userNameElement) {
       userNameElement.innerText = usuario.nombre;
     }
-
-    // Actualizar rol y funcionalidades según el tipo de usuario
-    updateUserRoleDisplay(usuario.rol);
   } else {
     console.log('Sin usuario - mostrando botones');
     botones.style.display = 'flex';
@@ -551,6 +495,318 @@ function togglePhotoUpload() {
 // Editar perfil
 function editarPerfil() {
   alert('Funcionalidad de editar perfil (implementar luego)');
+}
+
+// Abrir modal de editar perfil
+function abrirEditarPerfil() {
+  // Cerrar el modal del panel de usuario
+  const userPanelModal = bootstrap.Modal.getInstance(document.getElementById('userPanelModal'));
+  if (userPanelModal) {
+    userPanelModal.hide();
+  }
+  
+  // Cargar datos actuales del usuario
+  cargarDatosUsuario();
+  
+  // Abrir modal de editar perfil
+  const editModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+  editModal.show();
+}
+
+// Cargar datos actuales del usuario en el formulario
+async function cargarDatosUsuario() {
+  try {
+    const data = await apiService.get('/api/auth/me');
+    const usuario = data.usuario;
+    
+    // Llenar los campos del formulario
+    document.getElementById('editNombre').value = usuario.nombre || '';
+    document.getElementById('editEmail').value = usuario.email || '';
+    document.getElementById('editTelefono').value = usuario.telefono || '';
+    document.getElementById('editDireccion').value = usuario.direccion || '';
+    document.getElementById('editDocumento').value = usuario.documento || '';
+    
+    // Limpiar campos de contraseña
+    document.getElementById('editPassword').value = '';
+    document.getElementById('editConfirmPassword').value = '';
+    
+  } catch (error) {
+    console.error('Error al cargar datos del usuario:', error);
+    mostrarAlerta('Error al cargar los datos del perfil', 'error');
+  }
+}
+
+// Toggle para mostrar/ocultar campos de contraseña
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('togglePasswordSection');
+  const passwordFields = document.getElementById('passwordFields');
+  const toggleText = document.getElementById('passwordToggleText');
+  
+  if (toggleBtn && passwordFields && toggleText) {
+    toggleBtn.addEventListener('click', function() {
+      if (passwordFields.style.display === 'none') {
+        passwordFields.style.display = 'block';
+        toggleText.textContent = 'Ocultar';
+      } else {
+        passwordFields.style.display = 'none';
+        toggleText.textContent = 'Mostrar';
+        // Limpiar campos cuando se ocultan
+        document.getElementById('editPassword').value = '';
+        document.getElementById('editConfirmPassword').value = '';
+      }
+    });
+  }
+});
+
+// Validaciones en tiempo real para editar perfil
+document.addEventListener('DOMContentLoaded', function() {
+  // Validación del nombre
+  const editNombre = document.getElementById('editNombre');
+  if (editNombre) {
+    editNombre.addEventListener('input', function() {
+      const valor = this.value.trim();
+      const isValid = valor.length >= 3 && valor.length <= 25 && /^[a-zA-Z0-9_]+$/.test(valor);
+      
+      this.classList.toggle('is-valid', isValid && valor.length > 0);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+    });
+  }
+
+  // Validación del email
+  const editEmail = document.getElementById('editEmail');
+  if (editEmail) {
+    editEmail.addEventListener('input', function() {
+      const valor = this.value.trim();
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
+      
+      this.classList.toggle('is-valid', isValid);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+    });
+  }
+
+  // Validación del teléfono
+  const editTelefono = document.getElementById('editTelefono');
+  if (editTelefono) {
+    editTelefono.addEventListener('input', function() {
+      const valor = this.value.trim();
+      const isValid = /^\d{10}$/.test(valor) || valor === '';
+      
+      this.classList.toggle('is-valid', isValid && valor.length > 0);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+    });
+  }
+
+  // Validación del documento
+  const editDocumento = document.getElementById('editDocumento');
+  if (editDocumento) {
+    editDocumento.addEventListener('input', function() {
+      const valor = this.value.trim();
+      const isValid = /^\d{7,10}$/.test(valor) || valor === '';
+      
+      this.classList.toggle('is-valid', isValid && valor.length > 0);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+    });
+  }
+
+  // Validación de la contraseña
+  const editPassword = document.getElementById('editPassword');
+  const editConfirmPassword = document.getElementById('editConfirmPassword');
+  
+  if (editPassword) {
+    editPassword.addEventListener('input', function() {
+      const valor = this.value;
+      const isValid = valor.length >= 6 && /\d/.test(valor) || valor === '';
+      
+      this.classList.toggle('is-valid', isValid && valor.length > 0);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+      
+      // Validar también la confirmación si ya tiene contenido
+      if (editConfirmPassword && editConfirmPassword.value) {
+        validatePasswordConfirmation();
+      }
+    });
+  }
+
+  if (editConfirmPassword) {
+    editConfirmPassword.addEventListener('input', validatePasswordConfirmation);
+  }
+
+  function validatePasswordConfirmation() {
+    const password = editPassword.value;
+    const confirmPassword = editConfirmPassword.value;
+    const isValid = password === confirmPassword;
+    
+    editConfirmPassword.classList.toggle('is-valid', isValid && confirmPassword.length > 0);
+    editConfirmPassword.classList.toggle('is-invalid', !isValid && confirmPassword.length > 0);
+  }
+});
+
+// Manejar envío del formulario de editar perfil
+document.addEventListener('DOMContentLoaded', function() {
+  const editForm = document.getElementById('editProfileForm');
+  if (editForm) {
+    editForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btnActualizar = document.getElementById('btnActualizar');
+      const btnText = btnActualizar.querySelector('.btn-text');
+      const btnLoading = btnActualizar.querySelector('.btn-loading');
+      
+      try {
+        // Validar formulario antes de enviar
+        if (!validarFormularioCompleto()) {
+          mostrarAlerta('Por favor, corrige los errores en el formulario', 'error');
+          return;
+        }
+        
+        // Mostrar estado de carga
+        btnActualizar.disabled = true;
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline-flex';
+        
+        // Obtener datos del formulario
+        const formData = new FormData(editForm);
+        const updateData = {};
+        
+        // Solo incluir campos que no estén vacíos
+        if (formData.get('nombre').trim()) updateData.nombre = formData.get('nombre').trim();
+        if (formData.get('email').trim()) updateData.email = formData.get('email').trim();
+        if (formData.get('telefono').trim()) updateData.telefono = formData.get('telefono').trim();
+        if (formData.get('direccion').trim()) updateData.direccion = formData.get('direccion').trim();
+        if (formData.get('documento').trim()) updateData.documento = formData.get('documento').trim();
+        
+        // Validar contraseña si se proporcionó
+        const password = formData.get('password');
+        const confirmPassword = document.getElementById('editConfirmPassword').value;
+        
+        if (password && password.trim()) {
+          if (password !== confirmPassword) {
+            throw new Error('Las contraseñas no coinciden');
+          }
+          updateData.password = password;
+        }
+        
+        // Verificar que al menos un campo esté siendo actualizado
+        if (Object.keys(updateData).length === 0) {
+          throw new Error('Debes modificar al menos un campo para actualizar');
+        }
+        
+        // Enviar actualización
+        const response = await apiService.put('/api/auth/me', updateData);
+        
+        // Actualizar localStorage con los nuevos datos
+        const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+        const usuarioActualizado = { ...usuarioActual, ...response.usuario };
+        localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
+        
+        // Actualizar interfaz
+        updateUserInterface(usuarioActualizado);
+        
+        // Mostrar mensaje de éxito
+        mostrarAlerta('Perfil actualizado correctamente', 'success');
+        
+        // Cerrar modal
+        const editModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+        if (editModal) {
+          editModal.hide();
+        }
+        
+        // Limpiar formulario
+        limpiarFormularioEdicion();
+        
+      } catch (error) {
+        console.error('Error al actualizar perfil:', error);
+        mostrarAlerta(error.message || 'Error al actualizar el perfil', 'error');
+      } finally {
+        // Restaurar estado del botón
+        btnActualizar.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+      }
+    });
+  }
+});
+
+// Función para validar todo el formulario
+function validarFormularioCompleto() {
+  const nombre = document.getElementById('editNombre').value.trim();
+  const email = document.getElementById('editEmail').value.trim();
+  const telefono = document.getElementById('editTelefono').value.trim();
+  const documento = document.getElementById('editDocumento').value.trim();
+  const password = document.getElementById('editPassword').value;
+  const confirmPassword = document.getElementById('editConfirmPassword').value;
+  
+  // Validar campos obligatorios
+  if (!nombre || nombre.length < 3 || nombre.length > 25 || !/^[a-zA-Z0-9_]+$/.test(nombre)) {
+    return false;
+  }
+  
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return false;
+  }
+  
+  // Validar campos opcionales si están llenos
+  if (telefono && !/^\d{10}$/.test(telefono)) {
+    return false;
+  }
+  
+  if (documento && !/^\d{7,10}$/.test(documento)) {
+    return false;
+  }
+  
+  // Validar contraseña si se está cambiando
+  if (password) {
+    if (password.length < 6 || !/\d/.test(password)) {
+      return false;
+    }
+    if (password !== confirmPassword) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// Función para limpiar el formulario de edición
+function limpiarFormularioEdicion() {
+  const form = document.getElementById('editProfileForm');
+  if (form) {
+    // Limpiar clases de validación
+    form.querySelectorAll('.form-control').forEach(input => {
+      input.classList.remove('is-valid', 'is-invalid');
+    });
+    
+    // Ocultar campos de contraseña si están visibles
+    const passwordFields = document.getElementById('passwordFields');
+    const toggleText = document.getElementById('passwordToggleText');
+    if (passwordFields && passwordFields.style.display !== 'none') {
+      passwordFields.style.display = 'none';
+      toggleText.textContent = 'Mostrar';
+    }
+  }
+}
+
+// Función para mostrar alertas
+function mostrarAlerta(mensaje, tipo = 'info') {
+  // Crear elemento de alerta
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${tipo === 'error' ? 'danger' : tipo} alert-dismissible fade show position-fixed`;
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+  
+  alertDiv.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+  `;
+  
+  // Agregar al body
+  document.body.appendChild(alertDiv);
+  
+  // Auto-remove después de 5 segundos
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.remove();
+    }
+  }, 5000);
 }
 
 // Subir foto

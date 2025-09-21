@@ -978,56 +978,119 @@
   color: #007bff !important;
 }
 
-/* Estilos específicos para roles de usuario */
-.admin-only {
-  border-left: 4px solid #dc3545;
+/* Estilos para el modal de editar perfil */
+.password-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #e9ecef;
 }
 
-.admin-only .action-icon {
-  background: linear-gradient(135deg, #dc3545, #e85d75);
-  color: white;
-}
-
-.admin-only:hover {
-  background: linear-gradient(135deg, #f8f9fa, #fff5f5);
-  border-color: #dc3545;
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
-}
-
-.admin-only .action-title {
-  color: #dc3545;
+.password-section h6 {
+  color: #495057;
   font-weight: 600;
 }
 
-.cliente-only {
-  display: block;
+#passwordFields {
+  transition: all 0.3s ease;
 }
 
-.vendedor-only {
-  display: block;
+#passwordFields .form-control {
+  margin-bottom: 0.5rem;
 }
 
-/* Indicador de rol en el panel */
-#userRole {
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 12px;
+/* Botón de toggle para mostrar/ocultar contraseña */
+#togglePasswordSection {
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-#userRole.rol-admin {
-  background: linear-gradient(135deg, #dc3545, #e85d75);
-  color: white;
+#togglePasswordSection:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
 }
 
-#userRole.rol-vendedor {
-  background: linear-gradient(135deg, #ffc107, #ffda6a);
-  color: #212529;
+/* Estilos para el botón de actualizar con loading */
+.btn-loading {
+  display: inline-flex;
+  align-items: center;
 }
 
-#userRole.rol-cliente {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
+.btn-loading .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Alertas flotantes */
+.alert.position-fixed {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos específicos para campos de perfil */
+#editProfileForm .form-control:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+#editProfileForm .form-text {
+  color: #6c757d;
+  font-size: 0.85em;
+}
+
+/* Separador visual en el modal */
+#editProfileForm .password-section {
+  position: relative;
+}
+
+#editProfileForm .password-section::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  right: 1rem;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #dee2e6, transparent);
+}
+
+/* Mejoras visuales para el formulario */
+#editProfileForm .form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+#editProfileForm .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+/* Responsive para móviles */
+@media (max-width: 576px) {
+  #editProfileModal .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .password-section {
+    padding: 0.75rem;
+  }
+  
+  .alert.position-fixed {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
 }

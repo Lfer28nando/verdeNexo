@@ -58,7 +58,7 @@
             </div>
           </div>
 
-          <div class="action-item" onclick="editarPerfil()">
+          <div class="action-item" onclick="abrirEditarPerfil()">
             <div class="action-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -153,6 +153,89 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Editar Perfil -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-register">
+    <div class="modal-content register-card">
+      <div class="modal-header register-header">
+        <h5 class="modal-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Editar Perfil
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      
+      <form id="editProfileForm" class="modal-body register-body">
+        <div class="mb-3">
+          <label for="editNombre" class="form-label">Nombre de usuario</label>
+          <input type="text" class="form-control register-input" id="editNombre" name="nombre" required>
+          <div class="form-text">Entre 3 y 25 caracteres. Solo letras, números y guiones bajos.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="editEmail" class="form-label">Correo electrónico</label>
+          <input type="email" class="form-control register-input" id="editEmail" name="email" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="editTelefono" class="form-label">Teléfono</label>
+          <input type="tel" class="form-control register-input" id="editTelefono" name="telefono" placeholder="3001234567">
+          <div class="form-text">Opcional. 10 dígitos sin espacios ni guiones.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="editDireccion" class="form-label">Dirección</label>
+          <input type="text" class="form-control register-input" id="editDireccion" name="direccion" placeholder="Calle 123 #45-67">
+          <div class="form-text">Opcional. Dirección de entrega preferida.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="editDocumento" class="form-label">Documento de identidad</label>
+          <input type="text" class="form-control register-input" id="editDocumento" name="documento" placeholder="1234567890">
+          <div class="form-text">Opcional. Entre 7 y 10 dígitos.</div>
+        </div>
+
+        <!-- Sección opcional para cambiar contraseña -->
+        <div class="password-section">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="mb-0">Cambiar contraseña</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="togglePasswordSection">
+              <span id="passwordToggleText">Mostrar</span>
+            </button>
+          </div>
+          
+          <div id="passwordFields" style="display: none;">
+            <div class="mb-3">
+              <label for="editPassword" class="form-label">Nueva contraseña</label>
+              <input type="password" class="form-control register-input" id="editPassword" name="password">
+              <div class="form-text">Mínimo 6 caracteres con al menos un número.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="editConfirmPassword" class="form-label">Confirmar nueva contraseña</label>
+              <input type="password" class="form-control register-input" id="editConfirmPassword">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer register-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" id="btnActualizar" class="btn register-submit">
+            <span class="btn-text">Actualizar perfil</span>
+            <span class="btn-loading" style="display: none;">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Actualizando...
+            </span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
