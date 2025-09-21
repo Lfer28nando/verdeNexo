@@ -37,6 +37,27 @@
 
         <!-- Acciones principales -->
         <div class="user-actions">
+          <!-- Botón Panel Administrador (solo para admins) -->
+          <div class="action-item admin-only" id="adminPanelAction" onclick="irAPanelAdmin()" style="display: none;">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path>
+                <path d="M12 12l8-4.5"></path>
+                <path d="M12 12v9"></path>
+                <path d="M12 12L4 7.5"></path>
+              </svg>
+            </div>
+            <div class="action-content">
+              <span class="action-title">Panel Administrador</span>
+              <span class="action-subtitle">Acceder a funciones administrativas</span>
+            </div>
+            <div class="action-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9,18 15,12 9,6"></polyline>
+              </svg>
+            </div>
+          </div>
+
           <div class="action-item" onclick="editarPerfil()">
             <div class="action-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,7 +95,8 @@
             </div>
           </div>
 
-          <div class="action-item" onclick="solicitarPermiso()">
+          <!-- Botón Ser Vendedor (solo para clientes) -->
+          <div class="action-item cliente-only" id="vendedorAction" onclick="solicitarPermiso()">
             <div class="action-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 7h-9"></path>
