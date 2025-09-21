@@ -87,13 +87,19 @@ class ApiService {
         const data = await response.json();
         
         if (!response.ok) {
-            // Si es error 401, posiblemente la API key sea incorrecta
+            // Si es error 401, verificar si es API key o error de autenticación
             if (response.status === 401) {
-                console.error('Error de autenticación: Verifica la API key');
-                throw new Error('API key inválida o ausente');
+                // Si el mensaje indica problema de API key, mostrar ese error
+                if (data.mensaje && data.mensaje.includes('API key')) {
+                    console.error('Error de API key:', data.mensaje);
+                    throw new Error(data.mensaje);
+                }
+                // Si no, es un error de autenticación normal (login, etc.)
+                console.error('Error de autenticación:', data.mensaje || data.error);
+                throw new Error(data.error || data.mensaje || 'Error de autenticación');
             }
             // Otros errores
-            throw new Error(data.mensaje || `Error HTTP: ${response.status}`);
+            throw new Error(data.mensaje || data.error || `Error HTTP: ${response.status}`);
         }
         
         return data;

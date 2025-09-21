@@ -1,4 +1,5 @@
 async function register(e) {
+  console.log('Función register llamada');
   e.preventDefault();
 
   // Obtener valores de los campos
@@ -8,6 +9,8 @@ async function register(e) {
   const confirmPassword = document.getElementById('registerConfirm').value;
   const telefono = document.getElementById('registerTelefono').value.trim();
   const politicas = document.getElementById('registerPoliticas').checked;
+
+  console.log('Datos de registro:', { nombre, email, telefono, politicas });
 
   // Validaciones del lado del cliente
   let hasErrors = false;
@@ -106,6 +109,18 @@ function updateUserInterface(usuario) {
     botones.classList.add('d-none');
     avatar.style.display = 'block';
     avatar.classList.remove('d-none');
+    
+    // Configurar click en el avatar para abrir el modal del usuario
+    const avatarImg = document.getElementById('avatarImg');
+    if (avatarImg) {
+      // Remover event listeners anteriores de forma más suave
+      avatarImg.removeEventListener('click', abrirModalUsuario);
+      
+      // Agregar nuevo event listener
+      avatarImg.addEventListener('click', function() {
+        abrirModalUsuario(usuario);
+      });
+    }
     
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
@@ -292,49 +307,45 @@ async function cerrarSesion() {
   // Llamar inmediatamente al cargar la vista
 
 // Mostrar panel si hay usuario logueado
-document.addEventListener('DOMContentLoaded', () => {
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
-  const panel = document.getElementById('userPanel');
-  const botones = document.getElementById('botonesSesion');
-  const avatar = document.getElementById('avatarSesion');
-
-  console.log('Usuario:', usuario);
-  console.log('Botones element:', botones);
-  console.log('Avatar element:', avatar);
-
-  if (usuario) {
-    console.log('Usuario logueado - ocultando botones');
-    botones.style.display = 'none';
-    botones.classList.add('d-none');
-    avatar.style.display = 'block';
-    avatar.classList.remove('d-none');
-
-    document.getElementById('avatarImg')?.addEventListener('click', () => {
-      const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
-      modal.show();
-    });
-
-    // Mostrar nombre
-    const userNameElement = document.getElementById('userName');
-    if (userNameElement) {
-      userNameElement.innerText = usuario.nombre;
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM cargado, verificando estado de autenticación...');
+  
+  // Primero verificar con el backend si hay un token válido
+  const autenticado = await verificarEstadoAutenticacion();
+  
+  if (!autenticado) {
+    // Si no está autenticado, verificar localStorage como fallback
+    const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+    
+    if (usuario) {
+      console.log('Usuario en localStorage pero sin token válido, limpiando...');
+      localStorage.removeItem('usuario');
     }
-
-    // Actualizar rol y funcionalidades según el tipo de usuario
-    updateUserRoleDisplay(usuario.rol);
-  } else {
-    console.log('Sin usuario - mostrando botones');
-    botones.style.display = 'flex';
-    botones.classList.remove('d-none');
-    avatar.style.display = 'none';
-    avatar.classList.add('d-none');
+    
+    mostrarBotonesSesion();
   }
+  
+  console.log('Verificación de autenticación completada');
 
-  // Validación en tiempo real para el formulario de registro
+  // Inicializar otras funcionalidades de la página
+  updateUserRoleDisplay();
+  
+  // Configurar validaciones de formularios
   setupRegistrationValidation();
   
-  // Validación en tiempo real para el formulario de login
-  setupLoginValidation();
+  // Debug: Verificar que los modales funcionen
+  console.log('Verificando modales...');
+  const registerBtn = document.querySelector('[data-bs-target="#registerModal"]');
+  const loginBtn = document.querySelector('[data-bs-target="#loginModal"]');
+  
+  console.log('Botón registro encontrado:', registerBtn);
+  console.log('Botón login encontrado:', loginBtn);
+  
+  if (registerBtn) {
+    registerBtn.addEventListener('click', function() {
+      console.log('Click en botón de registro detectado');
+    });
+  }
 });
 
 // Configurar validación en tiempo real para el login
@@ -408,10 +419,18 @@ function checkLoginFormValidity() {
   submitBtn.disabled = !isValid;
 }
 function setupRegistrationValidation() {
+  console.log('Configurando validaciones de registro...');
   const passwordInput = document.getElementById('registerPassword');
   const confirmInput = document.getElementById('registerConfirm');
   const submitBtn = document.getElementById('btnRegistrar');
   const politicasCheckbox = document.getElementById('registerPoliticas');
+
+  console.log('Elementos encontrados:', {
+    passwordInput,
+    confirmInput,
+    submitBtn,
+    politicasCheckbox
+  });
 
   if (passwordInput) {
     passwordInput.addEventListener('input', function() {
@@ -442,12 +461,21 @@ function setupRegistrationValidation() {
 
 // Verificar si el formulario es válido para habilitar/deshabilitar el botón
 function checkFormValidity() {
+  console.log('Verificando validez del formulario...');
   const nombre = document.getElementById('registerNombre')?.value.trim();
   const email = document.getElementById('registerEmail')?.value.trim();
   const password = document.getElementById('registerPassword')?.value;
   const confirm = document.getElementById('registerConfirm')?.value;
   const politicas = document.getElementById('registerPoliticas')?.checked;
   const submitBtn = document.getElementById('btnRegistrar');
+
+  console.log('Valores del formulario:', {
+    nombre,
+    email,
+    password: password ? '[PRESENTE]' : '[VACÍO]',
+    confirm: confirm ? '[PRESENTE]' : '[VACÍO]',
+    politicas
+  });
 
   if (!submitBtn) return;
 
@@ -457,6 +485,7 @@ function checkFormValidity() {
                   password === confirm &&
                   politicas;
 
+  console.log('Formulario válido:', isValid);
   submitBtn.disabled = !isValid;
 }
 
@@ -583,6 +612,7 @@ async function cargarDatosUsuario() {
     document.getElementById('editDocumento').value = usuario.documento || '';
     
     // Limpiar campos de contraseña
+    document.getElementById('editCurrentPassword').value = '';
     document.getElementById('editPassword').value = '';
     document.getElementById('editConfirmPassword').value = '';
     
@@ -607,6 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordFields.style.display = 'none';
         toggleText.textContent = 'Mostrar';
         // Limpiar campos cuando se ocultan
+        document.getElementById('editCurrentPassword').value = '';
         document.getElementById('editPassword').value = '';
         document.getElementById('editConfirmPassword').value = '';
       }
@@ -665,8 +696,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Validación de la contraseña
+  const editCurrentPassword = document.getElementById('editCurrentPassword');
   const editPassword = document.getElementById('editPassword');
   const editConfirmPassword = document.getElementById('editConfirmPassword');
+  
+  if (editCurrentPassword) {
+    editCurrentPassword.addEventListener('input', function() {
+      const valor = this.value;
+      const isValid = valor.length >= 6 || valor === '';
+      
+      this.classList.toggle('is-valid', isValid && valor.length > 0);
+      this.classList.toggle('is-invalid', !isValid && valor.length > 0);
+    });
+  }
   
   if (editPassword) {
     editPassword.addEventListener('input', function() {
@@ -724,42 +766,77 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(editForm);
         const updateData = {};
         
-        // Solo incluir campos que no estén vacíos
+        // Solo incluir campos que no estén vacíos para actualización de perfil
         if (formData.get('nombre').trim()) updateData.nombre = formData.get('nombre').trim();
         if (formData.get('email').trim()) updateData.email = formData.get('email').trim();
         if (formData.get('telefono').trim()) updateData.telefono = formData.get('telefono').trim();
         if (formData.get('direccion').trim()) updateData.direccion = formData.get('direccion').trim();
         if (formData.get('documento').trim()) updateData.documento = formData.get('documento').trim();
         
-        // Validar contraseña si se proporcionó
-        const password = formData.get('password');
+        // Manejar cambio de contraseña por separado
+        const currentPassword = document.getElementById('editCurrentPassword').value;
+        const newPassword = document.getElementById('editPassword').value;
         const confirmPassword = document.getElementById('editConfirmPassword').value;
         
-        if (password && password.trim()) {
-          if (password !== confirmPassword) {
-            throw new Error('Las contraseñas no coinciden');
+        let passwordChanged = false;
+        
+        // Si se quiere cambiar la contraseña, usar el endpoint específico
+        if (currentPassword || newPassword || confirmPassword) {
+          if (!currentPassword) {
+            throw new Error('Debes ingresar tu contraseña actual para cambiarla');
           }
-          updateData.password = password;
+          if (!newPassword) {
+            throw new Error('Debes ingresar la nueva contraseña');
+          }
+          if (newPassword !== confirmPassword) {
+            throw new Error('Las contraseñas nuevas no coinciden');
+          }
+          
+          // Cambiar contraseña usando endpoint específico
+          await apiService.post('/api/auth/password/change', {
+            actualPassword: currentPassword,
+            nuevaPassword: newPassword,
+            confirmarPassword: confirmPassword
+          });
+          
+          passwordChanged = true;
         }
         
-        // Verificar que al menos un campo esté siendo actualizado
-        if (Object.keys(updateData).length === 0) {
-          throw new Error('Debes modificar al menos un campo para actualizar');
+        let response = null;
+        
+        // Actualizar otros datos del perfil si hay cambios
+        if (Object.keys(updateData).length > 0) {
+          response = await apiService.put('/api/auth/me', updateData);
         }
         
-        // Enviar actualización
-        const response = await apiService.put('/api/auth/me', updateData);
+        // Si se cambió la contraseña, manejar el cierre de sesión
+        if (passwordChanged) {
+          mostrarAlerta('Contraseña cambiada correctamente. Serás redirigido al login.', 'success');
+          
+          // Limpiar localStorage y redirigir después de 2 segundos
+          setTimeout(() => {
+            localStorage.removeItem('usuario');
+            window.location.reload();
+          }, 2000);
+          
+          return; // No continuar con la actualización de interfaz
+        }
         
-        // Actualizar localStorage con los nuevos datos
-        const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-        const usuarioActualizado = { ...usuarioActual, ...response.usuario };
-        localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
-        
-        // Actualizar interfaz
-        updateUserInterface(usuarioActualizado);
-        
-        // Mostrar mensaje de éxito
-        mostrarAlerta('Perfil actualizado correctamente', 'success');
+        // Si solo se actualizó el perfil (sin contraseña)
+        if (response) {
+          // Actualizar localStorage con los nuevos datos
+          const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
+          const usuarioActualizado = { ...usuarioActual, ...response.usuario };
+          localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
+          
+          // Actualizar interfaz
+          updateUserInterface(usuarioActualizado);
+          
+          // Mostrar mensaje de éxito
+          mostrarAlerta('Perfil actualizado correctamente', 'success');
+        } else if (!passwordChanged) {
+          throw new Error('No se realizaron cambios en el perfil');
+        }
         
         // Cerrar modal
         const editModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
@@ -789,6 +866,7 @@ function validarFormularioCompleto() {
   const email = document.getElementById('editEmail').value.trim();
   const telefono = document.getElementById('editTelefono').value.trim();
   const documento = document.getElementById('editDocumento').value.trim();
+  const currentPassword = document.getElementById('editCurrentPassword').value;
   const password = document.getElementById('editPassword').value;
   const confirmPassword = document.getElementById('editConfirmPassword').value;
   
@@ -811,8 +889,12 @@ function validarFormularioCompleto() {
   }
   
   // Validar contraseña si se está cambiando
-  if (password) {
-    if (password.length < 6 || !/\d/.test(password)) {
+  if (currentPassword || password || confirmPassword) {
+    // Si se ingresa algún campo de contraseña, todos son obligatorios
+    if (!currentPassword || currentPassword.length < 6) {
+      return false;
+    }
+    if (!password || password.length < 6 || !/\d/.test(password)) {
       return false;
     }
     if (password !== confirmPassword) {
@@ -838,6 +920,11 @@ function limpiarFormularioEdicion() {
     if (passwordFields && passwordFields.style.display !== 'none') {
       passwordFields.style.display = 'none';
       toggleText.textContent = 'Mostrar';
+      
+      // Limpiar campos de contraseña
+      document.getElementById('editCurrentPassword').value = '';
+      document.getElementById('editPassword').value = '';
+      document.getElementById('editConfirmPassword').value = '';
     }
   }
 }
@@ -980,4 +1067,59 @@ function moverSlider(direccion) {
   const slider = document.getElementById("loomSlider");
   const itemWidth = slider.querySelector(".loom-item").offsetWidth + 16; // ancho + gap
   slider.scrollLeft += direccion * itemWidth * 1; // mover 1 ítems
+}
+
+// Función para verificar el estado de autenticación real
+async function verificarEstadoAutenticacion() {
+  try {
+    const response = await apiService.get('/api/auth/me');
+    
+    if (response.usuario) {
+      // Usuario autenticado, actualizar localStorage y UI
+      localStorage.setItem('usuario', JSON.stringify(response.usuario));
+      updateUserInterface(response.usuario);
+      return true;
+    }
+  } catch (error) {
+    console.log('Usuario no autenticado:', error.message);
+    // Limpiar datos de localStorage si el token no es válido
+    localStorage.removeItem('usuario');
+    mostrarBotonesSesion();
+    return false;
+  }
+}
+
+// Función para mostrar botones de sesión cuando no hay usuario logueado
+function mostrarBotonesSesion() {
+  const botones = document.getElementById('botonesSesion');
+  const avatar = document.getElementById('avatarSesion');
+  
+  if (botones) {
+    botones.style.display = 'block';
+    botones.classList.remove('d-none');
+  }
+  
+  if (avatar) {
+    avatar.style.display = 'none';
+    avatar.classList.add('d-none');
+  }
+}
+
+// Función para abrir el modal del usuario
+function abrirModalUsuario(usuario) {
+  // Actualizar la información del usuario en el modal
+  const nombreUsuario = document.getElementById('userName');
+  const emailUsuario = document.getElementById('userEmail');
+  const rolUsuario = document.getElementById('userRole');
+  
+  if (nombreUsuario) nombreUsuario.textContent = usuario.nombre;
+  if (emailUsuario) emailUsuario.textContent = usuario.email;
+  if (rolUsuario) rolUsuario.textContent = usuario.rol;
+  
+  // Actualizar la visualización del rol
+  updateUserRoleDisplay(usuario.rol);
+  
+  // Abrir el modal
+  const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
+  modal.show();
 }

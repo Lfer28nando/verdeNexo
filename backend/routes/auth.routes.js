@@ -35,6 +35,14 @@ router.post('/registro', async (req, res) => {
     });
 
     if (resultadoCorreo.ok) {
+      // Crear token JWT para el usuario recién registrado
+      const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600000
+      });
+      
       res.status(201).json({ 
         mensaje: 'Usuario registrado exitosamente', 
         usuario: {
@@ -46,6 +54,14 @@ router.post('/registro', async (req, res) => {
       });
     } else {
       // Usuario creado pero falló el correo
+      // Crear token JWT para el usuario recién registrado
+      const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600000
+      });
+      
       res.status(201).json({ 
         mensaje: 'Usuario registrado, pero no se pudo enviar el correo de bienvenida', 
         usuario: {
