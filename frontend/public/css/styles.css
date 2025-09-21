@@ -1094,3 +1094,57 @@
     max-width: none;
   }
 }
+
+/* Estilos específicos para roles de usuario */
+.admin-only {
+  border-left: 4px solid #dc3545;
+}
+
+.admin-only .action-icon {
+  background: linear-gradient(135deg, #dc3545, #e85d75);
+  color: white;
+}
+
+.admin-only:hover {
+  background: linear-gradient(135deg, #f8f9fa, #fff5f5);
+  border-color: #dc3545;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+}
+
+.admin-only .action-title {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.cliente-only {
+  display: block;
+}
+
+.vendedor-only {
+  display: block;
+}
+
+/* Indicador de rol en el panel */
+#userRole {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rol-admin {
+  background: linear-gradient(135deg, #dc3545, #e85d75);
+  color: white;
+}
+
+.rol-vendedor {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+}
+
+.rol-cliente {
+  background: linear-gradient(135deg, #007bff, #339dff);
+  color: white;
+}

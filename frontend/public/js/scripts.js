@@ -111,9 +111,62 @@ function updateUserInterface(usuario) {
     if (userNameElement) {
       userNameElement.innerText = usuario.nombre;
     }
+
+    // Actualizar información del rol en el panel de usuario
+    updateUserRoleDisplay(usuario.rol);
   } else {
     console.log('No se encontraron los elementos necesarios');
   }
+}
+
+// Función para actualizar la visualización del rol del usuario
+function updateUserRoleDisplay(rol) {
+  const userRoleElement = document.getElementById('userRole');
+  const adminPanelAction = document.getElementById('adminPanelAction');
+  const vendedorAction = document.getElementById('vendedorAction');
+
+  if (userRoleElement) {
+    // Limpiar clases anteriores
+    userRoleElement.classList.remove('rol-admin', 'rol-vendedor', 'rol-cliente');
+    
+    // Actualizar texto y clase según el rol
+    switch (rol) {
+      case 'admin':
+        userRoleElement.textContent = 'Administrador';
+        userRoleElement.classList.add('rol-admin');
+        // Mostrar botón de panel admin y ocultar botón de ser vendedor
+        if (adminPanelAction) adminPanelAction.style.display = 'flex';
+        if (vendedorAction) vendedorAction.style.display = 'none';
+        break;
+      case 'vendedor':
+        userRoleElement.textContent = 'Vendedor';
+        userRoleElement.classList.add('rol-vendedor');
+        // Ocultar ambos botones especiales
+        if (adminPanelAction) adminPanelAction.style.display = 'none';
+        if (vendedorAction) vendedorAction.style.display = 'none';
+        break;
+      case 'cliente':
+      default:
+        userRoleElement.textContent = 'Cliente';
+        userRoleElement.classList.add('rol-cliente');
+        // Ocultar panel admin y mostrar botón de ser vendedor
+        if (adminPanelAction) adminPanelAction.style.display = 'none';
+        if (vendedorAction) vendedorAction.style.display = 'flex';
+        break;
+    }
+  }
+}
+
+// Función para ir al panel de administrador
+function irAPanelAdmin() {
+  // Cerrar el modal del panel de usuario
+  const modal = bootstrap.Modal.getInstance(document.getElementById('userPanelModal'));
+  if (modal) {
+    modal.hide();
+  }
+  
+  // Redirigir al panel de administrador
+  window.location.href = '/admin';
 }
 
 
@@ -266,6 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userNameElement) {
       userNameElement.innerText = usuario.nombre;
     }
+
+    // Actualizar rol y funcionalidades según el tipo de usuario
+    updateUserRoleDisplay(usuario.rol);
   } else {
     console.log('Sin usuario - mostrando botones');
     botones.style.display = 'flex';
