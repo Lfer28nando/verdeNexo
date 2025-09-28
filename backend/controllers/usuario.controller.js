@@ -36,9 +36,8 @@ class Validaciones {
   }
 }
 
-
 export class UsuarioController {
-  // RF-USU-01 - Registrar usuario.
+  // RF-USU-01 - Registrar usuario
   static async create({ nombre, email, password, telefono, direccion, documento }) {
     Validaciones.nombre(nombre);
     Validaciones.email(email);

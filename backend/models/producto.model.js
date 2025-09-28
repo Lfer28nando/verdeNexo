@@ -1,84 +1,95 @@
-//Importaciones:
+// models/producto.model.js
 import mongoose from "mongoose";
 
-//Esquema de Producto:
+const varianteSchema = new mongoose.Schema({
+  atributo: { type: String, required: true }, // ej: talla, color
+  valor: { type: String, required: true },    // ej: M, rojo
+  precio: { type: Number, default: 0 },
+  stock: { type: Number, default: 0 }
+}, { _id: false });
+
+const listaPrecioSchema = new mongoose.Schema({
+  canal: { type: String, required: true }, // ej: web, app, marketplace
+  precio: { type: Number, required: true }
+}, { _id: false });
+
+const calificacionSchema = new mongoose.Schema({
+  usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
+  estrellas: { type: Number, min: 1, max: 5 },
+  comentario: { type: String },
+  fecha: { type: Date, default: Date.now }
+}, { _id: false });
+
 const productoSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
-  precio: { type: Number, required: true },
-  disponibilidad: { type: Boolean, required: true },
-  imagen: { type: String, required: false }
+  descripcion: { type: String },
+  precioBase: { type: Number, required: true },
+  disponibilidad: { type: Boolean, default: true },
+
+  // RF-PROD-04
+  imagenes: [{ type: String }], // nombre de archivo
+  fichaTecnica: { type: String }, // archivo PDF u otro
+
+  // RF-PROD-05
+  variantes: [varianteSchema],
+
+  // RF-PROD-06
+  listasPrecios: [listaPrecioSchema],
+
+  // RF-PROD-08
+  seo: {
+    slug: { type: String, unique: true },
+    metaTitulo: { type: String },
+    metaDescripcion: { type: String }
+  },
+
+  // RF-PROD-15
+  calificaciones: [calificacionSchema],
+
+  // RF-PROD-16
+  etiquetas: [{ type: String }],
+
+  // RF-PROD-17
+  canalesVisibilidad: [{ type: String }], // ej: ['web', 'app']
+
+  // Extras para filtros y relaciones
+  categoria: { type: String },
+  relacionados: [{ type: mongoose.Schema.Types.ObjectId, ref: "Producto" }],
+
+  creadoEn: { type: Date, default: Date.now },
+  actualizadoEn: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
 
-//Modelo:
-const Producto = mongoose.model('Producto', productoSchema);
-
-// Clase productoModel con validaciones:
-export class productoModel {
-  // Crear producto
-  static async create({ nombre, precio, disponibilidad, imagen }) {
-    validacionesProducto.nombre(nombre);
-    validacionesProducto.precio(precio);
-    validacionesProducto.disponibilidad(disponibilidad);
-
-    const nuevoProducto = new Producto({
-      nombre,
-      precio,
-      disponibilidad,
-      imagen
-    });
-
-    return await nuevoProducto.save();
+// ============================
+// Pre-save para slug
+// ============================
+productoSchema.pre("save", function(next) {
+  if (!this.seo.slug && this.nombre) {
+    this.seo.slug = this.nombre.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar acentos
+      .replace(/\s+/g, "-"); // espacios por guiones
   }
+  next();
+});
 
-  // Obtener todos los productos
-  static async getAll() {
-    return await Producto.find();
-  }
+// ============================
+// Indexaciones RF-10 y RF-11
+// ============================
 
-  // Obtener producto por ID
-  static async getById(id) {
-    if (!mongoose.Types.ObjectId.isValid(id)) throw new Error('ID de producto no válido.');
-    const producto = await Producto.findById(id);
-    if (!producto) throw new Error('Producto no encontrado.');
-    return producto;
-  }
+// RF-10: búsqueda de texto
+productoSchema.index({
+  nombre: "text",
+  descripcion: "text",
+  categoria: "text",
+  "seo.metaTitulo": "text",
+  "seo.metaDescripcion": "text"
+});
 
-  // Actualizar producto
-  static async update(id, data) {
-    if (!mongoose.Types.ObjectId.isValid(id)) throw new Error('ID de producto no válido.');
-    if (data.nombre) validacionesProducto.nombre(data.nombre);
-    if (data.precio) validacionesProducto.precio(data.precio);
-    if (data.disponibilidad !== undefined) validacionesProducto.disponibilidad(data.disponibilidad);
+// RF-11: filtros comunes
+productoSchema.index({ categoria: 1 });
+productoSchema.index({ disponibilidad: 1 });
+productoSchema.index({ precioBase: 1 });
 
-    const productoActualizado = await Producto.findByIdAndUpdate(id, data, { new: true });
-    if (!productoActualizado) throw new Error('Producto no encontrado.');
-    return productoActualizado;
-  }
-
-  // Eliminar producto
-  static async delete(id) {
-    if (!mongoose.Types.ObjectId.isValid(id)) throw new Error('ID de producto no válido.');
-    const productoEliminado = await Producto.findByIdAndDelete(id);
-    if (!productoEliminado) throw new Error('Producto no encontrado.');
-    return productoEliminado;
-  }
-}
-
-// Validaciones:
-class validacionesProducto {
-  static nombre(nombre) {
-    if (typeof nombre !== 'string') throw new Error('El nombre debe ser un string.');
-    if (nombre.length < 3 || nombre.length > 50) throw new Error('El nombre debe tener entre 3 y 50 caracteres.');
-    if (!/^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ_-]+$/.test(nombre)) throw new Error('El nombre contiene caracteres no permitidos.');
-  }
-  static precio(precio) {
-    if (typeof precio !== 'number' || isNaN(precio)) throw new Error('El precio debe ser un número.');
-    if (precio < 0) throw new Error('El precio no puede ser negativo.');
-  }
-  static disponibilidad(disponibilidad) {
-    if (typeof disponibilidad !== 'boolean') throw new Error('La disponibilidad debe ser true o false.');
-  }
-}
-
-// Exporta el modelo Mongoose por defecto
-export default Producto;
+export const Producto = mongoose.model("Producto", productoSchema);

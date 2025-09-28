@@ -1,37 +1,99 @@
-//Importaciones:
-import multer from 'multer';
-import express from 'express';
-import { ProductosController } from '../controllers/productos.controller.js';
-import { verificarToken, soloAdmin } from '../middlewares/auth.js';
+import { Router } from "express";
+import multer from "multer";
+import path from "path";
+import {
+  crearProducto,
+  editarProducto,
+  eliminarProducto,
+  subirImagen,
+  agregarVariante,
+  actualizarPrecios,
+  verificarDisponibilidad,
+  actualizarSEO,
+  descargarFichaTecnica,
+  buscarProductos,
+  filtrarProductos,
+  ordenarProductos,
+  obtenerRelacionados,
+  combinarProductos,
+  calificarProducto,
+  agregarEtiqueta,
+  actualizarVisibilidad
+} from "../controllers/producto.controller.js";
 
-//Instancia de Entrutador:
-const router = express.Router();
+const router = Router();
 
-// Configuración de multer:
+// ============================
+// Configuración de Multer (subida de archivos)
+// ============================
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+  destination: (req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+      cb(null, "uploads/fichas/");
+    } else {
+      cb(null, "uploads/imagenes/");
+    }
   },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname;
-    cb(null, uniqueName);
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage: storage });
 
-//Ruta publica: Productos
-router.get('/', ProductosController.obtenerProductos);
+const upload = multer({ storage });
 
-//Ruta publica: producto por ID
-router.get('/:id', ProductosController.obtenerProductoPorId);
+// ============================
+// Rutas de productos
+// ============================
 
-// Ruta Privada: Crear producto: requiere token + rol admin
-router.post('/', verificarToken, soloAdmin, upload.single('imagen'), ProductosController.crearProducto);
+// RF-PROD-01 - Registrar
+router.post("/", crearProducto);
 
-// Ruta Privada: Editar producto: requiere token + rol admin
-router.put('/:id', verificarToken, soloAdmin, upload.single('imagen'), ProductosController.actualizarProducto);
+// RF-PROD-02 - Editar
+router.put("/:id", editarProducto);
 
-// Ruta Privada: Eliminar producto: requiere token + rol admin
-router.delete('/:id', verificarToken, soloAdmin, ProductosController.eliminarProducto);
+// RF-PROD-03 - Eliminar
+router.delete("/:id", eliminarProducto);
+
+// RF-PROD-04 - Cargar imágenes
+router.post("/:id/imagenes", upload.single("imagen"), subirImagen);
+
+// RF-PROD-05 - Variantes
+router.post("/:id/variantes", agregarVariante);
+
+// RF-PROD-06 - Precio base y listas
+router.put("/:id/precios", actualizarPrecios);
+
+// RF-PROD-07 - Disponibilidad
+router.get("/:id/disponibilidad", verificarDisponibilidad);
+
+// RF-PROD-08 - SEO
+router.put("/:id/seo", actualizarSEO);
+
+// RF-PROD-09 - Descargar ficha técnica
+router.get("/:id/ficha", descargarFichaTecnica);
+
+// RF-PROD-10 - Búsqueda
+router.get("/buscar", buscarProductos);
+
+// RF-PROD-11 - Filtros
+router.get("/filtrar", filtrarProductos);
+
+// RF-PROD-12 - Ordenar
+router.get("/ordenar", ordenarProductos);
+
+// RF-PROD-13 - Relacionados
+router.get("/:id/relacionados", obtenerRelacionados);
+
+// RF-PROD-14 - Combinar productos
+router.post("/combinar", combinarProductos);
+
+// RF-PROD-15 - Calificar
+router.post("/:id/calificar", calificarProducto);
+
+// RF-PROD-16 - Etiquetas
+router.post("/:id/etiquetas", agregarEtiqueta);
+
+// RF-PROD-17 - Visibilidad por canal
+router.put("/:id/visibilidad", actualizarVisibilidad);
 
 export default router;
