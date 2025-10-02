@@ -1,5 +1,12 @@
+import { Unauthorized } from '../utils/error.js';
+
+// Wrapper para middlewares async
+const asyncMiddleware = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // middleware para proteger todas las rutas con API Key
-export function verificarApiKey(req, res, next) {
+function verificarApiKey(req, res, next) {
   // deja pasar el preflight CORS
   if (req.method === 'OPTIONS') return next();
 
@@ -12,10 +19,15 @@ export function verificarApiKey(req, res, next) {
 
   if (!valid) {
     console.error('Falta API_KEY en .env');
-    return res.status(500).json({ mensaje: 'Configuración del servidor incompleta' });
+    throw Unauthorized('Configuración del servidor incompleta');
   }
   if (!provided || provided !== valid) {
-    return res.status(401).json({ mensaje: 'API key inválida o ausente' });
+    throw Unauthorized('API key inválida o ausente');
   }
   next();
 }
+
+// Exportar middleware con wrapper
+const verificarApiKeyWrapped = asyncMiddleware(verificarApiKey);
+
+export { verificarApiKeyWrapped as verificarApiKey };

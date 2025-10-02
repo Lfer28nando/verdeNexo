@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import UserToken from '../models/usuarioToken.model.js';
+import { BadRequest, NotFound } from '../utils/error.js';
 
 function generarCodigo6() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -19,11 +20,11 @@ async function crearTokenOTP(userId, type, minutes=10, sobreescribirCodigo=null)
 
 async function verificarTokenOTP(userId, type, codigo) {
   const t = await UserToken.findOne({ userId, type }).sort({ createdAt: -1 });
-  if (!t) throw new Error('No hay token activo.');
-  if (t.usado) throw new Error('Token ya utilizado.');
-  if (t.expiracion < new Date()) throw new Error('Token expirado.');
+  if (!t) throw NotFound('No hay token activo.');
+  if (t.usado) throw BadRequest('Token ya utilizado.');
+  if (t.expiracion < new Date()) throw BadRequest('Token expirado.');
   const ok = await bcrypt.compare(codigo, t.hash);
-  if (!ok) throw new Error('Código incorrecto.');
+  if (!ok) throw BadRequest('Código incorrecto.');
   t.usado = new Date();
   await t.save();
   return true;

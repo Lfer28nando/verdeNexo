@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import Usuario from '../models/usuario.model.js';
 import { BadRequest, NotFound, Conflict } from '../utils/error.js';
+import enviarCorreo from '../utils/email.service.js';
+import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
 
 //validaciones:
 class Validaciones {
@@ -418,6 +420,36 @@ export class UsuarioController {
       tarjetas: usuario.metodosPago?.tarjetas || [],
       cuentasBancarias: usuario.metodosPago?.cuentasBancarias || []
     };
+  }
+
+  // ===== GESTIÓN DE BAJA DE USUARIO =====
+
+  // Solicitar baja de usuario (genera OTP y envía email)
+  static async solicitarBajaUsuario(userId) {
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw NotFound('Usuario no encontrado.');
+    if (!usuario.activo) throw BadRequest('La cuenta ya está desactivada.');
+
+    const { codigo } = await crearTokenOTP(usuario._id, 'deactivate', 10);
+    await enviarCorreo(
+      usuario.email,
+      'Código para desactivar tu cuenta',
+      `<p>Hola ${usuario.nombre}, tu código es <b>${codigo}</b> (válido 10 min).</p>`
+    );
+    return { email: usuario.email };
+  }
+
+  // Confirmar baja de usuario (verifica OTP y desactiva cuenta)
+  static async confirmarBajaUsuario(userId, codigo, reason = 'Solicitud del usuario') {
+    await verificarTokenOTP(userId, 'deactivate', codigo);
+    const usuarioActualizado = await Usuario.findByIdAndUpdate(
+      userId,
+      { activo: false },
+      { new: true }
+    ).select('-password -__v');
+    
+    if (!usuarioActualizado) throw NotFound('Usuario no encontrado.');
+    return { ok: true, message: 'Cuenta desactivada correctamente' };
   }
 
 }

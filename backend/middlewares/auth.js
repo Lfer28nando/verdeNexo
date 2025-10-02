@@ -1,37 +1,17 @@
 // Importaciones;
 import jwt from 'jsonwebtoken';
-import Usuario from '../models/usuario.model.js';
-import enviarCorreo from '../utils/email.service.js';
-import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
+import { Unauthorized, Forbidden } from '../utils/error.js';
 
-async function solicitarBajaUsuario(userId) {
-  const u = await Usuario.findById(userId);
-  if (!u) throw new Error('Usuario no encontrado.');
-  if (!u.activo) throw new Error('La cuenta ya está desactivada.');
-
-  const { codigo } = await crearTokenOTP(u._id, 'deactivate', 10);
-  await enviarCorreo(
-    u.email,
-    'Código para desactivar tu cuenta',
-    `<p>Hola ${u.nombre}, tu código es <b>${codigo}</b> (válido 10 min).</p>`
-  );
-  return { email: u.email };
-}
-
- async function confirmarBajaUsuario(userId, codigo, reason='Solicitud del usuario') {
-  await verifyToken(userId, 'deactivate', codigo);
-  await Usuario.findByIdAndUpdate(userId, {
-    isActive: false
-  });
-  // si quieres guardar razón/fecha, puedes tener una colección de auditoría aparte.
-  return { ok: true };
-}
+// Wrapper para middlewares async
+const asyncMiddleware = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 function verificarToken(req, res, next) {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.status(403).json({ mensaje: 'Token requerido' });
+    throw Unauthorized('Token requerido');
   }
 
   try {
@@ -40,20 +20,22 @@ function verificarToken(req, res, next) {
     req.usuario = decodigod;
     next();
   } catch (error) {
-    return res.status(401).json({ mensaje: 'Token inválido' });
+    throw Unauthorized('Token inválido');
   }
 }
 
 function soloAdmin(req, res, next) {
   if (req.usuario.rol !== 'admin') {
-    return res.status(403).json({ mensaje: 'Acceso denegado' });
+    throw Forbidden('Acceso denegado');
   }
   next();
 }
 
+// Exportar middlewares con wrapper
+const verificarTokenWrapped = asyncMiddleware(verificarToken);
+const soloAdminWrapped = asyncMiddleware(soloAdmin);
+
 export {
-  verificarToken,
-  soloAdmin,
-  solicitarBajaUsuario,
-  confirmarBajaUsuario
+  verificarTokenWrapped as verificarToken,
+  soloAdminWrapped as soloAdmin
 };
