@@ -5,17 +5,8 @@ import { BadRequest, NotFound, Conflict } from '../utils/error.js';
 //validaciones:
 class Validaciones {
   static nombre(nombre) {
-    if (typeof nombre !== 'string') throw BadRequest('Nombre debe ser un st    // Validaciones
-    if (!alias || alias.length < 3) throw BadRequest('El alias debe tener al menos 3 caracteres.');
-    if (!banco || banco.length < 3) throw BadRequest('Banco inválido.');
-    if (!['ahorros', 'corriente'].includes(tipoCuenta)) throw BadRequest('Tipo de cuenta inválido.');
-    if (!numeroCuenta || !/^\d{8,20}$/.test(numeroCuenta)) {
-      throw BadRequest('Número de cuenta inválido.');
-    }
-    if (!titular || titular.length < 3) throw BadRequest('Titular inválido.');
-
-    const usuario = await Usuario.findById(userId);
-    if (!usuario) throw NotFound('Usuario no encontrado.');   if (nombre.length < 3 || nombre.length > 25) throw BadRequest('Nombre debe contener entre 3 y 25 caracteres.');
+    if (typeof nombre !== 'string') throw BadRequest('Nombre debe ser un string.');
+    if (nombre.length < 3 || nombre.length > 25) throw BadRequest('Nombre debe contener entre 3 y 25 caracteres.');
     if (!/^[a-zA-Z0-9_]+$/.test(nombre)) throw BadRequest('El nombre solo puede contener letras, números y guiones bajos (_).');
   }
   static email(email) {
