@@ -3,51 +3,17 @@ import Usuario from '../models/usuario.model.js';
 import { BadRequest, NotFound, Conflict } from '../utils/error.js';
 import enviarCorreo from '../utils/email.service.js';
 import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
-
-//validaciones:
-class Validaciones {
-  static nombre(nombre) {
-    if (typeof nombre !== 'string') throw BadRequest('Nombre debe ser un string.');
-    if (nombre.length < 3 || nombre.length > 25) throw BadRequest('Nombre debe contener entre 3 y 25 caracteres.');
-    if (!/^[a-zA-Z0-9_]+$/.test(nombre)) throw BadRequest('El nombre solo puede contener letras, números y guiones bajos (_).');
-  }
-  static email(email) {
-    if (typeof email !== 'string') throw BadRequest('Email debe ser un string.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw BadRequest('Email no tiene un formato válido.');
-  }
-  static password(password) {
-    if (typeof password !== 'string') throw BadRequest('Contraseña debe ser un string.');
-    if (password.length < 6) throw BadRequest('Contraseña debe contener al menos 6 caracteres.');
-    if (!/\d/.test(password)) throw BadRequest('Contraseña debe contener al menos un número.');
-  }
-  static rol(rol) {
-    const ROLES = ['cliente', 'vendedor', 'admin'];
-    if (typeof rol !== 'string') throw BadRequest('Rol debe ser un string.');
-    if (!ROLES.includes(rol)) throw BadRequest(`Rol inválido. Debe ser uno de: ${ROLES.join(', ')}`);
-  }
-  static telefono(telefono) {
-    if (typeof telefono !== 'string') throw BadRequest('Teléfono debe ser un string.');
-    if (!/^\d{10}$/.test(telefono)) throw BadRequest('Teléfono debe contener 10 dígitos.');
-  }
-  static direccion(direccion) {
-    if (typeof direccion !== 'string') throw BadRequest('Dirección debe ser un string.');
-    if (direccion.length < 5 || direccion.length > 100) throw BadRequest('Dirección debe contener entre 5 y 100 caracteres.');
-  }
-  static documento(documento) {
-    if (typeof documento !== 'string') throw BadRequest('Documento debe ser un string.');
-    if (!/^\d{7,10}$/.test(documento)) throw BadRequest('Documento debe contener entre 7 y 10 dígitos.');
-  }
-}
+import { validarDireccion, validarDocumento, validarEmail, validarNombre, validarPassword, validarRol, validarTelefono, } from '../utils/validator.js';
 
 export class UsuarioController {
   // RF-USU-01 - Registrar usuario
   static async create({ nombre, email, password, telefono, direccion, documento }) {
-    Validaciones.nombre(nombre);
-    Validaciones.email(email);
-    Validaciones.password(password);
-    if (telefono) Validaciones.telefono(telefono);
-    if (direccion) Validaciones.direccion(direccion);
-    if (documento) Validaciones.documento(documento);
+    validarNombre(nombre);
+    validarEmail(email);
+    validarPassword(password);
+    if (telefono) validarTelefono(telefono);
+    if (direccion) validarDireccion(direccion);
+    if (documento) validarDocumento(documento);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const existe = await Usuario.findOne({ $or: [{ nombre }, { email }] });
@@ -68,8 +34,8 @@ export class UsuarioController {
 
   // RF-USU-02 - Iniciar sesión.
   static async login({ email, password }) {
-    Validaciones.email(email);
-    Validaciones.password(password);
+    validarEmail(email);
+    validarPassword(password);
 
     const usuario = await Usuario.findOne({ email });
     if (!usuario) throw NotFound('Email no encontrado.');
@@ -88,15 +54,15 @@ export class UsuarioController {
 
   // RF-USU-04 - Editar perfil.
   static async update(id, data) {
-    if (data.nombre) Validaciones.nombre(data.nombre);
-    if (data.email) Validaciones.email(data.email);
+    if (data.nombre) validarNombre(data.nombre);
+    if (data.email) validarEmail(data.email);
     if (data.password) {
-      Validaciones.password(data.password);
+      validarPassword(data.password);
       data.password = await bcrypt.hash(data.password, 10);
     }
-    if (data.telefono) Validaciones.telefono(data.telefono);
-    if (data.direccion) Validaciones.direccion(data.direccion);
-    if (data.documento) Validaciones.documento(data.documento);
+    if (data.telefono) validarTelefono(data.telefono);
+    if (data.direccion) validarDireccion(data.direccion);
+    if (data.documento) validarDocumento(data.documento);
 
     const usuarioActualizado = await Usuario.findByIdAndUpdate(id, data, { new: true }).select('-password -__v');
     if (!usuarioActualizado) throw NotFound('Usuario no encontrado.');
@@ -105,7 +71,7 @@ export class UsuarioController {
 
   //RF-USU-06 (Reestablecer Contraseña) funcion obtener usuario por email (sin exponer password)
   static async getByEmail(email) {
-  Validaciones.email(email);
+  validarEmail(email);
   const user = await Usuario.findOne({ email });
   if (!user) throw NotFound('Email no registrado.');
   return user;
@@ -116,7 +82,7 @@ export class UsuarioController {
     if (typeof actualPassword !== 'string' || !actualPassword.trim()) {
       throw BadRequest('Contraseña actual requerida.');
     }
-    Validaciones.password(nuevaPassword); // aplica tus reglas (>=6, al menos un número)
+    validarPassword(nuevaPassword); // aplica tus reglas (>=6, al menos un número)
 
     const user = await Usuario.findById(id);
     if (!user) throw NotFound('Usuario no encontrado.');
@@ -142,7 +108,7 @@ export class UsuarioController {
       ];
     }
     if (rol) {
-      Validaciones.rol(rol);
+      validarRol(rol);
       filter.rol = rol;
     }
 
@@ -157,7 +123,7 @@ export class UsuarioController {
 
   //Cambiar rol (admin)
   static async changeRole(id, rol) {
-    Validaciones.rol(rol);
+    validarRol(rol);
     const actualizado = await Usuario.findByIdAndUpdate(
       id,
       { rol },
