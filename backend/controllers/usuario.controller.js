@@ -1,38 +1,48 @@
 import bcrypt from 'bcrypt';
 import Usuario from '../models/usuario.model.js';
+import { BadRequest, NotFound, Conflict } from '../utils/error.js';
 
 //validaciones:
 class Validaciones {
   static nombre(nombre) {
-    if (typeof nombre !== 'string') throw new Error('Nombre debe ser un string.');
-    if (nombre.length < 3 || nombre.length > 25) throw new Error('Nombre debe contener entre 3 y 25 caracteres.');
-    if (!/^[a-zA-Z0-9_]+$/.test(nombre)) throw new Error('El nombre solo puede contener letras, números y guiones bajos (_).');
+    if (typeof nombre !== 'string') throw BadRequest('Nombre debe ser un st    // Validaciones
+    if (!alias || alias.length < 3) throw BadRequest('El alias debe tener al menos 3 caracteres.');
+    if (!banco || banco.length < 3) throw BadRequest('Banco inválido.');
+    if (!['ahorros', 'corriente'].includes(tipoCuenta)) throw BadRequest('Tipo de cuenta inválido.');
+    if (!numeroCuenta || !/^\d{8,20}$/.test(numeroCuenta)) {
+      throw BadRequest('Número de cuenta inválido.');
+    }
+    if (!titular || titular.length < 3) throw BadRequest('Titular inválido.');
+
+    const usuario = await Usuario.findById(userId);
+    if (!usuario) throw NotFound('Usuario no encontrado.');   if (nombre.length < 3 || nombre.length > 25) throw BadRequest('Nombre debe contener entre 3 y 25 caracteres.');
+    if (!/^[a-zA-Z0-9_]+$/.test(nombre)) throw BadRequest('El nombre solo puede contener letras, números y guiones bajos (_).');
   }
   static email(email) {
-    if (typeof email !== 'string') throw new Error('Email debe ser un string.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Email no tiene un formato válido.');
+    if (typeof email !== 'string') throw BadRequest('Email debe ser un string.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw BadRequest('Email no tiene un formato válido.');
   }
   static password(password) {
-    if (typeof password !== 'string') throw new Error('Contraseña debe ser un string.');
-    if (password.length < 6) throw new Error('Contraseña debe contener al menos 6 caracteres.');
-    if (!/\d/.test(password)) throw new Error('Contraseña debe contener al menos un número.');
+    if (typeof password !== 'string') throw BadRequest('Contraseña debe ser un string.');
+    if (password.length < 6) throw BadRequest('Contraseña debe contener al menos 6 caracteres.');
+    if (!/\d/.test(password)) throw BadRequest('Contraseña debe contener al menos un número.');
   }
   static rol(rol) {
     const ROLES = ['cliente', 'vendedor', 'admin'];
-    if (typeof rol !== 'string') throw new Error('Rol debe ser un string.');
-    if (!ROLES.includes(rol)) throw new Error(`Rol inválido. Debe ser uno de: ${ROLES.join(', ')}`);
+    if (typeof rol !== 'string') throw BadRequest('Rol debe ser un string.');
+    if (!ROLES.includes(rol)) throw BadRequest(`Rol inválido. Debe ser uno de: ${ROLES.join(', ')}`);
   }
   static telefono(telefono) {
-    if (typeof telefono !== 'string') throw new Error('Teléfono debe ser un string.');
-    if (!/^\d{10}$/.test(telefono)) throw new Error('Teléfono debe contener 10 dígitos.');
+    if (typeof telefono !== 'string') throw BadRequest('Teléfono debe ser un string.');
+    if (!/^\d{10}$/.test(telefono)) throw BadRequest('Teléfono debe contener 10 dígitos.');
   }
   static direccion(direccion) {
-    if (typeof direccion !== 'string') throw new Error('Dirección debe ser un string.');
-    if (direccion.length < 5 || direccion.length > 100) throw new Error('Dirección debe contener entre 5 y 100 caracteres.');
+    if (typeof direccion !== 'string') throw BadRequest('Dirección debe ser un string.');
+    if (direccion.length < 5 || direccion.length > 100) throw BadRequest('Dirección debe contener entre 5 y 100 caracteres.');
   }
   static documento(documento) {
-    if (typeof documento !== 'string') throw new Error('Documento debe ser un string.');
-    if (!/^\d{7,10}$/.test(documento)) throw new Error('Documento debe contener entre 7 y 10 dígitos.');
+    if (typeof documento !== 'string') throw BadRequest('Documento debe ser un string.');
+    if (!/^\d{7,10}$/.test(documento)) throw BadRequest('Documento debe contener entre 7 y 10 dígitos.');
   }
 }
 
@@ -48,7 +58,9 @@ export class UsuarioController {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const existe = await Usuario.findOne({ $or: [{ nombre }, { email }] });
-    if (existe) throw new Error('El nombre de usuario o correo ya están registrados.');
+    if (existe) {
+      throw Conflict('El nombre de usuario o correo ya están registrados.');
+    }
 
     const nuevoUsuario = new Usuario({
       nombre,
@@ -67,11 +79,11 @@ export class UsuarioController {
     Validaciones.password(password);
 
     const usuario = await Usuario.findOne({ email });
-    if (!usuario) throw new Error('Email no encontrado.');
-    if (!usuario.activo) throw new Error('Cuenta desactivada. Contacta al soporte.');
+    if (!usuario) throw NotFound('Email no encontrado.');
+    if (!usuario.activo) throw BadRequest('Cuenta desactivada. Contacta al soporte.');
 
     const passwordValida = await bcrypt.compare(password, usuario.password);
-    if (!passwordValida) throw new Error('Contraseña incorrecta.');
+    if (!passwordValida) throw BadRequest('Contraseña incorrecta.');
 
     return usuario;
   }
@@ -94,7 +106,7 @@ export class UsuarioController {
     if (data.documento) Validaciones.documento(data.documento);
 
     const usuarioActualizado = await Usuario.findByIdAndUpdate(id, data, { new: true }).select('-password -__v');
-    if (!usuarioActualizado) throw new Error('Usuario no encontrado.');
+    if (!usuarioActualizado) throw NotFound('Usuario no encontrado.');
     return usuarioActualizado;
   }
 
@@ -102,22 +114,22 @@ export class UsuarioController {
   static async getByEmail(email) {
   Validaciones.email(email);
   const user = await Usuario.findOne({ email });
-  if (!user) throw new Error('Email no registrado.');
+  if (!user) throw NotFound('Email no registrado.');
   return user;
   }
 
   //RF-USU-07 - Cambiar contraseña (requiere contraseña actual)
   static async changePassword(id, actualPassword, nuevaPassword) {
     if (typeof actualPassword !== 'string' || !actualPassword.trim()) {
-      throw new Error('Contraseña actual requerida.');
+      throw BadRequest('Contraseña actual requerida.');
     }
     Validaciones.password(nuevaPassword); // aplica tus reglas (>=6, al menos un número)
 
     const user = await Usuario.findById(id);
-    if (!user) throw new Error('Usuario no encontrado.');
+    if (!user) throw NotFound('Usuario no encontrado.');
 
     const esValida = await bcrypt.compare(actualPassword, user.password);
-    if (!esValida) throw new Error('Contraseña actual incorrecta.');
+    if (!esValida) throw BadRequest('Contraseña actual incorrecta.');
 
     user.password = await bcrypt.hash(nuevaPassword, 10);
     await user.save();
@@ -159,14 +171,14 @@ export class UsuarioController {
       { new: true }
     ).select('-password -__v');
 
-    if (!actualizado) throw new Error('Usuario no encontrado.');
+    if (!actualizado) throw NotFound('Usuario no encontrado.');
     return actualizado;
   }
 
   //RF-USU-10 - Marcar email como verificado
   static async markEmailVerified(id) {
     const user = await Usuario.findById(id);
-    if (!user) throw new Error('Usuario no encontrado.');
+    if (!user) throw NotFound('Usuario no encontrado.');
     if (user.emailVerificado) {
       return {
         _id: user._id,
@@ -193,23 +205,23 @@ export class UsuarioController {
       { twoFactorEnabled: !!enabled },
       { new: true }
     ).select('-password -__v');
-    if (!actualizado) throw new Error('Usuario no encontrado.');
+    if (!actualizado) throw NotFound('Usuario no encontrado.');
     return actualizado;
   }
 
   //Validar contraseña (para deshabilitar 2FA con confirmación)
   static async checkPassword(id, password) {
     const user = await Usuario.findById(id);
-    if (!user) throw new Error('Usuario no encontrado.');
+    if (!user) throw NotFound('Usuario no encontrado.');
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) throw new Error('Contraseña actual incorrecta.');
+    if (!ok) throw BadRequest('Contraseña actual incorrecta.');
     return true;
   }
   //RF-USU-12 Consentimientos.
     // Estado de consentimiento (simple)
   static async getConsentStatus(id) {
     const user = await Usuario.findById(id).select('consentAccepted');
-    if (!user) throw new Error('Usuario no encontrado.');
+    if (!user) throw NotFound('Usuario no encontrado.');
     return { consentAccepted: !!user.consentAccepted };
   }
 
@@ -220,7 +232,7 @@ export class UsuarioController {
       { consentAccepted: true },
       { new: true }
     ).select('-password -__v');
-    if (!user) throw new Error('Usuario no encontrado.');
+    if (!user) throw NotFound('Usuario no encontrado.');
     return user;
   }
 
@@ -231,18 +243,18 @@ export class UsuarioController {
     const { alias, tipo, numeroCompleto, titular, fechaVencimiento, banco } = tarjetaData;
     
     // Validaciones
-    if (!alias || alias.length < 3) throw new Error('El alias debe tener al menos 3 caracteres.');
-    if (!['credito', 'debito'].includes(tipo)) throw new Error('Tipo de tarjeta inválido.');
+    if (!alias || alias.length < 3) throw BadRequest('El alias debe tener al menos 3 caracteres.');
+    if (!['credito', 'debito'].includes(tipo)) throw BadRequest('Tipo de tarjeta inválido.');
     if (!numeroCompleto || !/^\d{13,19}$/.test(numeroCompleto.replace(/\s/g, ''))) {
-      throw new Error('Número de tarjeta inválido.');
+      throw BadRequest('Número de tarjeta inválido.');
     }
-    if (!titular || titular.length < 3) throw new Error('Titular inválido.');
+    if (!titular || titular.length < 3) throw BadRequest('Titular inválido.');
     if (!fechaVencimiento || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(fechaVencimiento)) {
-      throw new Error('Fecha de vencimiento inválida (MM/YY).');
+      throw BadRequest('Fecha de vencimiento inválida (MM/YY).');
     }
 
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
 
     // Inicializar métodos de pago si no existen
     if (!usuario.metodosPago) {
@@ -263,7 +275,7 @@ export class UsuarioController {
       t => t.ultimosDigitos === ultimosDigitos && t.titular === titular
     );
     if (tarjetaExistente) {
-      throw new Error('Ya tienes registrada una tarjeta con estos datos.');
+      throw Conflict('Ya tienes registrada una tarjeta con estos datos.');
     }
 
     const nuevaTarjeta = {
@@ -289,16 +301,16 @@ export class UsuarioController {
     const { alias, banco, tipoCuenta, numeroCuenta, titular } = cuentaData;
     
     // Validaciones
-    if (!alias || alias.length < 3) throw new Error('El alias debe tener al menos 3 caracteres.');
-    if (!banco || banco.length < 3) throw new Error('Banco inválido.');
-    if (!['ahorros', 'corriente'].includes(tipoCuenta)) throw new Error('Tipo de cuenta inválido.');
+    if (!alias || alias.length < 3) throw BadRequest('El alias debe tener al menos 3 caracteres.');
+    if (!banco || banco.length < 3) throw BadRequest('Banco inválido.');
+    if (!['ahorros', 'corriente'].includes(tipoCuenta)) throw BadRequest('Tipo de cuenta inválido.');
     if (!numeroCuenta || !/^\d{8,20}$/.test(numeroCuenta)) {
-      throw new Error('Número de cuenta inválido.');
+      throw BadRequest('Número de cuenta inválido.');
     }
-    if (!titular || titular.length < 3) throw new Error('Titular inválido.');
+    if (!titular || titular.length < 3) throw BadRequest('Titular inválido.');
 
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
 
     // Inicializar métodos de pago si no existen
     if (!usuario.metodosPago) {
@@ -316,7 +328,7 @@ export class UsuarioController {
       c => c.numeroCuenta === numeroCuenta && c.banco === banco
     );
     if (cuentaExistente) {
-      throw new Error('Ya tienes registrada esta cuenta bancaria.');
+      throw Conflict('Ya tienes registrada esta cuenta bancaria.');
     }
 
     const nuevaCuenta = {
@@ -339,13 +351,13 @@ export class UsuarioController {
   // Eliminar tarjeta
   static async eliminarTarjeta(userId, tarjetaId) {
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
     if (!usuario.metodosPago || !usuario.metodosPago.tarjetas) {
-      throw new Error('No tienes tarjetas registradas.');
+      throw BadRequest('No tienes tarjetas registradas.');
     }
 
     const index = usuario.metodosPago.tarjetas.findIndex(t => t.id === tarjetaId);
-    if (index === -1) throw new Error('Tarjeta no encontrada.');
+    if (index === -1) throw NotFound('Tarjeta no encontrada.');
 
     usuario.metodosPago.tarjetas.splice(index, 1);
     await usuario.save();
@@ -356,13 +368,13 @@ export class UsuarioController {
   // Eliminar cuenta bancaria
   static async eliminarCuentaBancaria(userId, cuentaId) {
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
     if (!usuario.metodosPago || !usuario.metodosPago.cuentasBancarias) {
-      throw new Error('No tienes cuentas bancarias registradas.');
+      throw BadRequest('No tienes cuentas bancarias registradas.');
     }
 
     const index = usuario.metodosPago.cuentasBancarias.findIndex(c => c.id === cuentaId);
-    if (index === -1) throw new Error('Cuenta bancaria no encontrada.');
+    if (index === -1) throw NotFound('Cuenta bancaria no encontrada.');
 
     usuario.metodosPago.cuentasBancarias.splice(index, 1);
     await usuario.save();
@@ -373,33 +385,33 @@ export class UsuarioController {
   // Establecer método de pago predeterminado
   static async establecerPredeterminado(userId, tipo, metodoPagoId) {
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
-    if (!usuario.metodosPago) throw new Error('No tienes métodos de pago registrados.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
+    if (!usuario.metodosPago) throw BadRequest('No tienes métodos de pago registrados.');
 
     if (tipo === 'tarjeta') {
-      if (!usuario.metodosPago.tarjetas) throw new Error('No tienes tarjetas registradas.');
+      if (!usuario.metodosPago.tarjetas) throw BadRequest('No tienes tarjetas registradas.');
       
       // Quitar predeterminado de todas las tarjetas
       usuario.metodosPago.tarjetas.forEach(t => t.predeterminada = false);
       
       // Establecer la nueva predeterminada
       const tarjeta = usuario.metodosPago.tarjetas.find(t => t.id === metodoPagoId);
-      if (!tarjeta) throw new Error('Tarjeta no encontrada.');
+      if (!tarjeta) throw NotFound('Tarjeta no encontrada.');
       tarjeta.predeterminada = true;
       
     } else if (tipo === 'cuenta') {
-      if (!usuario.metodosPago.cuentasBancarias) throw new Error('No tienes cuentas bancarias registradas.');
+      if (!usuario.metodosPago.cuentasBancarias) throw BadRequest('No tienes cuentas bancarias registradas.');
       
       // Quitar predeterminado de todas las cuentas
       usuario.metodosPago.cuentasBancarias.forEach(c => c.predeterminada = false);
       
       // Establecer la nueva predeterminada
       const cuenta = usuario.metodosPago.cuentasBancarias.find(c => c.id === metodoPagoId);
-      if (!cuenta) throw new Error('Cuenta bancaria no encontrada.');
+      if (!cuenta) throw NotFound('Cuenta bancaria no encontrada.');
       cuenta.predeterminada = true;
       
     } else {
-      throw new Error('Tipo de método de pago inválido.');
+      throw BadRequest('Tipo de método de pago inválido.');
     }
 
     await usuario.save();
@@ -409,7 +421,7 @@ export class UsuarioController {
   // Obtener métodos de pago del usuario
   static async obtenerMetodosPago(userId) {
     const usuario = await Usuario.findById(userId);
-    if (!usuario) throw new Error('Usuario no encontrado.');
+    if (!usuario) throw NotFound('Usuario no encontrado.');
     
     return {
       tarjetas: usuario.metodosPago?.tarjetas || [],
