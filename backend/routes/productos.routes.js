@@ -19,7 +19,7 @@ import {
   calificarProducto,
   agregarEtiqueta,
   actualizarVisibilidad
-} from "../controllers/producto.controller.js";
+} from "../controllers/productos.controller.js";
 
 const router = Router();
 

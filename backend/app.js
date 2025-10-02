@@ -15,6 +15,7 @@ import productosRoutes from "./routes/productos.routes.js";
 
 // Middlewares
 import { verificarApiKey } from "./middlewares/apikey.js";
+import { notFound, errorHandler } from "./middlewares/error-handler.js";
 
 // ============================
 // Variables de entorno
@@ -55,11 +56,15 @@ app.use("/api/productos", productosRoutes);
 // Servir archivos estáticos (imágenes, pdf, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+//404 y errores
+app.use(notFound);
+app.use(errorHandler);
+
 // ============================
 // Conexión a MongoDB
 // ============================
 mongoose
-  .connect(process.env.MONGO_URI, {
+.connect(process.env.MONGO_URI, {
     dbName: process.env.MONGO_DB_NAME || "mi_base_datos",
   })
   .then(() => console.log("✅ MongoDB Conectado"))
