@@ -3,6 +3,7 @@ import { Producto } from "../models/producto.model.js";
 import fs from "fs";
 import path from "path";
 import { BadRequest, NotFound } from "../utils/error.js";
+import { validarNombreProducto, validarDescripcion, validarPrecio, validarCategoria, validarSlug, validarStock, validarAtributo, validarValor } from "../utils/validator.js";
 
 // ============================
 // RF-PROD-01 - Registrar producto
@@ -10,15 +11,23 @@ import { BadRequest, NotFound } from "../utils/error.js";
 export async function crearProducto(req, res) {
   const { nombre, descripcion, precioBase, categoria } = req.body;
 
-  if (!nombre || !precioBase) {
-    throw BadRequest("Nombre y precioBase son obligatorios");
-  }
+  // 1) Sanitización
+  const nombreClean = typeof nombre === 'string' ? nombre.trim() : nombre;
+  const descripcionClean = typeof descripcion === 'string' ? descripcion.trim() : descripcion;
+  const categoriaClean = typeof categoria === 'string' ? categoria.trim().toLowerCase() : categoria;
 
+  // 2) Validaciones con datos limpios
+  validarNombreProducto(nombreClean);
+  validarPrecio(precioBase);
+  if (descripcionClean) validarDescripcion(descripcionClean);
+  if (categoriaClean) validarCategoria(categoriaClean);
+
+  // 3) Crear producto con datos limpios
   const nuevoProducto = new Producto({
-    nombre,
-    descripcion,
+    nombre: nombreClean,
+    descripcion: descripcionClean,
     precioBase,
-    categoria
+    categoria: categoriaClean
   });
 
   const productoGuardado = await nuevoProducto.save();
@@ -32,7 +41,20 @@ export async function editarProducto(req, res) {
   const { id } = req.params;
   const datos = req.body;
 
-  const producto = await Producto.findByIdAndUpdate(id, datos, { new: true });
+  // 1) Sanitización de campos presentes
+  const cleanData = { ...datos };
+  if (cleanData.nombre) cleanData.nombre = cleanData.nombre.trim();
+  if (cleanData.descripcion) cleanData.descripcion = cleanData.descripcion.trim();
+  if (cleanData.categoria) cleanData.categoria = cleanData.categoria.trim().toLowerCase();
+
+  // 2) Validaciones con datos limpios
+  if (cleanData.nombre) validarNombreProducto(cleanData.nombre);
+  if (cleanData.descripcion) validarDescripcion(cleanData.descripcion);
+  if (cleanData.precioBase) validarPrecio(cleanData.precioBase);
+  if (cleanData.categoria) validarCategoria(cleanData.categoria);
+
+  // 3) Actualizar con datos limpios
+  const producto = await Producto.findByIdAndUpdate(id, cleanData, { new: true, runValidators: true });
   if (!producto) {
     throw NotFound("Producto no encontrado");
   }
@@ -87,16 +109,29 @@ export async function agregarVariante(req, res) {
   const { id } = req.params;
   const { atributo, valor, precio, stock } = req.body;
 
-  if (!atributo || !valor) {
-    throw BadRequest("Atributo y valor son obligatorios");
-  }
+  // 1) Sanitización
+  const atributoClean = typeof atributo === 'string' ? atributo.trim().toLowerCase() : atributo;
+  const valorClean = typeof valor === 'string' ? valor.trim() : valor;
 
+  // 2) Validaciones con datos limpios
+  validarAtributo(atributoClean);
+  validarValor(valorClean);
+  if (precio !== undefined) validarPrecio(precio);
+  if (stock !== undefined) validarStock(stock);
+
+  // 3) Buscar producto
   const producto = await Producto.findById(id);
   if (!producto) {
     throw NotFound("Producto no encontrado");
   }
 
-  producto.variantes.push({ atributo, valor, precio, stock });
+  // 4) Agregar variante con datos limpios
+  producto.variantes.push({ 
+    atributo: atributoClean, 
+    valor: valorClean, 
+    precio, 
+    stock 
+  });
   await producto.save();
 
   res.json({ ok: true, data: producto });
@@ -106,20 +141,25 @@ export async function agregarVariante(req, res) {
 // RF-PROD-06 - Precios
 // ============================
 export async function actualizarPrecios(req, res) {
-    const { id } = req.params;
-    const { precioBase, listasPrecios } = req.body;
+  const { id } = req.params;
+  const { precioBase, listasPrecios } = req.body;
 
-    const producto = await Producto.findById(id);
-    if (!producto){
-      throw NotFound("Producto no encontrado");
-    }
+  // 1) Validaciones
+  if (precioBase !== undefined) validarPrecio(precioBase);
+  // TODO: Agregar validación para listasPrecios si es necesario
 
-    if (precioBase) producto.precioBase = precioBase;
-    if (listasPrecios) producto.listasPrecios = listasPrecios;
-
-    await producto.save();
-    res.json({ok:true, data: producto });
+  // 2) Buscar y actualizar
+  const producto = await Producto.findById(id);
+  if (!producto) {
+    throw NotFound("Producto no encontrado");
   }
+
+  if (precioBase) producto.precioBase = precioBase;
+  if (listasPrecios) producto.listasPrecios = listasPrecios;
+
+  await producto.save();
+  res.json({ ok: true, data: producto });
+}
 
 // ============================
 // RF-PROD-07 - Disponibilidad
@@ -138,20 +178,39 @@ export async function verificarDisponibilidad(req, res){
 // ============================
 // RF-PROD-08 - SEO
 // ============================
-export async function actualizarSEO(req, res){
-    const { id } = req.params;
-    const { slug, metaTitulo, metaDescripcion } = req.body;
+export async function actualizarSEO(req, res) {
+  const { id } = req.params;
+  const { slug, metaTitulo, metaDescripcion } = req.body;
 
-    const producto = await Producto.findById(id);
-    if (!producto) {
+  // 1) Sanitización
+  const slugClean = typeof slug === 'string' ? slug.trim().toLowerCase() : slug;
+  const metaTituloClean = typeof metaTitulo === 'string' ? metaTitulo.trim() : metaTitulo;
+  const metaDescripcionClean = typeof metaDescripcion === 'string' ? metaDescripcion.trim() : metaDescripcion;
+
+  // 2) Validaciones con datos limpios
+  if (slugClean) validarSlug(slugClean);
+  if (metaTituloClean && metaTituloClean.length > 60) {
+    throw BadRequest('Meta título no puede exceder 60 caracteres.');
+  }
+  if (metaDescripcionClean && metaDescripcionClean.length > 160) {
+    throw BadRequest('Meta descripción no puede exceder 160 caracteres.');
+  }
+
+  // 3) Buscar y actualizar
+  const producto = await Producto.findById(id);
+  if (!producto) {
     throw NotFound("Producto no encontrado");
   }
 
-    producto.seo = { slug, metaTitulo, metaDescripcion };
-    await producto.save();
+  producto.seo = { 
+    slug: slugClean, 
+    metaTitulo: metaTituloClean, 
+    metaDescripcion: metaDescripcionClean 
+  };
+  await producto.save();
 
-    res.json({ ok: true, data: producto });
-  }
+  res.json({ ok: true, data: producto });
+}
 // ============================
 // RF-PROD-09 - Descargar ficha técnica
 // ============================
