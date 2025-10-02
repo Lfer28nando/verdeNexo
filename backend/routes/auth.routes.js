@@ -7,6 +7,7 @@ import enviarCorreo, { enviarCorreoBienvenida } from '../utils/email.service.js'
 import cookieParser from 'cookie-parser';
 import { soloAdmin, verificarToken } from '../middlewares/auth.js';
 import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';
+import { BadRequest, NotFound } from '../utils/error.js';
 //Instancia de Enrutador:
 const router = express.Router();
 
@@ -16,671 +17,628 @@ router.use(cookieParser());
 //Rutas de autenticación de usuarios:
 // RF-USU-01 - Registrar usuario:
 router.post('/registro', async (req, res) => {
-  try {
-    const { nombre, email, password, telefono, direccion, documento } = req.body;
-    // Usamos usuarioModel.create para registrar y validar
-    const nuevoUsuario = await usuarioModel.create({ nombre, email, password, telefono, direccion, documento });
-    
-    // Enviar correo de bienvenida profesional
-    const resultadoCorreo = await enviarCorreoBienvenida(email, {
-      projectName: 'Verde Nexo',
-      ctaUrl: process.env.WEBSITE_URL || 'http://localhost:3000',
-      ctaText: 'Explorar plantas',
-      colors: {
-        lightBg: '#F0F9F4',
-        primary: '#166534',
-        accent: '#22C55E',
-        text: '#111827',
-        footerBg: '#F9FAFB'
-      }
-    });
-
-    if (resultadoCorreo.ok) {
-      // Crear token JWT para el usuario recién registrado
-      const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 3600000
-      });
-      
-      res.status(201).json({ 
-        mensaje: 'Usuario registrado exitosamente', 
-        usuario: {
-          id: nuevoUsuario._id,
-          nombre: nuevoUsuario.nombre,
-          email: nuevoUsuario.email,
-          rol: nuevoUsuario.rol
-        }
-      });
-    } else {
-      // Usuario creado pero falló el correo
-      // Crear token JWT para el usuario recién registrado
-      const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 3600000
-      });
-      
-      res.status(201).json({ 
-        mensaje: 'Usuario registrado, pero no se pudo enviar el correo de bienvenida', 
-        usuario: {
-          id: nuevoUsuario._id,
-          nombre: nuevoUsuario.nombre,
-          email: nuevoUsuario.email,
-          rol: nuevoUsuario.rol
-        },
-        advertencia: 'Correo no enviado'
-      });
+  const { nombre, email, password, telefono, direccion, documento } = req.body;
+  // Usamos usuarioModel.create para registrar y validar
+  const nuevoUsuario = await usuarioModel.create({ nombre, email, password, telefono, direccion, documento });
+  
+  // Enviar correo de bienvenida profesional
+  const resultadoCorreo = await enviarCorreoBienvenida(email, {
+    projectName: 'Verde Nexo',
+    ctaUrl: process.env.WEBSITE_URL || 'http://localhost:3000',
+    ctaText: 'Explorar plantas',
+    colors: {
+      lightBg: '#F0F9F4',
+      primary: '#166534',
+      accent: '#22C55E',
+      text: '#111827',
+      footerBg: '#F9FAFB'
     }
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al registrar el usuario', error: error.message });
-  }
-});
+  });
 
-//RF-USU-02 - Iniciar sesión:
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    // 1) Validar credenciales
-const usuario = await usuarioModel.login({ email, password });
-
-// 2) Si 2FA NO está activo → login normal
-if (!usuario.twoFactorEnabled) {
-  const token = jwt.sign({ id: usuario._id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  // Crear token JWT para el usuario recién registrado
+  const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 3600000
   });
-  return res.status(200).json({
-    mensaje: 'Login exitoso',
-    usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
-  });
-}
-
-// 3) Si 2FA SÍ está activo → enviar OTP y emitir "pretoken" temporal (pendiente 2FA)
-const { codigo } = await crearTokenOTP(usuario._id, '2fa', 10);
-await enviarCorreo(
-  usuario.email,
-  'Tu código de verificación (2FA)',
-  `<p>Hola ${usuario.nombre}, tu código 2FA es: <b style="font-size:18px">${codigo}</b> (vigencia 10 minutos).</p>`
-);
-
-const pretoken = jwt.sign(
-  { id: usuario._id, rol: usuario.rol, twofa: 'pending' },
-  process.env.JWT_SECRET,
-  { expiresIn: '10m' }
-);
-res.cookie('pretoken', pretoken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 10 * 60 * 1000
+  
+  const responseData = {
+    ok: true,
+    data: {
+      mensaje: resultadoCorreo.ok ? 'Usuario registrado exitosamente' : 'Usuario registrado, pero no se pudo enviar el correo de bienvenida',
+      usuario: {
+        id: nuevoUsuario._id,
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+        rol: nuevoUsuario.rol
+      }
+    }
+  };
+  
+  if (!resultadoCorreo.ok) {
+    responseData.data.advertencia = 'Correo no enviado';
+  }
+  
+  res.status(201).json(responseData);
 });
 
-return res.status(200).json({ mensaje: 'Se envió un código 2FA a tu correo. Confírmalo para iniciar sesión.' });
-  } catch (error) {
-    res.status(401).json({ mensaje: 'Error al iniciar sesión', error: error.message });
+//RF-USU-02 - Iniciar sesión:
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  // 1) Validar credenciales
+  const usuario = await usuarioModel.login({ email, password });
+
+  // 2) Si 2FA NO está activo → login normal
+  if (!usuario.twoFactorEnabled) {
+    const token = jwt.sign({ id: usuario._id, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 3600000
+    });
+    return res.status(200).json({
+      ok: true,
+      data: {
+        mensaje: 'Login exitoso',
+        usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+      }
+    });
   }
+
+  // 3) Si 2FA SÍ está activo → enviar OTP y emitir "pretoken" temporal (pendiente 2FA)
+  const { codigo } = await crearTokenOTP(usuario._id, '2fa', 10);
+  await enviarCorreo(
+    usuario.email,
+    'Tu código de verificación (2FA)',
+    `<p>Hola ${usuario.nombre}, tu código 2FA es: <b style="font-size:18px">${codigo}</b> (vigencia 10 minutos).</p>`
+  );
+
+  const pretoken = jwt.sign(
+    { id: usuario._id, rol: usuario.rol, twofa: 'pending' },
+    process.env.JWT_SECRET,
+    { expiresIn: '10m' }
+  );
+  res.cookie('pretoken', pretoken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 10 * 60 * 1000
+  });
+
+  return res.status(200).json({ 
+    ok: true, 
+    data: { mensaje: 'Se envió un código 2FA a tu correo. Confírmalo para iniciar sesión.' } 
+  });
 });
 
 //RF-USU-03 - Ver perfil.
 router.get('/me', verificarToken, async (req, res) => {
-  try {
-    const usuario = await usuarioModel.getById(req.usuario.id);
-    if (!usuario) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    }
-    res.status(200).json({ usuario });
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener el perfil', error: error.message });
+  const usuario = await usuarioModel.getById(req.usuario.id);
+  if (!usuario) {
+    throw NotFound('Usuario no encontrado');
   }
+  res.status(200).json({ ok: true, data: { usuario } });
 });
 
 // RF-USU-04 - Editar perfil
 router.put('/me', verificarToken, async (req, res) => {
-  try {
-    const id = req.usuario.id; // del token decodificado
-    // Solo permitimos estos campos para /me (nada de rol/activo/etc.)
-    const { nombre, email, password, telefono, direccion, documento } = req.body;
-    const data = { nombre, email, password, telefono, direccion, documento };
-    const usuarioActualizado = await usuarioModel.update(id, data);
+  const id = req.usuario.id; // del token decodificado
+  // Solo permitimos estos campos para /me (nada de rol/activo/etc.)
+  const { nombre, email, password, telefono, direccion, documento } = req.body;
+  const data = { nombre, email, password, telefono, direccion, documento };
+  const usuarioActualizado = await usuarioModel.update(id, data);
 
-    res.status(200).json({
+  res.status(200).json({
+    ok: true,
+    data: {
       mensaje: 'Perfil actualizado correctamente',
       usuario: usuarioActualizado
-    });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'error', error: error.message });
-  }
+    }
+  });
 });
 
 // RF-USU-05 - Eliminar cuenta.
 
 // 1) Solicitar código de verificación para desactivar cuenta
 router.post('/me/desactivar/request', verificarToken, async (req, res) => {
-  try {
-    // Crea OTP (6 dígitos) y envíalo por correo
-    const { codigo } = await crearTokenOTP(req.usuario.id, 'desactivar', 10); // 10 min
-    const perfil = await usuarioModel.getById(req.usuario.id);
+  // Crea OTP (6 dígitos) y envíalo por correo
+  const { codigo } = await crearTokenOTP(req.usuario.id, 'desactivar', 10); // 10 min
+  const perfil = await usuarioModel.getById(req.usuario.id);
 
-    await enviarCorreo(
-      perfil.email,
-      'Código para desactivar tu cuenta',
-      `
-      <p>Hola ${perfil.nombre},</p>
-      <p>Tu código para desactivar tu cuenta es: <b style="font-size:18px">${codigo}</b></p>
-      <p>El código vence en 10 minutos. Si no fuiste tú, ignora este mensaje.</p>
-      `
-    );
+  await enviarCorreo(
+    perfil.email,
+    'Código para desactivar tu cuenta',
+    `
+    <p>Hola ${perfil.nombre},</p>
+    <p>Tu código para desactivar tu cuenta es: <b style="font-size:18px">${codigo}</b></p>
+    <p>El código vence en 10 minutos. Si no fuiste tú, ignora este mensaje.</p>
+    `
+  );
 
-    res.status(200).json({ mensaje: 'Código enviado al correo' });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo generar el código', error: error.message });
-  }
+  res.status(200).json({ ok: true, data: { mensaje: 'Código enviado al correo' } });
 });
 
 // 2) Confirmar desactivación con código
 router.post('/me/desactivar/confirm', verificarToken, async (req, res) => {
-  try {
-    const { codigo, reason } = req.body;
-    if (!codigo) return res.status(400).json({ mensaje: 'Código requerido' });
+  const { codigo, reason } = req.body;
+  if (!codigo) throw BadRequest('Código requerido');
 
-    // Verifica OTP
-    await verificarTokenOTP(req.usuario.id, 'desactivar', codigo);
+  // Verifica OTP
+  await verificarTokenOTP(req.usuario.id, 'desactivar', codigo);
 
-    // Marca usuario como inactivo (reversible)
-    const usuarioActualizado = await usuarioModel.update(req.usuario.id, {
-      activo: false
-    });
+  // Marca usuario como inactivo (reversible)
+  const usuarioActualizado = await usuarioModel.update(req.usuario.id, {
+    activo: false
+  });
 
-    // Limpia sesión
-    res.clearCookie('token');
-    res.status(200).json({ mensaje: 'Cuenta desactivada correctamente', usuario: usuarioActualizado });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo desactivar', error: error.message });
-  }
+  // Limpia sesión
+  res.clearCookie('token');
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Cuenta desactivada correctamente', 
+      usuario: usuarioActualizado 
+    } 
+  });
 });
 
 // RF-USU-05 (admin)
 // Desactivar usuario (admin) — sin código
 router.post('/admin/users/:id/desactivar', verificarToken, soloAdmin, async (req, res) => {
-  try {
-    const { reason } = req.body;
-    const usuarioActualizado = await usuarioModel.update(req.params.id, {
-      activo: false
-    });
-    res.status(200).json({ mensaje: 'Usuario desactivado', usuario: usuarioActualizado });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'Error al desactivar', error: error.message });
-  }
+  const { reason } = req.body;
+  const usuarioActualizado = await usuarioModel.update(req.params.id, {
+    activo: false
+  });
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Usuario desactivado', 
+      usuario: usuarioActualizado 
+    } 
+  });
 });
 
 // Reactivar usuario (admin)
 router.post('/admin/users/:id/reactivate', verificarToken, soloAdmin, async (req, res) => {
-  try {
-    const usuarioActualizado = await usuarioModel.update(req.params.id, {
-      activo: true,
-    });
-    res.status(200).json({ mensaje: 'Usuario reactivado', usuario: usuarioActualizado });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'Error al reactivar', error: error.message });
-  }
+  const usuarioActualizado = await usuarioModel.update(req.params.id, {
+    activo: true,
+  });
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Usuario reactivado', 
+      usuario: usuarioActualizado 
+    } 
+  });
 });
 
 // RF-USU-06 - Restablecer contraseña
 // Flujo: (1) solicitar código por email → (2) confirmar con código + nueva password
 // (1) Solicitar código de restablecimiento
 router.post('/password/reset/request', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ mensaje: 'Email requerido' });
+  const { email } = req.body;
+  if (!email) throw BadRequest('Email requerido');
 
-    // 1. Buscar usuario por email
-    const user = await usuarioModel.getByEmail(email);
+  // 1. Buscar usuario por email
+  const user = await usuarioModel.getByEmail(email);
 
-    // 2. Crear OTP asociado al usuario y a la acción 'cambiar_contraseña'
-    //    Vigencia 10 minutos
-    const { codigo } = await crearTokenOTP(user._id, 'cambiar_contraseña', 10);
+  // 2. Crear OTP asociado al usuario y a la acción 'cambiar_contraseña'
+  //    Vigencia 10 minutos
+  const { codigo } = await crearTokenOTP(user._id, 'cambiar_contraseña', 10);
 
-    // 3. Enviar correo
-    await enviarCorreo(
-      user.email,
-      'Código para restablecer tu contraseña',
-      `
-      <p>Hola ${user.nombre},</p>
-      <p>Tu código para restablecer la contraseña es: <b style="font-size:18px">${codigo}</b></p>
-      <p>Este código vence en 10 minutos.</p>
-      `
-    );
+  // 3. Enviar correo
+  await enviarCorreo(
+    user.email,
+    'Código para restablecer tu contraseña',
+    `
+    <p>Hola ${user.nombre},</p>
+    <p>Tu código para restablecer la contraseña es: <b style="font-size:18px">${codigo}</b></p>
+    <p>Este código vence en 10 minutos.</p>
+    `
+  );
 
-    res.status(200).json({ mensaje: 'Código enviado al correo' });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo generar el código', error: error.message });
-  }
+  res.status(200).json({ ok: true, data: { mensaje: 'Código enviado al correo' } });
 });
 
 // (2) Confirmar restablecimiento con código + nueva contraseña
 router.post('/password/reset/confirm', async (req, res) => {
-  try {
-    const { email, codigo, nuevaPassword } = req.body;
-    if (!email || !codigo || !nuevaPassword) {
-      return res.status(400).json({ mensaje: 'Email, código y nuevaPassword son requeridos' });
-    }
-
-    // 1. Buscar usuario por email
-    const user = await usuarioModel.getByEmail(email);
-
-    // 2. Verificar OTP (acción 'cambiar_contraseña')
-    await verificarTokenOTP(user._id, 'cambiar_contraseña', codigo);
-
-    // 3. Actualizar contraseña usando el controller (este ya hashea internamente)
-    const actualizado = await usuarioModel.update(user._id, { password: nuevaPassword });
-
-    // 4. Limpiar sesión si existía
-    res.clearCookie('token');
-
-    res.status(200).json({ mensaje: 'Contraseña restablecida correctamente', usuario: actualizado });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo restablecer la contraseña', error: error.message });
+  const { email, codigo, nuevaPassword } = req.body;
+  if (!email || !codigo || !nuevaPassword) {
+    throw BadRequest('Email, código y nuevaPassword son requeridos');
   }
+
+  // 1. Buscar usuario por email
+  const user = await usuarioModel.getByEmail(email);
+
+  // 2. Verificar OTP (acción 'cambiar_contraseña')
+  await verificarTokenOTP(user._id, 'cambiar_contraseña', codigo);
+
+  // 3. Actualizar contraseña usando el controller (este ya hashea internamente)
+  const actualizado = await usuarioModel.update(user._id, { password: nuevaPassword });
+
+  // 4. Limpiar sesión si existía
+  res.clearCookie('token');
+
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Contraseña restablecida correctamente', 
+      usuario: actualizado 
+    } 
+  });
 });
 
 // RF-USU-07 - Cambiar contraseña (autenticado)
 router.post('/password/change', verificarToken, async (req, res) => {
-  try {
-    const { actualPassword, nuevaPassword, confirmarPassword } = req.body;
+  const { actualPassword, nuevaPassword, confirmarPassword } = req.body;
 
-    if (!actualPassword || !nuevaPassword || !confirmarPassword) {
-      return res.status(400).json({ mensaje: 'actualPassword, nuevaPassword y confirmarPassword son requeridos.' });
-    }
-    if (nuevaPassword !== confirmarPassword) {
-      return res.status(400).json({ mensaje: 'La nueva contraseña y su confirmación no coinciden.' });
-    }
+  if (!actualPassword || !nuevaPassword || !confirmarPassword) {
+    throw BadRequest('actualPassword, nuevaPassword y confirmarPassword son requeridos.');
+  }
+  if (nuevaPassword !== confirmarPassword) {
+    throw BadRequest('La nueva contraseña y su confirmación no coinciden.');
+  }
 
-    const usuario = await usuarioModel.changePassword(req.usuario.id, actualPassword, nuevaPassword);
+  const usuario = await usuarioModel.changePassword(req.usuario.id, actualPassword, nuevaPassword);
 
-    //  (recomendado): cerrar sesión para obligar re-login
-    res.clearCookie('token');
+  //  (recomendado): cerrar sesión para obligar re-login
+  res.clearCookie('token');
 
-    res.status(200).json({
+  res.status(200).json({
+    ok: true,
+    data: {
       mensaje: 'Contraseña cambiada correctamente. Inicia sesión de nuevo.',
       usuario
-    });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo cambiar la contraseña', error: error.message });
-  }
+    }
+  });
 });
 
 //RF-USU-08 - Cerrar sesión
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
-  res.status(200).json({ mensaje: 'Sesión cerrada' });
+  res.status(200).json({ ok: true, data: { mensaje: 'Sesión cerrada' } });
 });
 
 // RF-USU-09 - Gestión de roles (solo admin)
 // Listar usuarios con filtros básicos
 router.get('/admin/users', verificarToken, soloAdmin, async (req, res) => {
-  try {
-    const { page, limit, q, rol } = req.query;
-    const result = await usuarioModel.list({ page, limit, q, rol });
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo listar usuarios', error: error.message });
-  }
+  const { page, limit, q, rol } = req.query;
+  const result = await usuarioModel.list({ page, limit, q, rol });
+  res.status(200).json({ ok: true, data: result });
 });
 // Cambiar rol de un usuario (con validación de contraseña y auditoría)
 router.patch('/admin/users/:id/rol', verificarToken, soloAdmin, async (req, res) => {
-  try {
-    console.log('[DEBUG] Iniciando cambio de rol...');
-    console.log('[DEBUG] Usuario admin:', req.usuario);
-    console.log('[DEBUG] Body:', req.body);
-    console.log('[DEBUG] Params:', req.params);
+  console.log('[DEBUG] Iniciando cambio de rol...');
+  console.log('[DEBUG] Usuario admin:', req.usuario);
+  console.log('[DEBUG] Body:', req.body);
+  console.log('[DEBUG] Params:', req.params);
 
-    const { id } = req.params;
-    const { rol, motivo, passwordAdmin } = req.body;
+  const { id } = req.params;
+  const { rol, motivo, passwordAdmin } = req.body;
 
-    // Validaciones básicas
-    if (!rol) return res.status(400).json({ mensaje: 'Campo rol es requerido' });
-    if (!motivo || motivo.trim().length < 10) {
-      return res.status(400).json({ mensaje: 'Motivo del cambio es requerido (mínimo 10 caracteres)' });
-    }
-    if (!passwordAdmin) {
-      return res.status(400).json({ mensaje: 'Contraseña del administrador es requerida' });
-    }
+  // Validaciones básicas
+  if (!rol) throw BadRequest('Campo rol es requerido');
+  if (!motivo || motivo.trim().length < 10) {
+    throw BadRequest('Motivo del cambio es requerido (mínimo 10 caracteres)');
+  }
+  if (!passwordAdmin) {
+    throw BadRequest('Contraseña del administrador es requerida');
+  }
 
-    // Evitar que un admin cambie su propio rol
-    if (id === req.usuario.id) {
-      return res.status(400).json({ mensaje: 'No puedes cambiar tu propio rol por seguridad.' });
-    }
+  // Evitar que un admin cambie su propio rol
+  if (id === req.usuario.id) {
+    throw BadRequest('No puedes cambiar tu propio rol por seguridad.');
+  }
 
-    console.log('[DEBUG] Validaciones básicas pasadas');
+  console.log('[DEBUG] Validaciones básicas pasadas');
 
-    // Verificar contraseña del administrador
-    const adminUsuario = await usuarioModel.getById(req.usuario.id);
-    if (!adminUsuario) {
-      return res.status(404).json({ mensaje: 'Administrador no encontrado' });
-    }
+  // Verificar contraseña del administrador
+  const adminUsuario = await usuarioModel.getById(req.usuario.id);
+  if (!adminUsuario) {
+    throw NotFound('Administrador no encontrado');
+  }
 
-    console.log('[DEBUG] Admin encontrado:', adminUsuario.email);
+  console.log('[DEBUG] Admin encontrado:', adminUsuario.email);
 
-    if (!adminUsuario.password) {
-      console.log('[ERROR] El administrador no tiene contraseña configurada');
-      return res.status(500).json({ mensaje: 'Error de configuración del administrador' });
-    }
+  if (!adminUsuario.password) {
+    console.log('[ERROR] El administrador no tiene contraseña configurada');
+    throw BadRequest('Error de configuración del administrador');
+  }
 
-    const passwordValida = await bcrypt.compare(passwordAdmin, adminUsuario.password);
-    if (!passwordValida) {
-      // Log de intento de cambio de rol no autorizado
-      console.log(`[SECURITY ALERT] Intento de cambio de rol no autorizado por admin ${adminUsuario.email} - Contraseña incorrecta`);
-      return res.status(401).json({ mensaje: 'Contraseña de administrador incorrecta' });
-    }
+  const passwordValida = await bcrypt.compare(passwordAdmin, adminUsuario.password);
+  if (!passwordValida) {
+    // Log de intento de cambio de rol no autorizado
+    console.log(`[SECURITY ALERT] Intento de cambio de rol no autorizado por admin ${adminUsuario.email} - Contraseña incorrecta`);
+    throw BadRequest('Contraseña de administrador incorrecta');
+  }
 
-    console.log('[DEBUG] Contraseña del admin validada');
+  console.log('[DEBUG] Contraseña del admin validada');
 
-    // Obtener información del usuario objetivo
-    const usuarioObjetivo = await usuarioModel.getById(id);
-    if (!usuarioObjetivo) {
-      return res.status(404).json({ mensaje: 'Usuario objetivo no encontrado' });
-    }
+  // Obtener información del usuario objetivo
+  const usuarioObjetivo = await usuarioModel.getById(id);
+  if (!usuarioObjetivo) {
+    throw NotFound('Usuario objetivo no encontrado');
+  }
 
-    console.log('[DEBUG] Usuario objetivo encontrado:', usuarioObjetivo.email);
+  console.log('[DEBUG] Usuario objetivo encontrado:', usuarioObjetivo.email);
 
-    // Realizar el cambio de rol
-    const actualizado = await usuarioModel.changeRole(id, rol);
+  // Realizar el cambio de rol
+  const actualizado = await usuarioModel.changeRole(id, rol);
 
-    console.log('[DEBUG] Rol cambiado exitosamente');
+  console.log('[DEBUG] Rol cambiado exitosamente');
 
-    // Log de auditoría del cambio exitoso
-    const logAuditoria = {
-      timestamp: new Date().toISOString(),
-      accion: 'CAMBIO_ROL',
-      adminId: req.usuario.id,
-      adminNombre: adminUsuario.nombre,
-      adminEmail: adminUsuario.email,
-      usuarioObjetivoId: id,
-      usuarioObjetivoNombre: usuarioObjetivo.nombre,
-      usuarioObjetivoEmail: usuarioObjetivo.email,
-      rolAnterior: usuarioObjetivo.rol,
-      rolNuevo: rol,
-      motivo: motivo.trim(),
-      ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent']
-    };
+  // Log de auditoría del cambio exitoso
+  const logAuditoria = {
+    timestamp: new Date().toISOString(),
+    accion: 'CAMBIO_ROL',
+    adminId: req.usuario.id,
+    adminNombre: adminUsuario.nombre,
+    adminEmail: adminUsuario.email,
+    usuarioObjetivoId: id,
+    usuarioObjetivoNombre: usuarioObjetivo.nombre,
+    usuarioObjetivoEmail: usuarioObjetivo.email,
+    rolAnterior: usuarioObjetivo.rol,
+    rolNuevo: rol,
+    motivo: motivo.trim(),
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.headers['user-agent']
+  };
 
-    console.log('[AUDIT] Cambio de rol:', JSON.stringify(logAuditoria, null, 2));
+  console.log('[AUDIT] Cambio de rol:', JSON.stringify(logAuditoria, null, 2));
 
-    res.status(200).json({ 
+  res.status(200).json({ 
+    ok: true,
+    data: {
       mensaje: `Rol actualizado correctamente de ${usuarioObjetivo.rol} a ${rol}`, 
       usuario: actualizado,
       auditoria: {
         timestamp: logAuditoria.timestamp,
         accion: 'Cambio de rol registrado en logs de auditoría'
       }
-    });
-  } catch (error) {
-    console.error('[ERROR] Error en cambio de rol:', error);
-    res.status(400).json({ mensaje: 'No se pudo cambiar el rol', error: error.message });
-  }
+    }
+  });
 });
 
 // RF-USU-10 - Verificar email con OTP
 // Flujo: (1) solicitar código → (2) confirmar código
 // (1) Solicitar código de verificación de email
 router.post('/email/verify/request', verificarToken, async (req, res) => {
-  try {
-    // Traer el perfil del usuario logueado
-    const perfil = await usuarioModel.getById(req.usuario.id);
-    if (!perfil) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+  // Traer el perfil del usuario logueado
+  const perfil = await usuarioModel.getById(req.usuario.id);
+  if (!perfil) throw NotFound('Usuario no encontrado');
 
-    if (perfil.emailVerificado) {
-      return res.status(200).json({ mensaje: 'El email ya está verificado' });
-    }
-
-    // Crear OTP para 'verificar_email' con vigencia 15 min
-    const { codigo } = await crearTokenOTP(req.usuario.id, 'verificar_email', 15);
-
-    // Enviar email con el código
-    await enviarCorreo(
-      perfil.email,
-      'Código para verificar tu email',
-      `
-      <p>Hola ${perfil.nombre},</p>
-      <p>Tu código para verificar el email es: <b style="font-size:18px">${codigo}</b></p>
-      <p>Este código vence en 15 minutos.</p>
-      `
-    );
-
-    res.status(200).json({ mensaje: 'Código de verificación enviado a tu correo' });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo generar el código', error: error.message });
+  if (perfil.emailVerificado) {
+    return res.status(200).json({ ok: true, data: { mensaje: 'El email ya está verificado' } });
   }
+
+  // Crear OTP para 'verificar_email' con vigencia 15 min
+  const { codigo } = await crearTokenOTP(req.usuario.id, 'verificar_email', 15);
+
+  // Enviar email con el código
+  await enviarCorreo(
+    perfil.email,
+    'Código para verificar tu email',
+    `
+    <p>Hola ${perfil.nombre},</p>
+    <p>Tu código para verificar el email es: <b style="font-size:18px">${codigo}</b></p>
+    <p>Este código vence en 15 minutos.</p>
+    `
+  );
+
+  res.status(200).json({ ok: true, data: { mensaje: 'Código de verificación enviado a tu correo' } });
 });
 
 // (2) Confirmar verificación con código
 router.post('/email/verify/confirm', verificarToken, async (req, res) => {
-  try {
-    const { codigo } = req.body;
-    if (!codigo) return res.status(400).json({ mensaje: 'Código requerido' });
+  const { codigo } = req.body;
+  if (!codigo) throw BadRequest('Código requerido');
 
-    // Verificar OTP del usuario logueado
-    await verificarTokenOTP(req.usuario.id, 'verificar_email', codigo);
+  // Verificar OTP del usuario logueado
+  await verificarTokenOTP(req.usuario.id, 'verificar_email', codigo);
 
-    // Marcar email como verificado
-    const usuario = await usuarioModel.markEmailVerified(req.usuario.id);
+  // Marcar email como verificado
+  const usuario = await usuarioModel.markEmailVerified(req.usuario.id);
 
-    res.status(200).json({ mensaje: 'Email verificado correctamente', usuario });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo verificar el email', error: error.message });
-  }
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Email verificado correctamente', 
+      usuario 
+    } 
+  });
 });
 
 // RF-USU-11 - Doble Factor (2FA por email)
 // Login paso 2: confirmar 2FA con el pretoken
 router.post('/login/2fa/verify', async (req, res) => {
+  const { codigo } = req.body;
+  if (!codigo) throw BadRequest('Código requerido');
+
+  const { pretoken } = req.cookies || {};
+  if (!pretoken) throw BadRequest('Sesión 2FA no iniciada');
+
+  // Decodificar pretoken
+  let payload;
   try {
-    const { codigo } = req.body;
-    if (!codigo) return res.status(400).json({ mensaje: 'Código requerido' });
-
-    const { pretoken } = req.cookies || {};
-    if (!pretoken) return res.status(401).json({ mensaje: 'Sesión 2FA no iniciada' });
-
-    // Decodificar pretoken
-    let payload;
-    try {
-      payload = jwt.verify(pretoken, process.env.JWT_SECRET);
-    } catch {
-      return res.status(401).json({ mensaje: 'Sesión 2FA expirada o inválida' });
-    }
-    if (payload.twofa !== 'pending') {
-      return res.status(401).json({ mensaje: 'Estado 2FA inválido' });
-    }
-
-    // Verificar OTP de tipo '2fa'
-    await verificarTokenOTP(payload.id, '2fa', codigo);
-
-    // Emitir token final de sesión y limpiar pretoken
-    const token = jwt.sign({ id: payload.id, rol: payload.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.clearCookie('pretoken');
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 3600000
-    });
-
-    return res.status(200).json({ mensaje: '2FA verificado. Sesión iniciada.' });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo verificar 2FA', error: error.message });
+    payload = jwt.verify(pretoken, process.env.JWT_SECRET);
+  } catch {
+    throw BadRequest('Sesión 2FA expirada o inválida');
   }
+  if (payload.twofa !== 'pending') {
+    throw BadRequest('Estado 2FA inválido');
+  }
+
+  // Verificar OTP de tipo '2fa'
+  await verificarTokenOTP(payload.id, '2fa', codigo);
+
+  // Emitir token final de sesión y limpiar pretoken
+  const token = jwt.sign({ id: payload.id, rol: payload.rol }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  res.clearCookie('pretoken');
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 3600000
+  });
+
+  return res.status(200).json({ 
+    ok: true, 
+    data: { mensaje: '2FA verificado. Sesión iniciada.' } 
+  });
 });
 
 // Habilitar 2FA (requiere login) — envía OTP para confirmar habilitación
 router.post('/2fa/enable/request', verificarToken, async (req, res) => {
-  try {
-    const perfil = await usuarioModel.getById(req.usuario.id);
-    if (!perfil) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    if (perfil.twoFactorEnabled) {
-      return res.status(200).json({ mensaje: '2FA ya está habilitado' });
-    }
-    if (!perfil.emailVerificado) {
-      return res.status(400).json({ mensaje: 'Verifica tu email antes de habilitar 2FA' });
-    }
-
-    const { codigo } = await crearTokenOTP(req.usuario.id, '2fa', 10);
-    await enviarCorreo(
-      perfil.email,
-      'Confirma habilitación de 2FA',
-      `<p>Hola ${perfil.nombre}, tu código para habilitar 2FA es: <b style="font-size:18px">${codigo}</b></p>`
-    );
-
-    res.status(200).json({ mensaje: 'Código enviado al correo para habilitar 2FA' });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo generar el código', error: error.message });
+  const perfil = await usuarioModel.getById(req.usuario.id);
+  if (!perfil) throw NotFound('Usuario no encontrado');
+  if (perfil.twoFactorEnabled) {
+    return res.status(200).json({ ok: true, data: { mensaje: '2FA ya está habilitado' } });
   }
+  if (!perfil.emailVerificado) {
+    throw BadRequest('Verifica tu email antes de habilitar 2FA');
+  }
+
+  const { codigo } = await crearTokenOTP(req.usuario.id, '2fa', 10);
+  await enviarCorreo(
+    perfil.email,
+    'Confirma habilitación de 2FA',
+    `<p>Hola ${perfil.nombre}, tu código para habilitar 2FA es: <b style="font-size:18px">${codigo}</b></p>`
+  );
+
+  res.status(200).json({ ok: true, data: { mensaje: 'Código enviado al correo para habilitar 2FA' } });
 });
 
 // Confirmar habilitación de 2FA
 router.post('/2fa/enable/confirm', verificarToken, async (req, res) => {
-  try {
-    const { codigo } = req.body;
-    if (!codigo) return res.status(400).json({ mensaje: 'Código requerido' });
+  const { codigo } = req.body;
+  if (!codigo) throw BadRequest('Código requerido');
 
-    await verificarTokenOTP(req.usuario.id, '2fa', codigo);
-    const usuario = await usuarioModel.setTwoFactorEnabled(req.usuario.id, true);
+  await verificarTokenOTP(req.usuario.id, '2fa', codigo);
+  const usuario = await usuarioModel.setTwoFactorEnabled(req.usuario.id, true);
 
-    res.status(200).json({ mensaje: '2FA habilitado', usuario });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo habilitar 2FA', error: error.message });
-  }
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: '2FA habilitado', 
+      usuario 
+    } 
+  });
 });
 
 // Deshabilitar 2FA (pide contraseña actual para confirmar)
 router.post('/2fa/disable', verificarToken, async (req, res) => {
-  try {
-    const { actualPassword } = req.body;
-    if (!actualPassword) return res.status(400).json({ mensaje: 'Contraseña actual requerida' });
+  const { actualPassword } = req.body;
+  if (!actualPassword) throw BadRequest('Contraseña actual requerida');
 
-    await usuarioModel.checkPassword(req.usuario.id, actualPassword);
-    const usuario = await usuarioModel.setTwoFactorEnabled(req.usuario.id, false);
+  await usuarioModel.checkPassword(req.usuario.id, actualPassword);
+  const usuario = await usuarioModel.setTwoFactorEnabled(req.usuario.id, false);
 
-    // Opcional: limpiar cualquier pretoken residual
-    res.clearCookie('pretoken');
+  // Opcional: limpiar cualquier pretoken residual
+  res.clearCookie('pretoken');
 
-    res.status(200).json({ mensaje: '2FA deshabilitado', usuario });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo deshabilitar 2FA', error: error.message });
-  }
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: '2FA deshabilitado', 
+      usuario 
+    } 
+  });
 });
 
 // Estado de 2FA
 router.get('/2fa/status', verificarToken, async (req, res) => {
-  try {
-    const perfil = await usuarioModel.getById(req.usuario.id);
-    if (!perfil) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    res.status(200).json({ twoFactorEnabled: !!perfil.twoFactorEnabled });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo obtener el estado de 2FA', error: error.message });
-  }
+  const perfil = await usuarioModel.getById(req.usuario.id);
+  if (!perfil) throw NotFound('Usuario no encontrado');
+  res.status(200).json({ 
+    ok: true, 
+    data: { twoFactorEnabled: !!perfil.twoFactorEnabled } 
+  });
 });
 
 // RF-USU-12 - Consentimiento (versión simple)
 // Ver estado (requiere login)
 router.get('/consent/status', verificarToken, async (req, res) => {
-  try {
-    const estado = await usuarioModel.getConsentStatus(req.usuario.id);
-    res.status(200).json(estado);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo obtener el estado', error: error.message });
-  }
+  const estado = await usuarioModel.getConsentStatus(req.usuario.id);
+  res.status(200).json({ ok: true, data: estado });
 });
 
 // Aceptar (requiere login)
 router.post('/consent/accept', verificarToken, async (req, res) => {
-  try {
-    const usuario = await usuarioModel.acceptConsent(req.usuario.id);
-    res.status(200).json({ mensaje: 'Consentimiento aceptado', usuario });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo aceptar el consentimiento', error: error.message });
-  }
+  const usuario = await usuarioModel.acceptConsent(req.usuario.id);
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Consentimiento aceptado', 
+      usuario 
+    } 
+  });
 });
 
 // ===== MÉTODOS DE PAGO =====
 
 // Obtener métodos de pago del usuario
 router.get('/me/metodos-pago', verificarToken, async (req, res) => {
-  try {
-    const metodosPago = await usuarioModel.obtenerMetodosPago(req.usuario.id);
-    res.status(200).json(metodosPago);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudieron obtener los métodos de pago', error: error.message });
-  }
+  const metodosPago = await usuarioModel.obtenerMetodosPago(req.usuario.id);
+  res.status(200).json({ ok: true, data: metodosPago });
 });
 
 // Agregar tarjeta
 router.post('/me/metodos-pago/tarjetas', verificarToken, async (req, res) => {
-  try {
-    const { alias, tipo, numeroCompleto, titular, fechaVencimiento, banco } = req.body;
-    const tarjeta = await usuarioModel.agregarTarjeta(req.usuario.id, {
-      alias, tipo, numeroCompleto, titular, fechaVencimiento, banco
-    });
-    res.status(201).json({ mensaje: 'Tarjeta agregada correctamente', tarjeta });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo agregar la tarjeta', error: error.message });
-  }
+  const { alias, tipo, numeroCompleto, titular, fechaVencimiento, banco } = req.body;
+  const tarjeta = await usuarioModel.agregarTarjeta(req.usuario.id, {
+    alias, tipo, numeroCompleto, titular, fechaVencimiento, banco
+  });
+  res.status(201).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Tarjeta agregada correctamente', 
+      tarjeta 
+    } 
+  });
 });
 
 // Agregar cuenta bancaria
 router.post('/me/metodos-pago/cuentas', verificarToken, async (req, res) => {
-  try {
-    const { alias, banco, tipoCuenta, numeroCuenta, titular } = req.body;
-    const cuenta = await usuarioModel.agregarCuentaBancaria(req.usuario.id, {
-      alias, banco, tipoCuenta, numeroCuenta, titular
-    });
-    res.status(201).json({ mensaje: 'Cuenta bancaria agregada correctamente', cuenta });
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo agregar la cuenta bancaria', error: error.message });
-  }
+  const { alias, banco, tipoCuenta, numeroCuenta, titular } = req.body;
+  const cuenta = await usuarioModel.agregarCuentaBancaria(req.usuario.id, {
+    alias, banco, tipoCuenta, numeroCuenta, titular
+  });
+  res.status(201).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Cuenta bancaria agregada correctamente', 
+      cuenta 
+    } 
+  });
 });
 
 // Eliminar tarjeta
 router.delete('/me/metodos-pago/tarjetas/:tarjetaId', verificarToken, async (req, res) => {
-  try {
-    const resultado = await usuarioModel.eliminarTarjeta(req.usuario.id, req.params.tarjetaId);
-    res.status(200).json(resultado);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo eliminar la tarjeta', error: error.message });
-  }
+  const resultado = await usuarioModel.eliminarTarjeta(req.usuario.id, req.params.tarjetaId);
+  res.status(200).json({ ok: true, data: resultado });
 });
 
 // Eliminar cuenta bancaria
 router.delete('/me/metodos-pago/cuentas/:cuentaId', verificarToken, async (req, res) => {
-  try {
-    const resultado = await usuarioModel.eliminarCuentaBancaria(req.usuario.id, req.params.cuentaId);
-    res.status(200).json(resultado);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo eliminar la cuenta bancaria', error: error.message });
-  }
+  const resultado = await usuarioModel.eliminarCuentaBancaria(req.usuario.id, req.params.cuentaId);
+  res.status(200).json({ ok: true, data: resultado });
 });
 
 // Establecer método de pago predeterminado
 router.patch('/me/metodos-pago/predeterminado', verificarToken, async (req, res) => {
-  try {
-    const { tipo, metodoPagoId } = req.body;
-    const resultado = await usuarioModel.establecerPredeterminado(req.usuario.id, tipo, metodoPagoId);
-    res.status(200).json(resultado);
-  } catch (error) {
-    res.status(400).json({ mensaje: 'No se pudo establecer como predeterminado', error: error.message });
-  }
+  const { tipo, metodoPagoId } = req.body;
+  const resultado = await usuarioModel.establecerPredeterminado(req.usuario.id, tipo, metodoPagoId);
+  res.status(200).json({ ok: true, data: resultado });
 });
 
 //Ruta Privada: admin
 router.get('/admin', verificarToken, soloAdmin, async (req, res) => {
-try { 
-  res.status(200).json({ mensaje: 'Bienvenido al área de administración', usuario: req.usuario });
-} catch (error) {
-  res.status(500).json({ mensaje: 'area restringida'});
-}
+  res.status(200).json({ 
+    ok: true, 
+    data: { 
+      mensaje: 'Bienvenido al área de administración', 
+      usuario: req.usuario 
+    } 
+  });
 });
 
 export default router;
