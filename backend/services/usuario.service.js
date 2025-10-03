@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import Usuario from '../models/usuario.model.js';
+import { Usuario } from '../models/usuario/index.js';
 import { BadRequest, NotFound, Conflict } from '../utils/error.js';
 import { validarDireccion, validarDocumento, validarEmail, validarNombre, validarPassword, validarTelefono, validarRol } from '../utils/validator.js';
 import enviarCorreo from '../utils/email.service.js';

@@ -10,4 +10,5 @@ const usuarioTokenSchema = new mongoose.Schema({
 
 usuarioTokenSchema.index({ userId: 1, type: 1, createdAt: -1 });
 
-export default mongoose.model('usuarioToken', usuarioTokenSchema);
+const UsuarioToken = mongoose.model('usuarioToken', usuarioTokenSchema);
+export default UsuarioToken;

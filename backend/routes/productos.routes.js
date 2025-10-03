@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import {
+  obtenerProductos,
   crearProducto,
   editarProducto,
   eliminarProducto,
@@ -44,6 +45,9 @@ const upload = multer({ storage });
 // ============================
 // Rutas de productos
 // ============================
+
+// RF-PROD-00 - Obtener todos los productos
+router.get("/", obtenerProductos);
 
 // RF-PROD-01 - Registrar
 router.post("/", crearProducto);

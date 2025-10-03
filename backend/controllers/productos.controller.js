@@ -1,9 +1,63 @@
 // controllers/producto.controller.js
-import { Producto } from "../models/producto.model.js";
+import { Producto } from "../models/producto/index.js";
 import fs from "fs";
 import path from "path";
 import { BadRequest, NotFound } from "../utils/error.js";
 import { validarNombreProducto, validarDescripcion, validarPrecio, validarCategoria, validarSlug, validarStock, validarAtributo, validarValor } from "../utils/validator.js";
+
+// ============================
+// RF-PROD-00 - Obtener todos los productos
+// ============================
+export async function obtenerProductos(req, res) {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      categoria,
+      disponible,
+      minPrecio,
+      maxPrecio 
+    } = req.query;
+
+    // Construir filtros
+    const filtros = {};
+    if (categoria) filtros.categoria = categoria;
+    if (disponible !== undefined) filtros.disponibilidad = disponible === 'true';
+    if (minPrecio || maxPrecio) {
+      filtros.precioBase = {};
+      if (minPrecio) filtros.precioBase.$gte = Number(minPrecio);
+      if (maxPrecio) filtros.precioBase.$lte = Number(maxPrecio);
+    }
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    
+    // Consulta con paginación
+    const productos = await Producto.find(filtros)
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ creadoEn: -1 });
+
+    // Contar total para paginación
+    const total = await Producto.countDocuments(filtros);
+
+    res.json({
+      ok: true,
+      data: productos,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+}
 
 // ============================
 // RF-PROD-01 - Registrar producto

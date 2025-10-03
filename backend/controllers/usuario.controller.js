@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import Usuario from '../models/usuario.model.js';
+import { Usuario } from '../models/usuario/index.js';
 import { BadRequest, NotFound, Conflict } from '../utils/error.js';
 import enviarCorreo from '../utils/email.service.js';
 import { crearTokenOTP, verificarTokenOTP } from '../utils/otp.js';

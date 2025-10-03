@@ -1,4 +1,4 @@
-// models/producto.model.js
+// models/producto/producto.model.js
 import mongoose from "mongoose";
 
 const varianteSchema = new mongoose.Schema({
