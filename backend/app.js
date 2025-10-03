@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import MongoStore from "connect-mongo";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,6 +15,7 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.routes.js";
 import productosRoutes from "./routes/productos.routes.js";
 import carritoRoutes from "./routes/carrito.routes.js";
+import checkoutRoutes from "./routes/checkout.routes.js";
 
 // Middlewares
 import { verificarApiKey } from "./middlewares/apikey.js";
@@ -36,6 +39,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Configuración de sesiones
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'verdenexo-checkout-secret-2024',
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    dbName: process.env.MONGO_DB_NAME || "mi_base_datos",
+    collectionName: 'sessions',
+    ttl: 24 * 60 * 60 // 24 horas
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+  }
+}));
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:4444",
@@ -54,6 +76,8 @@ app.use("/api", verificarApiKey);
 app.use("/api/auth", authRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/carrito", carritoRoutes);
+app.use("/api/checkout", checkoutRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 // Servir archivos estáticos (imágenes, pdf, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
