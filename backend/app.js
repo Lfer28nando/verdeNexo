@@ -16,6 +16,7 @@ import authRoutes from "./routes/auth.routes.js";
 import productosRoutes from "./routes/productos.routes.js";
 import carritoRoutes from "./routes/carrito.routes.js";
 import checkoutRoutes from "./routes/checkout.routes.js";
+import pedidosRoutes from "./routes/pedidos.routes.js";
 
 // Middlewares
 import { verificarApiKey } from "./middlewares/apikey.js";
@@ -77,7 +78,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/carrito", carritoRoutes);
 app.use("/api/checkout", checkoutRoutes);
-app.use("/api/checkout", checkoutRoutes);
+app.use("/api/pedidos", pedidosRoutes);
 
 // Servir archivos estáticos (imágenes, pdf, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
