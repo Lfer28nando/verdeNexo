@@ -17,8 +17,15 @@ let usuarioSeleccionado = null;
 
 // Cargar usuarios con filtros y paginación
 async function cargarUsuarios(pagina = 1) {
+  console.log('[DEBUG] cargarUsuarios ejecutándose, página:', pagina);
+  
   const loadingElement = document.getElementById('loadingUsuarios');
   const tablaBody = document.getElementById('tablaUsuarios');
+  
+  console.log('[DEBUG] Elementos encontrados:', {
+    loadingElement: !!loadingElement,
+    tablaBody: !!tablaBody
+  });
   
   try {
     // Mostrar loading
@@ -37,9 +44,13 @@ async function cargarUsuarios(pagina = 1) {
     // Realizar petición al backend
     const response = await apiService.get(`/api/auth/admin/users?${params.toString()}`);
     
-    usuariosData = response.docs || [];
-    paginaActual = response.page || 1;
-    totalPaginas = response.pages || 1;
+    console.log('[DEBUG] Respuesta de la API:', response);
+    
+    // Acceder a los datos desde response.data
+    const usuarios = response.data || {};
+    usuariosData = usuarios.docs || [];
+    paginaActual = usuarios.page || 1;
+    totalPaginas = usuarios.pages || 1;
 
     // Renderizar usuarios
     renderizarUsuarios();
@@ -47,7 +58,8 @@ async function cargarUsuarios(pagina = 1) {
 
   } catch (error) {
     console.error('Error al cargar usuarios:', error);
-    mostrarAlerta('Error al cargar los usuarios: ' + error.message, 'error');
+    const errorMessage = window.extractErrorMessage ? window.extractErrorMessage(error, 'Error al cargar los usuarios') : 'Error al cargar los usuarios';
+    mostrarAlerta('Error al cargar los usuarios: ' + errorMessage, 'error');
     
     if (tablaBody) {
       tablaBody.innerHTML = `
@@ -370,14 +382,18 @@ async function confirmarCambioRol(usuarioId, nuevoRol) {
   } catch (error) {
     console.error('Error al cambiar rol:', error);
     
+    const errorMessage = window.extractErrorMessage ? window.extractErrorMessage(error, 'Error al cambiar el rol') : 'Error al cambiar el rol';
+    
     // Manejar errores específicos
-    if (error.message.includes('Contraseña incorrecta')) {
+    if (errorMessage.includes('configuración del administrador')) {
+      mostrarAlerta('Error: El usuario administrador no tiene una contraseña configurada. Contacta al soporte técnico.', 'error');
+    } else if (errorMessage.includes('Contraseña incorrecta')) {
       document.getElementById('passwordAdmin').classList.add('is-invalid');
       mostrarAlerta('Contraseña de administrador incorrecta', 'error');
-    } else if (error.message.includes('No puedes cambiar tu propio rol')) {
+    } else if (errorMessage.includes('No puedes cambiar tu propio rol')) {
       mostrarAlerta('No puedes cambiar tu propio rol por seguridad', 'error');
     } else {
-      mostrarAlerta('Error al cambiar el rol: ' + error.message, 'error');
+      mostrarAlerta('Error al cambiar el rol: ' + errorMessage, 'error');
     }
   } finally {
     // Restaurar estado del botón
@@ -507,6 +523,16 @@ function mostrarNotificacionExito(usuario, nuevoRol, auditoria) {
 
 // Función para mostrar alertas (reutiliza la existente)
 function mostrarAlerta(mensaje, tipo = 'info') {
+  // Protección contra [object Object]
+  if (typeof mensaje === 'object') {
+    console.warn('[mostrarAlerta] Recibió objeto en lugar de string:', mensaje);
+    mensaje = JSON.stringify(mensaje);
+  }
+  
+  if (mensaje === '[object Object]') {
+    mensaje = 'Ha ocurrido un error inesperado';
+  }
+  
   // Crear elemento de alerta
   const alertDiv = document.createElement('div');
   alertDiv.className = `alert alert-${tipo === 'error' ? 'danger' : tipo} alert-dismissible fade show position-fixed`;
@@ -532,8 +558,13 @@ function mostrarAlerta(mensaje, tipo = 'info') {
 
 // Inicializar gestión de roles cuando se carga la página de admin
 function initAdminRoles() {
+  console.log('[DEBUG] initAdminRoles ejecutándose...');
+  console.log('[DEBUG] Ruta actual:', window.location.pathname);
+  console.log('[DEBUG] Elemento tablaUsuarios existe:', !!document.getElementById('tablaUsuarios'));
+  
   // Solo inicializar en la página de admin
   if (window.location.pathname === '/admin') {
+    console.log('[DEBUG] En página de admin, cargando usuarios...');
     // Cargar usuarios automáticamente
     cargarUsuarios(1);
     

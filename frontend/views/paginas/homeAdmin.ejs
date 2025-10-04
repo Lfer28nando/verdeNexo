@@ -197,6 +197,97 @@
 </div>
 <!-- Gestión de Usuarios y Roles - cierre -->
 
+<!-- Gestión de Productos -->
+<div class="col-12 mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-box me-2"></i>
+                Gestión de Productos
+            </h5>
+            <div>
+                <button class="btn btn-success btn-sm me-2" onclick="window.adminProductos.abrirModalCrear()">
+                    <i class="fas fa-plus me-1"></i>
+                    Nuevo Producto
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="window.adminProductos.cargarProductos()">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filtros -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="filtroCategoria" class="form-label">Filtrar por categoría:</label>
+                    <select id="filtroCategoria" class="form-select" onchange="window.adminProductos.aplicarFiltros()">
+                        <option value="">Todas las categorías</option>
+                        <option value="plantas">Plantas</option>
+                        <option value="macetas">Macetas</option>
+                        <option value="herramientas">Herramientas</option>
+                        <option value="fertilizantes">Fertilizantes</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroDisponibilidad" class="form-label">Disponibilidad:</label>
+                    <select id="filtroDisponibilidad" class="form-select" onchange="window.adminProductos.aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="true">Disponibles</option>
+                        <option value="false">No disponibles</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="buscarProducto" class="form-label">Buscar producto:</label>
+                    <input type="text" id="buscarProducto" class="form-control" placeholder="Nombre o descripción...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary" onclick="window.adminProductos.limpiarFiltros()">
+                        <i class="fas fa-times me-1"></i>
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingProductos" class="text-center py-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando productos...</p>
+            </div>
+
+            <!-- Tabla de productos -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProductos">
+                        <!-- Los productos se cargarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación de productos">
+                <ul class="pagination justify-content-center" id="paginacionProductos">
+                    <!-- La paginación se generará dinámicamente -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<!-- Gestión de Productos - cierre -->
+
 </div>
 
 <%- include('../parciales/userPanel') %>
@@ -313,6 +404,199 @@
           <span class="btn-loading" style="display: none;">
             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
             Procesando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Crear/Editar Producto -->
+<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-box me-2"></i>
+          <span id="tituloModalProducto">Nuevo Producto</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formProducto">
+          <input type="hidden" id="productoId" value="">
+          
+          <div class="row">
+            <div class="col-md-8">
+              <!-- Nombre del producto -->
+              <div class="mb-3">
+                <label for="nombreProducto" class="form-label">
+                  <i class="fas fa-tag me-1"></i>
+                  Nombre del producto <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="nombreProducto" required>
+              </div>
+
+              <!-- Descripción -->
+              <div class="mb-3">
+                <label for="descripcionProducto" class="form-label">
+                  <i class="fas fa-align-left me-1"></i>
+                  Descripción
+                </label>
+                <textarea class="form-control" id="descripcionProducto" rows="3"></textarea>
+              </div>
+
+              <!-- Categoría y precio en una fila -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="categoriaProducto" class="form-label">
+                      <i class="fas fa-list me-1"></i>
+                      Categoría <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="categoriaProducto" required>
+                      <option value="">Seleccionar categoría</option>
+                      <option value="plantas">Plantas</option>
+                      <option value="macetas">Macetas</option>
+                      <option value="herramientas">Herramientas</option>
+                      <option value="fertilizantes">Fertilizantes</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="precioProducto" class="form-label">
+                      <i class="fas fa-dollar-sign me-1"></i>
+                      Precio base <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="precioProducto" step="0.01" min="0" required>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stock y disponibilidad -->
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="stockProducto" class="form-label">
+                      <i class="fas fa-cubes me-1"></i>
+                      Stock inicial
+                    </label>
+                    <input type="number" class="form-control" id="stockProducto" min="0" value="0">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">
+                      <i class="fas fa-toggle-on me-1"></i>
+                      Estado
+                    </label>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="disponibilidadProducto" checked>
+                      <label class="form-check-label" for="disponibilidadProducto">
+                        Disponible para la venta
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <!-- Imagen del producto -->
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="fas fa-image me-1"></i>
+                  Imagen del producto
+                </label>
+                <div class="text-center">
+                  <div id="previewImagen" class="mb-3" style="border: 2px dashed #ccc; padding: 20px; border-radius: 8px;">
+                    <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">Haz clic para seleccionar imagen</p>
+                  </div>
+                  <input type="file" class="form-control" id="imagenProducto" accept="image/*" style="display: none;">
+                  <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('imagenProducto').click()">
+                    <i class="fas fa-upload me-1"></i>
+                    Seleccionar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Etiquetas -->
+          <div class="mb-3">
+            <label for="etiquetasProducto" class="form-label">
+              <i class="fas fa-tags me-1"></i>
+              Etiquetas (separadas por comas)
+            </label>
+            <input type="text" class="form-control" id="etiquetasProducto" placeholder="ej: interior, bajo mantenimiento, decorativa">
+            <div class="form-text">Las etiquetas ayudan a categorizar y buscar productos</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" onclick="window.adminProductos.guardarProducto()">
+          <span class="btn-text">
+            <i class="fas fa-save me-1"></i>
+            <span id="textoBotonGuardar">Guardar Producto</span>
+          </span>
+          <span class="btn-loading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-trash me-2 text-danger"></i>
+          Eliminar Producto
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <div>
+            <strong>¡Acción irreversible!</strong><br>
+            <small>Esta acción no se puede deshacer.</small>
+          </div>
+        </div>
+        
+        <p>¿Estás seguro de que deseas eliminar el producto <strong id="nombreProductoEliminar"></strong>?</p>
+        
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="confirmarEliminacion" required>
+          <label class="form-check-label" for="confirmarEliminacion">
+            Confirmo que deseo eliminar este producto
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" onclick="window.adminProductos.confirmarEliminacion()">
+          <span class="btn-text">
+            <i class="fas fa-trash me-1"></i>
+            Eliminar Producto
+          </span>
+          <span class="btn-loading" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Eliminando...
           </span>
         </button>
       </div>

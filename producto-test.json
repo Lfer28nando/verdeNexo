@@ -1,0 +1,9 @@
+{
+  "nombre": "Planta de Prueba",
+  "descripcion": "Una planta para testear",
+  "categoria": "plantas",
+  "precioBase": 25000,
+  "stock": 10,
+  "disponibilidad": true,
+  "etiquetas": ["test", "prueba"]
+}

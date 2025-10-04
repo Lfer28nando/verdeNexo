@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
+import { Producto } from "../models/producto/index.js";
 import {
   obtenerProductos,
   crearProducto,
@@ -48,6 +49,31 @@ const upload = multer({ storage });
 
 // RF-PROD-00 - Obtener todos los productos
 router.get("/", obtenerProductos);
+
+// RF-PROD-00B - Obtener producto por ID
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const producto = await Producto.findById(id);
+    
+    if (!producto) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Producto no encontrado'
+      });
+    }
+
+    res.json({
+      ok: true,
+      data: producto
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+});
 
 // RF-PROD-01 - Registrar
 router.post("/", crearProducto);

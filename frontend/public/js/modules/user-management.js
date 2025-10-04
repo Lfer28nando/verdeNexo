@@ -163,7 +163,18 @@ function abrirEditarPerfil() {
 async function cargarDatosUsuario() {
   try {
     const data = await apiService.get('/api/auth/me');
-    const usuario = data.usuario;
+    
+    // Validar que la respuesta contenga los datos del usuario
+    if (!data || !data.data || !data.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
+    }
+    
+    const usuario = data.data.usuario;
+    
+    // Validar que el usuario tenga las propiedades necesarias
+    if (!usuario.nombre || !usuario.email) {
+      throw new Error('Datos del usuario incompletos');
+    }
     
     // Llenar los campos del formulario
     document.getElementById('editNombre').value = usuario.nombre || '';
@@ -179,7 +190,11 @@ async function cargarDatosUsuario() {
     
   } catch (error) {
     console.error('Error al cargar datos del usuario:', error);
-    mostrarAlerta('Error al cargar los datos del perfil', 'error');
+    // Usar función utilitaria si está disponible, sino usar mensaje directo
+    const errorMessage = typeof extractErrorMessage === 'function' 
+      ? extractErrorMessage(error, 'Error al cargar los datos del perfil')
+      : (error.message || 'Error al cargar los datos del perfil');
+    mostrarAlerta(errorMessage, 'error');
   }
 }
 

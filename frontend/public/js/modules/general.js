@@ -227,128 +227,16 @@ function setupEditPasswordValidation() {
   }
 }
 
-// ============= MANEJADOR DE FORMULARIO DE EDICIÓN DE PERFIL =============
+// ============= CONFIGURACIÓN DE FORMULARIOS DUPLICADA - COMENTADA =============
+// NOTA: Esta función se eliminó porque está duplicada en scripts.js
+// y causaba que se ejecutaran dos handlers para el mismo formulario
 
-// Configurar el manejador del formulario de edición de perfil
+/*
 function setupEditProfileFormHandler() {
-  const editForm = document.getElementById('editProfileForm');
-  if (editForm) {
-    editForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const btnActualizar = document.getElementById('btnActualizar');
-      const btnText = btnActualizar.querySelector('.btn-text');
-      const btnLoading = btnActualizar.querySelector('.btn-loading');
-      
-      try {
-        // Validar formulario antes de enviar
-        if (!validarFormularioCompleto()) {
-          mostrarAlerta('Por favor, corrige los errores en el formulario', 'error');
-          return;
-        }
-        
-        // Mostrar estado de carga
-        btnActualizar.disabled = true;
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'inline-flex';
-        
-        // Obtener datos del formulario
-        const formData = new FormData(editForm);
-        const updateData = {};
-        
-        // Solo incluir campos que no estén vacíos para actualización de perfil
-        if (formData.get('nombre').trim()) updateData.nombre = formData.get('nombre').trim();
-        if (formData.get('email').trim()) updateData.email = formData.get('email').trim();
-        if (formData.get('telefono').trim()) updateData.telefono = formData.get('telefono').trim();
-        if (formData.get('direccion').trim()) updateData.direccion = formData.get('direccion').trim();
-        if (formData.get('documento').trim()) updateData.documento = formData.get('documento').trim();
-        
-        // Manejar cambio de contraseña por separado
-        const currentPassword = document.getElementById('editCurrentPassword').value;
-        const newPassword = document.getElementById('editPassword').value;
-        const confirmPassword = document.getElementById('editConfirmPassword').value;
-        
-        let passwordChanged = false;
-        
-        // Si se quiere cambiar la contraseña, usar el endpoint específico
-        if (currentPassword || newPassword || confirmPassword) {
-          if (!currentPassword) {
-            throw new Error('Debes ingresar tu contraseña actual para cambiarla');
-          }
-          if (!newPassword) {
-            throw new Error('Debes ingresar la nueva contraseña');
-          }
-          if (newPassword !== confirmPassword) {
-            throw new Error('Las contraseñas nuevas no coinciden');
-          }
-          
-          // Cambiar contraseña usando endpoint específico
-          await apiService.post('/api/auth/password/change', {
-            actualPassword: currentPassword,
-            nuevaPassword: newPassword,
-            confirmarPassword: confirmPassword
-          });
-          
-          passwordChanged = true;
-        }
-        
-        let response = null;
-        
-        // Actualizar otros datos del perfil si hay cambios
-        if (Object.keys(updateData).length > 0) {
-          response = await apiService.put('/api/auth/me', updateData);
-        }
-        
-        // Si se cambió la contraseña, manejar el cierre de sesión
-        if (passwordChanged) {
-          mostrarAlerta('Contraseña cambiada correctamente. Serás redirigido al login.', 'success');
-          
-          // Limpiar localStorage y redirigir después de 2 segundos
-          setTimeout(() => {
-            localStorage.removeItem('usuario');
-            window.location.reload();
-          }, 2000);
-          
-          return; // No continuar con la actualización de interfaz
-        }
-        
-        // Si solo se actualizó el perfil (sin contraseña)
-        if (response) {
-          // Actualizar localStorage con los nuevos datos
-          const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-          const usuarioActualizado = { ...usuarioActual, ...response.usuario };
-          localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
-          
-          // Actualizar interfaz
-          updateUserInterface(usuarioActualizado);
-          
-          // Mostrar mensaje de éxito
-          mostrarAlerta('Perfil actualizado correctamente', 'success');
-        } else if (!passwordChanged) {
-          throw new Error('No se realizaron cambios en el perfil');
-        }
-        
-        // Cerrar modal
-        const editModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
-        if (editModal) {
-          editModal.hide();
-        }
-        
-        // Limpiar formulario
-        limpiarFormularioEdicion();
-        
-      } catch (error) {
-        console.error('Error al actualizar perfil:', error);
-        mostrarAlerta(error.message || 'Error al actualizar el perfil', 'error');
-      } finally {
-        // Restaurar estado del botón
-        btnActualizar.disabled = false;
-        btnText.style.display = 'inline';
-        btnLoading.style.display = 'none';
-      }
-    });
-  }
+  // Esta función está comentada porque existe una implementación
+  // idéntica en scripts.js que ya maneja el formulario de editar perfil
 }
+*/
 
 // ============= TOGGLE PARA CAMPOS DE CONTRASEÑA =============
 

@@ -25,6 +25,7 @@ const productoSchema = new mongoose.Schema({
   descripcion: { type: String },
   precioBase: { type: Number, required: true },
   disponibilidad: { type: Boolean, default: true },
+  stock: { type: Number, default: 0 },
 
   // RF-PROD-04
   imagenes: [{ type: String }], // nombre de archivo

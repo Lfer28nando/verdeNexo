@@ -63,57 +63,89 @@ export async function obtenerProductos(req, res) {
 // RF-PROD-01 - Registrar producto
 // ============================
 export async function crearProducto(req, res) {
-  const { nombre, descripcion, precioBase, categoria } = req.body;
+  try {
+    console.log('[DEBUG] Datos recibidos para crear producto:', req.body);
+    
+    const { 
+      nombre, 
+      descripcion, 
+      precioBase, 
+      categoria, 
+      stock, 
+      disponibilidad, 
+      etiquetas 
+    } = req.body;
 
-  // 1) Sanitización
-  const nombreClean = typeof nombre === 'string' ? nombre.trim() : nombre;
-  const descripcionClean = typeof descripcion === 'string' ? descripcion.trim() : descripcion;
-  const categoriaClean = typeof categoria === 'string' ? categoria.trim().toLowerCase() : categoria;
+    // 1) Sanitización
+    const nombreClean = typeof nombre === 'string' ? nombre.trim() : nombre;
+    const descripcionClean = typeof descripcion === 'string' ? descripcion.trim() : descripcion;
+    const categoriaClean = typeof categoria === 'string' ? categoria.trim().toLowerCase() : categoria;
 
-  // 2) Validaciones con datos limpios
-  validarNombreProducto(nombreClean);
-  validarPrecio(precioBase);
-  if (descripcionClean) validarDescripcion(descripcionClean);
-  if (categoriaClean) validarCategoria(categoriaClean);
+    // 2) Validaciones con datos limpios
+    validarNombreProducto(nombreClean);
+    validarPrecio(precioBase);
+    if (descripcionClean) validarDescripcion(descripcionClean);
+    if (categoriaClean) validarCategoria(categoriaClean);
 
-  // 3) Crear producto con datos limpios
-  const nuevoProducto = new Producto({
-    nombre: nombreClean,
-    descripcion: descripcionClean,
-    precioBase,
-    categoria: categoriaClean
-  });
+    // 3) Crear producto con datos limpios
+    const datosProducto = {
+      nombre: nombreClean,
+      descripcion: descripcionClean,
+      precioBase,
+      categoria: categoriaClean,
+      stock: stock || 0,
+      disponibilidad: disponibilidad !== false,
+      etiquetas: Array.isArray(etiquetas) ? etiquetas : []
+    };
 
-  const productoGuardado = await nuevoProducto.save();
-  res.status(201).json({ ok: true, data: productoGuardado });
+    console.log('[DEBUG] Datos a guardar en BD:', datosProducto);
+
+    const nuevoProducto = new Producto(datosProducto);
+    const productoGuardado = await nuevoProducto.save();
+    
+    console.log('[DEBUG] Producto guardado exitosamente:', productoGuardado._id);
+    res.status(201).json({ ok: true, data: productoGuardado });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
 }
 
 // ============================
 // RF-PROD-02 - Editar producto
 // ============================
 export async function editarProducto(req, res) {
-  const { id } = req.params;
-  const datos = req.body;
+  try {
+    const { id } = req.params;
+    const datos = req.body;
 
-  // 1) Sanitización de campos presentes
-  const cleanData = { ...datos };
-  if (cleanData.nombre) cleanData.nombre = cleanData.nombre.trim();
-  if (cleanData.descripcion) cleanData.descripcion = cleanData.descripcion.trim();
-  if (cleanData.categoria) cleanData.categoria = cleanData.categoria.trim().toLowerCase();
+    // 1) Sanitización de campos presentes
+    const cleanData = { ...datos };
+    if (cleanData.nombre) cleanData.nombre = cleanData.nombre.trim();
+    if (cleanData.descripcion) cleanData.descripcion = cleanData.descripcion.trim();
+    if (cleanData.categoria) cleanData.categoria = cleanData.categoria.trim().toLowerCase();
 
-  // 2) Validaciones con datos limpios
-  if (cleanData.nombre) validarNombreProducto(cleanData.nombre);
-  if (cleanData.descripcion) validarDescripcion(cleanData.descripcion);
-  if (cleanData.precioBase) validarPrecio(cleanData.precioBase);
-  if (cleanData.categoria) validarCategoria(cleanData.categoria);
+    // 2) Validaciones con datos limpios
+    if (cleanData.nombre) validarNombreProducto(cleanData.nombre);
+    if (cleanData.descripcion) validarDescripcion(cleanData.descripcion);
+    if (cleanData.precioBase) validarPrecio(cleanData.precioBase);
+    if (cleanData.categoria) validarCategoria(cleanData.categoria);
 
-  // 3) Actualizar con datos limpios
-  const producto = await Producto.findByIdAndUpdate(id, cleanData, { new: true, runValidators: true });
-  if (!producto) {
-    throw NotFound("Producto no encontrado");
+    // 3) Actualizar con datos limpios
+    const producto = await Producto.findByIdAndUpdate(id, cleanData, { new: true, runValidators: true });
+    if (!producto) {
+      throw new NotFound('Producto no encontrado');
+    }
+
+    res.json({ ok: true, data: producto });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
   }
-
-  res.json({ ok: true, data: producto });
 }
 
 // ============================

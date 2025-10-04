@@ -60,6 +60,13 @@
   <script src="/js/modules/user-management.js"></script>
   <script src="/js/modules/payment-methods.js"></script>
   <script src="/js/modules/admin-roles.js"></script>
+  <script src="/js/modules/admin-productos.js"></script>
+  <script>
+    console.log('[DEBUG] Scripts cargados. adminProductos disponible:', typeof window.adminProductos !== 'undefined');
+    if (window.adminProductos) {
+      console.log('[DEBUG] Funciones disponibles en adminProductos:', Object.keys(window.adminProductos));
+    }
+  </script>
   <script src="/js/modules/general.js"></script>
   
   <!-- Scripts específicos de la aplicación -->

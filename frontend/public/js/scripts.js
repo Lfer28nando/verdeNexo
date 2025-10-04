@@ -7,6 +7,21 @@
 // Función para actualizar la interfaz cuando un usuario se loguea
 function updateUserInterface(usuario) {
   console.log('updateUserInterface llamada con:', usuario);
+  
+  // Validar que el usuario no sea null o undefined
+  if (!usuario) {
+    console.error('updateUserInterface: usuario es null o undefined');
+    mostrarBotonesSesion();
+    return;
+  }
+  
+  // Validar que el usuario tenga las propiedades necesarias
+  if (!usuario.nombre || !usuario.email) {
+    console.error('updateUserInterface: usuario no tiene propiedades requeridas (nombre, email)', usuario);
+    mostrarBotonesSesion();
+    return;
+  }
+  
   const botones = document.getElementById('botonesSesion');
   const avatar = document.getElementById('avatarSesion');
   
@@ -37,7 +52,7 @@ function updateUserInterface(usuario) {
     }
 
     // Actualizar información del rol en el panel de usuario
-    updateUserRoleDisplay(usuario.rol);
+    updateUserRoleDisplay(usuario.rol || 'user');
   } else {
     console.log('No se encontraron los elementos necesarios');
   }
@@ -131,23 +146,34 @@ async function login(e) {
   try {
     const data = await apiService.post('/api/auth/login', { email, password });
 
+    // Validar que la respuesta contenga los datos del usuario
+    if (!data || !data.data || !data.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
+    }
+
+    const usuario = data.data.usuario;
+
+    // Validar que el usuario tenga las propiedades necesarias
+    if (!usuario.nombre || !usuario.email) {
+      throw new Error('Datos del usuario incompletos');
+    }
+
     // 💾 Guarda usuario inmediatamente
-    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    localStorage.setItem('usuario', JSON.stringify(usuario));
 
     alert('Sesión iniciada correctamente');
 
-    // Cerrar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-    modal.hide();
+    // Cerrar modal de manera segura
+    cerrarModalSeguro('loginModal');
 
     // Limpiar formulario
     document.getElementById('loginForm').reset();
 
     // Actualizar interfaz
-    updateUserInterface(data.usuario);
+    updateUserInterface(usuario);
 
     // Redirigir según el rol
-    if (data.usuario.rol === 'admin') {
+    if (usuario.rol === 'admin') {
       window.location.href = '/admin';
     } else {
       window.location.href = '/';
@@ -156,18 +182,18 @@ async function login(e) {
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     
-    // Mostrar error específico
-    let errorMessage = 'Error al iniciar sesión';
-    if (error.message.includes('Email no encontrado')) {
+    // Extraer mensaje de error usando la función utilitaria
+    let errorMessage = extractErrorMessage(error, 'Error al iniciar sesión. Verifica tus credenciales.');
+    
+    // Mostrar error específico basado en el mensaje
+    if (errorMessage.includes('Email no encontrado') || errorMessage.includes('Email no registrado')) {
       errorMessage = 'El correo electrónico no está registrado';
       document.getElementById('loginEmail').classList.add('is-invalid');
-    } else if (error.message.includes('Contraseña incorrecta')) {
+    } else if (errorMessage.includes('Contraseña incorrecta') || errorMessage.includes('password')) {
       errorMessage = 'La contraseña es incorrecta';
       document.getElementById('loginPassword').classList.add('is-invalid');
-    } else if (error.message.includes('Cuenta desactivada')) {
+    } else if (errorMessage.includes('Cuenta desactivada') || errorMessage.includes('desactivada')) {
       errorMessage = 'Tu cuenta está desactivada. Contacta al soporte.';
-    } else {
-      errorMessage = error.message;
     }
     
     alert(errorMessage);
@@ -493,25 +519,34 @@ function editarPerfil() {
 
 // Abrir modal de editar perfil
 function abrirEditarPerfil() {
-  // Cerrar el modal del panel de usuario
-  const userPanelModal = bootstrap.Modal.getInstance(document.getElementById('userPanelModal'));
-  if (userPanelModal) {
-    userPanelModal.hide();
-  }
+  // Cerrar el modal del panel de usuario de manera segura
+  cerrarModalSeguro('userPanelModal', false);
   
   // Cargar datos actuales del usuario
   cargarDatosUsuario();
   
-  // Abrir modal de editar perfil
-  const editModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
-  editModal.show();
+  // Abrir modal de editar perfil con un pequeño retraso
+  setTimeout(() => {
+    abrirModalSeguro('editProfileModal', false);
+  }, 300);
 }
 
 // Cargar datos actuales del usuario en el formulario
 async function cargarDatosUsuario() {
   try {
     const data = await apiService.get('/api/auth/me');
-    const usuario = data.usuario;
+    
+    // Validar que la respuesta contenga los datos del usuario
+    if (!data || !data.data || !data.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
+    }
+    
+    const usuario = data.data.usuario;
+    
+    // Validar que el usuario tenga las propiedades necesarias
+    if (!usuario.nombre || !usuario.email) {
+      throw new Error('Datos del usuario incompletos');
+    }
     
     // Llenar los campos del formulario
     document.getElementById('editNombre').value = usuario.nombre || '';
@@ -527,7 +562,8 @@ async function cargarDatosUsuario() {
     
   } catch (error) {
     console.error('Error al cargar datos del usuario:', error);
-    mostrarAlerta('Error al cargar los datos del perfil', 'error');
+    const errorMessage = extractErrorMessage(error, 'Error al cargar los datos del perfil');
+    mostrarAlerta(errorMessage, 'error');
   }
 }
 
@@ -733,13 +769,38 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Si solo se actualizó el perfil (sin contraseña)
         if (response) {
+          // Validar que la respuesta contenga los datos del usuario
+          if (!response || !response.data || !response.data.usuario) {
+            throw new Error('Respuesta del servidor incompleta');
+          }
+          
+          const usuarioActualizado = response.data.usuario;
+          
           // Actualizar localStorage con los nuevos datos
-          const usuarioActual = JSON.parse(localStorage.getItem('usuario') || '{}');
-          const usuarioActualizado = { ...usuarioActual, ...response.usuario };
           localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
           
-          // Actualizar interfaz
+          // Actualizar interfaz inmediatamente
           updateUserInterface(usuarioActualizado);
+          
+          // Actualizar también el modal del usuario si está abierto usando la función existente
+          const modalUsuario = document.getElementById('userPanelModal');
+          if (modalUsuario && modalUsuario.classList.contains('show')) {
+            // Solo actualizar los datos sin abrir de nuevo el modal
+            const nombreUsuario = document.getElementById('userName');
+            const emailUsuario = document.getElementById('userEmail');
+            const rolUsuario = document.getElementById('userRole');
+            
+            if (nombreUsuario) nombreUsuario.textContent = usuarioActualizado.nombre || 'No disponible';
+            if (emailUsuario) emailUsuario.textContent = usuarioActualizado.email || 'No disponible';
+            if (rolUsuario) rolUsuario.textContent = usuarioActualizado.rol || 'user';
+            
+            updateUserRoleDisplay(usuarioActualizado.rol || 'user');
+          }
+          
+          // Actualizar también los campos del modal con los datos nuevos
+          setTimeout(() => {
+            cargarDatosUsuario();
+          }, 100);
           
           // Mostrar mensaje de éxito
           mostrarAlerta('Perfil actualizado correctamente', 'success');
@@ -747,11 +808,8 @@ document.addEventListener('DOMContentLoaded', function() {
           throw new Error('No se realizaron cambios en el perfil');
         }
         
-        // Cerrar modal
-        const editModal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
-        if (editModal) {
-          editModal.hide();
-        }
+        // Cerrar modal de manera segura
+        cerrarModalSeguro('editProfileModal');
         
         // Limpiar formulario
         limpiarFormularioEdicion();
@@ -983,11 +1041,21 @@ async function verificarEstadoAutenticacion() {
   try {
     const response = await apiService.get('/api/auth/me');
     
-    if (response.usuario) {
-      // Usuario autenticado, actualizar localStorage y UI
-      localStorage.setItem('usuario', JSON.stringify(response.usuario));
-      updateUserInterface(response.usuario);
-      return true;
+    // Validar la estructura de la respuesta
+    if (response && response.data && response.data.usuario) {
+      const usuario = response.data.usuario;
+      
+      // Validar que el usuario tenga las propiedades necesarias
+      if (usuario.nombre && usuario.email) {
+        // Usuario autenticado, actualizar localStorage y UI
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        updateUserInterface(usuario);
+        return true;
+      } else {
+        console.error('Usuario recibido pero sin propiedades requeridas:', usuario);
+      }
+    } else {
+      console.log('Respuesta del servidor sin datos de usuario válidos');
     }
   } catch (error) {
     console.log('Usuario no autenticado:', error.message);
@@ -996,6 +1064,11 @@ async function verificarEstadoAutenticacion() {
     mostrarBotonesSesion();
     return false;
   }
+  
+  // Si llegamos aquí, no hay usuario válido
+  localStorage.removeItem('usuario');
+  mostrarBotonesSesion();
+  return false;
 }
 
 // Función para mostrar botones de sesión cuando no hay usuario logueado
@@ -1016,17 +1089,24 @@ function mostrarBotonesSesion() {
 
 // Función para abrir el modal del usuario
 function abrirModalUsuario(usuario) {
+  // Validar que el usuario no sea null o undefined
+  if (!usuario) {
+    console.error('abrirModalUsuario: usuario es null o undefined');
+    alert('Error: No se pudo cargar la información del usuario');
+    return;
+  }
+  
   // Actualizar la información del usuario en el modal
   const nombreUsuario = document.getElementById('userName');
   const emailUsuario = document.getElementById('userEmail');
   const rolUsuario = document.getElementById('userRole');
   
-  if (nombreUsuario) nombreUsuario.textContent = usuario.nombre;
-  if (emailUsuario) emailUsuario.textContent = usuario.email;
-  if (rolUsuario) rolUsuario.textContent = usuario.rol;
+  if (nombreUsuario) nombreUsuario.textContent = usuario.nombre || 'No disponible';
+  if (emailUsuario) emailUsuario.textContent = usuario.email || 'No disponible';
+  if (rolUsuario) rolUsuario.textContent = usuario.rol || 'user';
   
   // Actualizar la visualización del rol
-  updateUserRoleDisplay(usuario.rol);
+  updateUserRoleDisplay(usuario.rol || 'user');
   
   // Abrir el modal
   const modal = new bootstrap.Modal(document.getElementById('userPanelModal'));
@@ -1039,25 +1119,29 @@ function abrirModalUsuario(usuario) {
 function abrirMetodosPago() {
   console.log('abrirMetodosPago llamada');
   
-  // Cerrar el modal del panel de usuario
-  const userPanelModal = bootstrap.Modal.getInstance(document.getElementById('userPanelModal'));
-  if (userPanelModal) {
-    userPanelModal.hide();
-  }
+  // Cerrar el modal del panel de usuario de manera segura
+  cerrarModalSeguro('userPanelModal', false);
   
   // Cargar métodos de pago existentes
   cargarMetodosPago();
   
-  // Abrir modal de métodos de pago
-  const metodosModal = new bootstrap.Modal(document.getElementById('metodoPagoModal'));
-  metodosModal.show();
+  // Abrir modal de métodos de pago con retraso
+  setTimeout(() => {
+    abrirModalSeguro('metodoPagoModal', false);
+  }, 300);
 }
 
 // Función para cargar y mostrar métodos de pago del usuario
 async function cargarMetodosPago() {
   try {
     const response = await apiService.get('/api/auth/me');
-    const usuario = response.usuario;
+    
+    // Validar que la respuesta contenga los datos del usuario
+    if (!response || !response.data || !response.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
+    }
+    
+    const usuario = response.data.usuario;
     const metodosPago = usuario.metodosPago || { tarjetas: [], cuentasBancarias: [] };
     
     // Limpiar contenedores
@@ -1346,6 +1430,246 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('is-valid', esValido);
         this.classList.toggle('is-invalid', !esValido && valor.length > 0);
       });
+    }
+  });
+});
+
+// ============= FUNCIÓN UTILITARIA PARA MANEJO DE ERRORES =============
+
+/**
+ * Extrae un mensaje de error legible de un objeto Error o string
+ * @param {Error|string|any} error - El error a procesar
+ * @param {string} defaultMessage - Mensaje por defecto si no se puede extraer un mensaje
+ * @returns {string} - Mensaje de error legible
+ */
+function extractErrorMessage(error, defaultMessage = 'Ha ocurrido un error inesperado') {
+  // Si es string directamente
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Si es objeto Error con mensaje
+  if (error && typeof error === 'object') {
+    if (error.message && typeof error.message === 'string') {
+      return error.message;
+    }
+    
+    // Si tiene propiedad 'mensaje'
+    if (error.mensaje && typeof error.mensaje === 'string') {
+      return error.mensaje;
+    }
+    
+    // Si tiene propiedad 'error'
+    if (error.error && typeof error.error === 'string') {
+      return error.error;
+    }
+    
+    // Intentar toString si es un objeto
+    if (error.toString && typeof error.toString === 'function') {
+      const stringified = error.toString();
+      if (stringified !== '[object Object]') {
+        return stringified;
+      }
+    }
+  }
+  
+  // Si no se pudo extraer mensaje, usar el por defecto
+  return defaultMessage;
+}
+
+// Hacer extractErrorMessage disponible globalmente
+window.extractErrorMessage = extractErrorMessage;
+
+// ============= FUNCIÓN UTILITARIA PARA MANEJO DE MODALES =============
+
+/**
+ * Cierra un modal de manera segura y limpia el backdrop si es necesario
+ * @param {string} modalId - ID del modal a cerrar
+ * @param {boolean} forceCleanup - Si debe forzar la limpieza del backdrop
+ */
+function cerrarModalSeguro(modalId, forceCleanup = true) {
+  try {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) {
+      console.warn(`Modal con ID '${modalId}' no encontrado`);
+      return;
+    }
+
+    // Intentar obtener la instancia del modal
+    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+    
+    if (modalInstance) {
+      // Si existe la instancia, cerrarla
+      modalInstance.hide();
+    } else {
+      // Si no existe instancia, crearla y cerrarla
+      modalInstance = new bootstrap.Modal(modalElement);
+      modalInstance.hide();
+    }
+
+    // Cleanup adicional si es necesario
+    if (forceCleanup) {
+      setTimeout(() => {
+        // Limpiar backdrops huérfanos
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+          if (!backdrop.closest('.modal.show')) {
+            backdrop.remove();
+          }
+        });
+
+        // Asegurar que body no tenga clases de modal
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }, 300); // Esperar que termine la animación
+    }
+  } catch (error) {
+    console.error(`Error al cerrar modal ${modalId}:`, error);
+    
+    // Cleanup de emergencia
+    if (forceCleanup) {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+  }
+}
+
+/**
+ * Abre un modal de manera segura, cerrando otros modales si es necesario
+ * @param {string} modalId - ID del modal a abrir
+ * @param {boolean} closeOthers - Si debe cerrar otros modales abiertos
+ */
+function abrirModalSeguro(modalId, closeOthers = true) {
+  try {
+    if (closeOthers) {
+      // Cerrar todos los modales abiertos
+      const modalesAbiertos = document.querySelectorAll('.modal.show');
+      modalesAbiertos.forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      });
+    }
+
+    // Pequeña pausa para permitir que se cierren los modales anteriores
+    setTimeout(() => {
+      const modalElement = document.getElementById(modalId);
+      if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+      }
+    }, closeOthers ? 300 : 0);
+    
+  } catch (error) {
+    console.error(`Error al abrir modal ${modalId}:`, error);
+  }
+}
+
+// ============= FUNCIÓN DE DIAGNÓSTICO =============
+
+/**
+ * Función para diagnosticar problemas de autenticación y estado del usuario
+ */
+function diagnosticarEstadoUsuario() {
+  console.log('=== DIAGNÓSTICO DE ESTADO DEL USUARIO ===');
+  
+  // Verificar localStorage
+  const usuarioLocalStorage = localStorage.getItem('usuario');
+  console.log('Usuario en localStorage:', usuarioLocalStorage);
+  
+  if (usuarioLocalStorage) {
+    try {
+      const usuarioObj = JSON.parse(usuarioLocalStorage);
+      console.log('Usuario parseado:', usuarioObj);
+    } catch (e) {
+      console.error('Error al parsear usuario de localStorage:', e);
+    }
+  }
+  
+  // Verificar cookies
+  console.log('Cookies del documento:', document.cookie);
+  
+  // Verificar si hay token de autenticación
+  apiService.get('/api/auth/me')
+    .then(response => {
+      console.log('Respuesta de /api/auth/me:', response);
+      if (response && response.data && response.data.usuario) {
+        console.log('Usuario autenticado correctamente:', response.data.usuario);
+      } else {
+        console.log('Estructura de respuesta inesperada:', response);
+      }
+    })
+    .catch(error => {
+      console.error('Error al verificar autenticación:', error);
+    });
+  
+  console.log('=== FIN DIAGNÓSTICO ===');
+}
+
+// Hacer la función disponible globalmente para debugging
+if (typeof window !== 'undefined') {
+  window.diagnosticarEstadoUsuario = diagnosticarEstadoUsuario;
+  window.cerrarModalSeguro = cerrarModalSeguro;
+  window.abrirModalSeguro = abrirModalSeguro;
+  
+  // Función de emergencia para limpiar todos los backdrops
+  window.limpiarBackdrops = function() {
+    console.log('Limpiando backdrops huérfanos...');
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    console.log(`Encontrados ${backdrops.length} backdrops`);
+    
+    backdrops.forEach((backdrop, index) => {
+      console.log(`Removiendo backdrop ${index + 1}`);
+      backdrop.remove();
+    });
+    
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
+    console.log('Backdrops limpiados');
+  };
+}
+
+// ============= LISTENERS GLOBALES PARA MODALES =============
+
+// Agregar listeners para limpiar backdrops cuando se cierren modales
+document.addEventListener('DOMContentLoaded', function() {
+  // Listener para cuando se cierre cualquier modal
+  document.addEventListener('hidden.bs.modal', function(event) {
+    // Pequeño retraso para permitir que Bootstrap termine su cleanup
+    setTimeout(() => {
+      // Limpiar backdrops huérfanos
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      const modalesAbiertos = document.querySelectorAll('.modal.show');
+      
+      // Si no hay modales abiertos, remover todos los backdrops
+      if (modalesAbiertos.length === 0) {
+        backdrops.forEach(backdrop => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }
+    }, 100);
+  });
+
+  // Listener para limpiar backdrops al hacer click fuera de modales
+  document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal-backdrop')) {
+      setTimeout(() => {
+        const modalesAbiertos = document.querySelectorAll('.modal.show');
+        if (modalesAbiertos.length === 0) {
+          document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+          document.body.classList.remove('modal-open');
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+        }
+      }, 100);
     }
   });
 });

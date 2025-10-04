@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 3. Inicializar validaciones de perfil
     setupEditProfileValidation();
-    setupEditProfileFormHandler();
+    // NOTA: setupEditProfileFormHandler() se comentó porque está duplicada
+    // La implementación principal está en scripts.js
     setupPasswordToggle();
     setupAdvancedOptionsToggle();
     
@@ -80,38 +81,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Función para abrir modal de login desde otros lugares
 function abrirLogin() {
-  // Cerrar cualquier modal abierto
-  const modals = document.querySelectorAll('.modal.show');
-  modals.forEach(modal => {
-    const modalInstance = bootstrap.Modal.getInstance(modal);
-    if (modalInstance) {
-      modalInstance.hide();
-    }
-  });
-  
-  // Abrir modal de login
-  setTimeout(() => {
-    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    loginModal.show();
-  }, 300);
+  abrirModalSeguro('loginModal');
 }
 
 // Función para abrir modal de registro desde otros lugares
 function abrirRegistro() {
-  // Cerrar cualquier modal abierto
-  const modals = document.querySelectorAll('.modal.show');
-  modals.forEach(modal => {
-    const modalInstance = bootstrap.Modal.getInstance(modal);
-    if (modalInstance) {
-      modalInstance.hide();
-    }
-  });
-  
-  // Abrir modal de registro
-  setTimeout(() => {
-    const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
-    registerModal.show();
-  }, 300);
+  abrirModalSeguro('registerModal');
 }
 
 // ============= MANEJO DE ERRORES GLOBALES =============

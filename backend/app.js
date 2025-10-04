@@ -83,6 +83,26 @@ app.use("/api/pedidos", pedidosRoutes);
 // Servir archivos estáticos (imágenes, pdf, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, "../frontend/public")));
+
+// Configurar el motor de plantillas EJS
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "../frontend/views"));
+
+// Rutas del frontend
+app.get("/", (req, res) => {
+  res.render("paginas/home", { user: req.session.user });
+});
+
+app.get("/admin", (req, res) => {
+  // Verificar si el usuario es admin
+  if (!req.session.user || req.session.user.rol !== 'admin') {
+    return res.redirect('/');
+  }
+  res.render("paginas/homeAdmin", { user: req.session.user });
+});
+
 //404 y errores
 app.use(notFound);
 app.use(errorHandler);

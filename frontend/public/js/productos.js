@@ -7,34 +7,62 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        console.log('Cargando productos desde el backend...');
+
         // Hacemos una petición GET al backend para obtener los productos usando el servicio centralizado
         const response = await apiService.get('/api/productos');
         
-        console.log(response); // Mostramos la respuesta completa en la consola para verificar que se ha recibido correctamente
+        console.log('Respuesta de productos:', response); // Debug
         
-        // Verificamos que la respuesta sea exitosa y que contenga productos
-        if (response.success && response.data && Array.isArray(response.data)) {
-            response.data.forEach(producto => { //recorremos cada producto del array response.data (Monstera,Suculenta,etc.), forEach es un método de los arrays que ejecuta una función para cada elemento del array
-                const div = document.createElement('div'); // Creamos un nuevo elemento div para cada producto, createElement es un método que crea un nuevo elemento HTML, en este caso un div; div es una variable que representa el nuevo elemento div que vamos a crear.
-                div.classList.add('loom-item', 'text-center'); // Añadimos clases CSS al div para darle estilo, classList es una propiedad que permite manipular las clases de un elemento HTML, add es un método que añade una o más clases al elemento, en este caso 'loom-item' y 'text-center' son clases CSS que hemos definido para dar estilo a los productos.
+        // El backend retorna {ok: true, data: productos}, accedemos a data
+        if (response.ok && response.data && Array.isArray(response.data)) {
+            if (response.data.length === 0) {
+                contenedor.innerHTML = '<p class="text-center text-muted">No hay productos disponibles en este momento.</p>';
+                return;
+            }
+
+            response.data.forEach(producto => {
+                const div = document.createElement('div');
+                div.classList.add('loom-item', 'text-center');
+                
+                // Usar la primera imagen si existe, sino imagen por defecto
+                const imagenSrc = producto.imagenes && producto.imagenes.length > 0 
+                    ? `${CONFIG.API_BASE_URL}/uploads/${producto.imagenes[0]}`
+                    : '/img/logo.png';
+                
                 div.innerHTML = `
-                    <img src="${CONFIG.API_BASE_URL}/uploads/${encodeURIComponent(producto.imagen)}">
+                    <img src="${imagenSrc}" 
+                         alt="${producto.nombre}"
+                         onerror="this.src='/img/logo.png'"
+                         style="width: 200px; height: 200px; object-fit: cover;">
                     <p class="mt-2 fw-semibold">${producto.nombre}</p>
-                    <p class="fw-bold">${producto.precio}</p>
-                    <button onclick="" class="btn loom-btn">Compra Ahora</button>
+                    <p class="fw-bold">$${producto.precioBase ? producto.precioBase.toFixed(2) : '0.00'}</p>
+                    <button onclick="agregarAlCarrito('${producto._id}')" class="btn loom-btn" ${!producto.disponibilidad ? 'disabled' : ''}>
+                        ${producto.disponibilidad ? 'Agregar al Carrito' : 'No Disponible'}
+                    </button>
                 `;
-                // Aquí definimos el contenido HTML del div, innerHTML es una propiedad que permite establecer o obtener el contenido HTML de un elemento, en este caso estamos insertando una imagen, el nombre del producto, su precio y un botón que redirige a la página de catálogo; ${producto.nombre} y ${producto.precio} son interpolaciones de JavaScript que insertan el nombre y el precio del producto en el HTML.
-                contenedor.appendChild(div); // Finalmente, añadimos el div al contenedor en el DOM, appendChild es un método que añade un nuevo nodo como hijo del nodo especificado, en este caso estamos añadiendo el div que hemos creado al contenedor que hemos seleccionado anteriormente. en otras palabras, estamos insertando el div con el producto dentro del contenedor que tiene el id 'lista-productos'.
+                contenedor.appendChild(div);
             });
         } else {
-            console.error('No se encontraron productos o la respuesta no es válida');
+            console.error('Respuesta no válida del servidor:', response);
+            contenedor.innerHTML = '<p class="text-center text-danger">Error al cargar los productos. Formato de respuesta inválido.</p>';
         }
     } catch (error) {
         console.error('Error al cargar los productos:', error);
         // Mostrar mensaje de error al usuario
         const contenedor = document.getElementById('lista-productos');
         if (contenedor) {
-            contenedor.innerHTML = '<p class="text-center text-danger">Error al cargar los productos. Verifique la conexión con el servidor.</p>';
+            const errorMessage = window.extractErrorMessage ? 
+                window.extractErrorMessage(error, 'Error al cargar los productos') : 
+                'Error al cargar los productos. Verifica la conexión con el servidor.';
+            contenedor.innerHTML = `<p class="text-center text-danger">${errorMessage}</p>`;
         }
     }
 });
+
+// Función auxiliar para agregar productos al carrito (placeholder)
+function agregarAlCarrito(productoId) {
+    console.log('Agregando producto al carrito:', productoId);
+    // TODO: Implementar lógica del carrito
+    alert('Funcionalidad de carrito en desarrollo');
+}

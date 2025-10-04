@@ -1,0 +1,6 @@
+{
+  "nombre": "Planta de Prueba ACTUALIZADA",
+  "descripcion": "Descripción actualizada desde curl",
+  "precioBase": 35000,
+  "stock": 15
+}

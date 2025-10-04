@@ -74,26 +74,39 @@ async function register(e) {
 
     const data = await apiService.post('/api/auth/registro', userData);
 
-    // Guardar usuario en localStorage si el registro fue exitoso
-    if (data.usuario) {
-      localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    // Validar que la respuesta contenga los datos del usuario
+    if (!data || !data.data || !data.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
     }
+
+    const usuario = data.data.usuario;
+
+    // Validar que el usuario tenga las propiedades necesarias
+    if (!usuario.nombre || !usuario.email) {
+      throw new Error('Datos del usuario incompletos');
+    }
+
+    // Guardar usuario en localStorage si el registro fue exitoso
+    localStorage.setItem('usuario', JSON.stringify(usuario));
 
     alert('Cuenta creada con éxito. ¡Bienvenido!');
     
-    // Cerrar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-    modal.hide();
+    // Cerrar modal de manera segura
+    cerrarModalSeguro('registerModal');
 
     // Limpiar formulario
     document.getElementById('registerForm').reset();
 
     // Actualizar UI para mostrar usuario logueado
-    updateUserInterface(data.usuario);
+    updateUserInterface(usuario);
 
   } catch (error) {
     console.error('Error en el registro:', error);
-    alert(`Error: ${error.message}`);
+    
+    // Extraer mensaje de error usando la función utilitaria
+    const errorMessage = extractErrorMessage(error, 'Error al registrar usuario. Verifica los datos ingresados.');
+    
+    alert(`Error: ${errorMessage}`);
   }
 
   return false;
@@ -138,23 +151,34 @@ async function login(e) {
   try {
     const data = await apiService.post('/api/auth/login', { email, password });
 
+    // Validar que la respuesta contenga los datos del usuario
+    if (!data || !data.data || !data.data.usuario) {
+      throw new Error('Respuesta del servidor incompleta');
+    }
+
+    const usuario = data.data.usuario;
+
+    // Validar que el usuario tenga las propiedades necesarias
+    if (!usuario.nombre || !usuario.email) {
+      throw new Error('Datos del usuario incompletos');
+    }
+
     // 💾 Guarda usuario inmediatamente
-    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+    localStorage.setItem('usuario', JSON.stringify(usuario));
 
     alert('Sesión iniciada correctamente');
 
-    // Cerrar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-    modal.hide();
+    // Cerrar modal de manera segura
+    cerrarModalSeguro('loginModal');
 
     // Limpiar formulario
     document.getElementById('loginForm').reset();
 
     // Actualizar interfaz
-    updateUserInterface(data.usuario);
+    updateUserInterface(usuario);
 
     // Redirigir según el rol
-    if (data.usuario.rol === 'admin') {
+    if (usuario.rol === 'admin') {
       window.location.href = '/admin';
     } else {
       window.location.href = '/';
@@ -163,18 +187,18 @@ async function login(e) {
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     
-    // Mostrar error específico
-    let errorMessage = 'Error al iniciar sesión';
-    if (error.message.includes('Email no encontrado')) {
+    // Extraer mensaje de error usando la función utilitaria
+    let errorMessage = extractErrorMessage(error, 'Error al iniciar sesión. Verifica tus credenciales.');
+    
+    // Mostrar error específico basado en el mensaje
+    if (errorMessage.includes('Email no encontrado') || errorMessage.includes('Email no registrado')) {
       errorMessage = 'El correo electrónico no está registrado';
       document.getElementById('loginEmail').classList.add('is-invalid');
-    } else if (error.message.includes('Contraseña incorrecta')) {
+    } else if (errorMessage.includes('Contraseña incorrecta') || errorMessage.includes('password')) {
       errorMessage = 'La contraseña es incorrecta';
       document.getElementById('loginPassword').classList.add('is-invalid');
-    } else if (error.message.includes('Cuenta desactivada')) {
+    } else if (errorMessage.includes('Cuenta desactivada') || errorMessage.includes('desactivada')) {
       errorMessage = 'Tu cuenta está desactivada. Contacta al soporte.';
-    } else {
-      errorMessage = error.message;
     }
     
     alert(errorMessage);
@@ -608,11 +632,21 @@ async function verificarEstadoAutenticacion() {
   try {
     const response = await apiService.get('/api/auth/me');
     
-    if (response.usuario) {
-      // Usuario autenticado, actualizar localStorage y UI
-      localStorage.setItem('usuario', JSON.stringify(response.usuario));
-      updateUserInterface(response.usuario);
-      return true;
+    // Validar la estructura de la respuesta
+    if (response && response.data && response.data.usuario) {
+      const usuario = response.data.usuario;
+      
+      // Validar que el usuario tenga las propiedades necesarias
+      if (usuario.nombre && usuario.email) {
+        // Usuario autenticado, actualizar localStorage y UI
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        updateUserInterface(usuario);
+        return true;
+      } else {
+        console.error('Usuario recibido pero sin propiedades requeridas:', usuario);
+      }
+    } else {
+      console.log('Respuesta del servidor sin datos de usuario válidos');
     }
   } catch (error) {
     console.log('Usuario no autenticado:', error.message);
@@ -621,6 +655,11 @@ async function verificarEstadoAutenticacion() {
     mostrarBotonesSesion();
     return false;
   }
+  
+  // Si llegamos aquí, no hay usuario válido
+  localStorage.removeItem('usuario');
+  mostrarBotonesSesion();
+  return false;
 }
 
 async function verificarAccesoAdmin() {
@@ -895,3 +934,128 @@ window.authModule = {
   confirmarEliminarCuenta,
   setupDeleteAccountValidation
 };
+
+// ============= FUNCIÓN UTILITARIA PARA MANEJO DE ERRORES =============
+
+/**
+ * Extrae un mensaje de error legible de un objeto Error o string
+ * @param {Error|string|any} error - El error a procesar
+ * @param {string} defaultMessage - Mensaje por defecto si no se puede extraer un mensaje
+ * @returns {string} - Mensaje de error legible
+ */
+function extractErrorMessage(error, defaultMessage = 'Ha ocurrido un error inesperado') {
+  // Si es string directamente
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Si es objeto Error con mensaje
+  if (error && typeof error === 'object') {
+    if (error.message && typeof error.message === 'string') {
+      return error.message;
+    }
+    
+    // Si tiene propiedad 'mensaje'
+    if (error.mensaje && typeof error.mensaje === 'string') {
+      return error.mensaje;
+    }
+    
+    // Si tiene propiedad 'error'
+    if (error.error && typeof error.error === 'string') {
+      return error.error;
+    }
+  }
+  
+  // Si no se pudo extraer mensaje, usar el por defecto
+  return defaultMessage;
+}
+
+// ============= FUNCIÓN UTILITARIA PARA MANEJO DE MODALES =============
+
+/**
+ * Cierra un modal de manera segura y limpia el backdrop si es necesario
+ * @param {string} modalId - ID del modal a cerrar
+ * @param {boolean} forceCleanup - Si debe forzar la limpieza del backdrop
+ */
+function cerrarModalSeguro(modalId, forceCleanup = true) {
+  try {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) {
+      console.warn(`Modal con ID '${modalId}' no encontrado`);
+      return;
+    }
+
+    // Intentar obtener la instancia del modal
+    let modalInstance = bootstrap.Modal.getInstance(modalElement);
+    
+    if (modalInstance) {
+      // Si existe la instancia, cerrarla
+      modalInstance.hide();
+    } else {
+      // Si no existe instancia, crearla y cerrarla
+      modalInstance = new bootstrap.Modal(modalElement);
+      modalInstance.hide();
+    }
+
+    // Cleanup adicional si es necesario
+    if (forceCleanup) {
+      setTimeout(() => {
+        // Limpiar backdrops huérfanos
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+          if (!backdrop.closest('.modal.show')) {
+            backdrop.remove();
+          }
+        });
+
+        // Asegurar que body no tenga clases de modal
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }, 300); // Esperar que termine la animación
+    }
+  } catch (error) {
+    console.error(`Error al cerrar modal ${modalId}:`, error);
+    
+    // Cleanup de emergencia
+    if (forceCleanup) {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+  }
+}
+
+/**
+ * Abre un modal de manera segura, cerrando otros modales si es necesario
+ * @param {string} modalId - ID del modal a abrir
+ * @param {boolean} closeOthers - Si debe cerrar otros modales abiertos
+ */
+function abrirModalSeguro(modalId, closeOthers = true) {
+  try {
+    if (closeOthers) {
+      // Cerrar todos los modales abiertos
+      const modalesAbiertos = document.querySelectorAll('.modal.show');
+      modalesAbiertos.forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      });
+    }
+
+    // Pequeña pausa para permitir que se cierren los modales anteriores
+    setTimeout(() => {
+      const modalElement = document.getElementById(modalId);
+      if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+      }
+    }, closeOthers ? 300 : 0);
+    
+  } catch (error) {
+    console.error(`Error al abrir modal ${modalId}:`, error);
+  }
+}
