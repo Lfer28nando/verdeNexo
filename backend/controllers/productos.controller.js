@@ -64,7 +64,7 @@ export async function obtenerProductos(req, res) {
 // ============================
 export async function crearProducto(req, res) {
   try {
-    console.log('[DEBUG] Datos recibidos para crear producto:', req.body);
+    console.log('[DEBUG-B] Datos recibidos para crear producto:', req.body);
     
     const { 
       nombre, 
@@ -98,12 +98,12 @@ export async function crearProducto(req, res) {
       etiquetas: Array.isArray(etiquetas) ? etiquetas : []
     };
 
-    console.log('[DEBUG] Datos a guardar en BD:', datosProducto);
+    console.log('[DEBUG-B] Datos a guardar en BD:', datosProducto);
 
     const nuevoProducto = new Producto(datosProducto);
     const productoGuardado = await nuevoProducto.save();
     
-    console.log('[DEBUG] Producto guardado exitosamente:', productoGuardado._id);
+    console.log('[DEBUG-B] Producto guardado exitosamente:', productoGuardado._id);
     res.status(201).json({ ok: true, data: productoGuardado });
   } catch (error) {
     res.status(500).json({

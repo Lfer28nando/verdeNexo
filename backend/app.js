@@ -61,7 +61,9 @@ app.use(session({
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:4444",
+    origin: process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL] 
+      : ["http://localhost:4444", "http://localhost:3000"],
     credentials: true,
   })
 );
@@ -124,6 +126,10 @@ mongoose
 // ============================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Backend corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Backend corriendo en puerto ${PORT}`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`📱 Aplicación disponible en: ${process.env.FRONTEND_URL || 'https://tu-app.onrender.com'}`);
+  }
 });

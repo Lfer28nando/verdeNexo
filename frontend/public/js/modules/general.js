@@ -1,11 +1,238 @@
 // ============= MÓDULO DE PRODUCTOS Y FUNCIONALIDADES GENERALES =============
 
-// ============= FUNCIONES DE SLIDER =============
+// ============= FUNCIONES DE SLIDER CON ARRASTRE =============
 
 function moverSlider(direccion) {
   const slider = document.getElementById("loomSlider");
-  const itemWidth = slider.querySelector(".loom-item").offsetWidth + 16; // ancho + gap
-  slider.scrollLeft += direccion * itemWidth * 1; // mover 1 ítems
+  if (!slider) {
+    console.error('Slider container not found');
+    return;
+  }
+  
+  const listaProductos = document.getElementById("lista-productos");
+  if (!listaProductos) {
+    console.error('Lista productos container not found');
+    return;
+  }
+  
+  const primerItem = listaProductos.querySelector(".loom-item");
+  if (!primerItem) {
+    console.error('No se encontraron items en el slider');
+    return;
+  }
+  
+  // Calcular dimensiones dinámicamente según el zoom
+  const sliderWidth = slider.clientWidth; // Ancho visible del contenedor
+  const itemWidth = primerItem.offsetWidth + 16; // ancho del item + gap
+  
+  // Calcular cuántos productos son completamente visibles
+  const itemsVisibles = Math.floor(sliderWidth / itemWidth);
+  
+  // Si hay menos de 1 item visible, mover al menos 1
+  const itemsAMover = Math.max(1, Math.floor(itemsVisibles * 0.8)); // Mover 80% de los visibles
+  
+  const scrollAmount = direccion * itemWidth * itemsAMover;
+  
+  console.log(`[Slider] Ancho contenedor: ${sliderWidth}px, Ancho item: ${itemWidth}px, Items visibles: ${itemsVisibles}, Items a mover: ${itemsAMover}`);
+  
+  // Usar smooth scroll para una transición suave
+  slider.scrollBy({
+    left: scrollAmount,
+    behavior: 'smooth'
+  });
+}
+
+// Exponer la función al scope global para que funcione con onclick
+window.moverSlider = moverSlider;
+
+// Función para implementar arrastre del carrusel
+function initSliderDrag() {
+  const slider = document.getElementById("loomSlider");
+  if (!slider) return;
+
+  let isDragging = false;
+  let startX = 0;
+  let scrollLeft = 0;
+  let velocity = 0;
+  let lastMoveTime = 0;
+  let lastMoveX = 0;
+
+  // Eventos para mouse (desktop)
+  slider.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    slider.style.cursor = 'grabbing';
+    slider.style.userSelect = 'none';
+    
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+    velocity = 0;
+    lastMoveTime = Date.now();
+    lastMoveX = e.pageX;
+    
+    console.log('[Drag] Inicio de arrastre con mouse');
+  });
+
+  slider.addEventListener('mouseleave', () => {
+    if (isDragging) {
+      isDragging = false;
+      slider.style.cursor = 'grab';
+      slider.style.userSelect = '';
+      applyMomentum();
+    }
+  });
+
+  slider.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      slider.style.cursor = 'grab';
+      slider.style.userSelect = '';
+      applyMomentum();
+      console.log('[Drag] Fin de arrastre con mouse');
+    }
+  });
+
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.5; // Multiplicador para sensibilidad
+    
+    slider.scrollLeft = scrollLeft - walk;
+    
+    // Calcular velocidad para momentum
+    const now = Date.now();
+    const timeDiff = now - lastMoveTime;
+    const distance = e.pageX - lastMoveX;
+    
+    if (timeDiff > 0) {
+      velocity = distance / timeDiff;
+    }
+    
+    lastMoveTime = now;
+    lastMoveX = e.pageX;
+  });
+
+  // Eventos para touch (móviles y tablets)
+  slider.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    const touch = e.touches[0];
+    
+    startX = touch.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+    velocity = 0;
+    lastMoveTime = Date.now();
+    lastMoveX = touch.pageX;
+    
+    console.log('[Drag] Inicio de arrastre con touch');
+  }, { passive: true });
+
+  slider.addEventListener('touchend', () => {
+    if (isDragging) {
+      isDragging = false;
+      applyMomentum();
+      console.log('[Drag] Fin de arrastre con touch');
+    }
+  }, { passive: true });
+
+  slider.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    
+    const touch = e.touches[0];
+    const x = touch.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.2; // Sensibilidad para touch
+    
+    slider.scrollLeft = scrollLeft - walk;
+    
+    // Calcular velocidad para momentum
+    const now = Date.now();
+    const timeDiff = now - lastMoveTime;
+    const distance = touch.pageX - lastMoveX;
+    
+    if (timeDiff > 0) {
+      velocity = distance / timeDiff;
+    }
+    
+    lastMoveTime = now;
+    lastMoveX = touch.pageX;
+  }, { passive: true });
+
+  // Aplicar momentum después del arrastre
+  function applyMomentum() {
+    if (Math.abs(velocity) > 0.1) {
+      console.log('[Drag] Aplicando momentum, velocidad:', velocity);
+      
+      const momentum = velocity * 100; // Escalar la velocidad
+      slider.scrollBy({
+        left: -momentum,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  // Estilo inicial del cursor
+  slider.style.cursor = 'grab';
+  slider.style.scrollBehavior = 'auto'; // Desactivar smooth scroll por defecto para el arrastre
+  
+  console.log('[Drag] Sistema de arrastre inicializado');
+}
+
+// Función para inicializar eventos del slider
+function initSliderEvents() {
+  // Verificar que la función esté disponible globalmente
+  console.log('[Slider] moverSlider está disponible globalmente:', typeof window.moverSlider === 'function');
+  
+  // Inicializar sistema de arrastre
+  initSliderDrag();
+  
+  // Recalcular cuando cambie el tamaño de la ventana o zoom
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      console.log('[Slider] Ventana redimensionada, recalculando slider...');
+      // Forzar recálculo del layout
+      const slider = document.getElementById("loomSlider");
+      if (slider) {
+        slider.style.overflow = 'hidden';
+        setTimeout(() => {
+          slider.style.overflow = 'auto';
+        }, 50);
+      }
+    }, 250);
+  });
+  
+  // Agregar listeners a los botones como alternativa al onclick
+  const botonIzq = document.querySelector('.slider-arrow.left');
+  const botonDer = document.querySelector('.slider-arrow.right');
+  
+  if (botonIzq) {
+    botonIzq.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('[Slider] Botón izquierdo clickeado');
+      window.moverSlider(-1);
+    });
+  }
+  
+  if (botonDer) {
+    botonDer.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('[Slider] Botón derecho clickeado');
+      window.moverSlider(1);
+    });
+  }
+  
+  console.log('[Slider] Eventos inicializados. Botones encontrados:', {
+    izquierdo: !!botonIzq,
+    derecho: !!botonDer
+  });
+}
+
+// Inicializar eventos cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSliderEvents);
+} else {
+  initSliderEvents();
 }
 
 // ============= FUNCIONES DE GESTIÓN DE FORMULARIOS =============

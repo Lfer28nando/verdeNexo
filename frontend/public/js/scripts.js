@@ -1032,9 +1032,46 @@ document.getElementById('formFoto')?.addEventListener('submit', async (e) => {
 
 function moverSlider(direccion) {
   const slider = document.getElementById("loomSlider");
-  const itemWidth = slider.querySelector(".loom-item").offsetWidth + 16; // ancho + gap
-  slider.scrollLeft += direccion * itemWidth * 1; // mover 1 ítems
+  if (!slider) {
+    console.error('Slider container not found');
+    return;
+  }
+  
+  const listaProductos = document.getElementById("lista-productos");
+  if (!listaProductos) {
+    console.error('Lista productos container not found');
+    return;
+  }
+  
+  const primerItem = listaProductos.querySelector(".loom-item");
+  if (!primerItem) {
+    console.error('No se encontraron items en el slider');
+    return;
+  }
+  
+  // Calcular dimensiones dinámicamente según el zoom
+  const sliderWidth = slider.clientWidth; // Ancho visible del contenedor
+  const itemWidth = primerItem.offsetWidth + 16; // ancho del item + gap
+  
+  // Calcular cuántos productos son completamente visibles
+  const itemsVisibles = Math.floor(sliderWidth / itemWidth);
+  
+  // Si hay menos de 1 item visible, mover al menos 1
+  const itemsAMover = Math.max(1, Math.floor(itemsVisibles * 0.8)); // Mover 80% de los visibles
+  
+  const scrollAmount = direccion * itemWidth * itemsAMover;
+  
+  console.log(`[Slider] Ancho contenedor: ${sliderWidth}px, Ancho item: ${itemWidth}px, Items visibles: ${itemsVisibles}, Items a mover: ${itemsAMover}`);
+  
+  // Usar smooth scroll para una transición suave
+  slider.scrollBy({
+    left: scrollAmount,
+    behavior: 'smooth'
+  });
 }
+
+// Exponer la función al scope global para que funcione con onclick
+window.moverSlider = moverSlider;
 
 // Función para verificar el estado de autenticación real
 async function verificarEstadoAutenticacion() {

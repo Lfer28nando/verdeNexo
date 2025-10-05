@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: verdenexo
+    env: node
+    plan: free
+    buildCommand: npm install && cd backend && npm install && cd ../frontend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://verdenexo.onrender.com
