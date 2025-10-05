@@ -1,22 +1,34 @@
-const express = require('express'); //importamos express que es el framework que usamos para crear servidores en Node.js
+const express = require('express');
+const path = require('path');
 
-const path = require('path'); //importamos path, que es un módulo de Node.js para manejar rutas de archivos
+const app = express();
 
-const app = express(); //creamos una instancia de express, que es nuestra aplicación web
+// Configurar EJS como motor de plantillas
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-app.set('view engine', 'ejs'); // configuramos EJS como el motor de plantillas para renderizar vistas
-app.set('views', path.join(__dirname, 'views')); // configuramos la carpeta donde están las vistas EJS
-app.use(express.static(path.join(__dirname, 'public'))); // configuramos la carpeta pública para servir archivos estáticos como CSS, JS e imágenes
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Ruta principal
 app.get('/', (req, res) => {
-    res.render('paginas/inicio'); // renderizamos la vista de inicio
+    res.render('paginas/inicio');
 });
 
-app.get('/admin',(req,res) => {
-    res.render('paginas/homeAdmin'); //renderizamos la vista del admin
+// Ruta admin
+app.get('/admin', (req, res) => {
+    res.render('paginas/homeAdmin');
 });
 
-const PORT = 4444; // definimos el puerto en el que escuchará nuestro servidor, que es el 4444 para el frontend
-app.listen(PORT, () => {
-    console.log(`Frontend corriendo en http://localhost:${PORT}`); // iniciamos el servidor y mostramos un mensaje en la consola indicando que está corriendo
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', service: 'verdenexo-frontend' });
+});
+
+// Puerto configurable para Render
+const PORT = process.env.PORT || 4444;
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🎨 Frontend corriendo en puerto ${PORT}`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
 });

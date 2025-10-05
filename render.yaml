@@ -1,11 +1,13 @@
 services:
+  # Backend API Service
   - type: web
-    name: verdenexo
+    name: verdenexo-backend
     env: node
     plan: free
-    buildCommand: npm install && cd backend && npm install && cd ../frontend && npm install
-    startCommand: cd backend && npm start
-    healthCheckPath: /
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/productos
     envVars:
       - key: NODE_ENV
         value: production
@@ -26,4 +28,21 @@ services:
       - key: API_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://verdenexo.onrender.com
+        value: https://verdenexo-frontend.onrender.com
+
+  # Frontend Service
+  - type: web
+    name: verdenexo-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BACKEND_URL
+        value: https://verdenexo-backend.onrender.com
