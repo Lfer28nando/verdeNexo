@@ -94,7 +94,7 @@ app.set("views", path.join(__dirname, "../frontend/views"));
 
 // Rutas del frontend
 app.get("/", (req, res) => {
-  res.render("paginas/home", { user: req.session.user });
+  res.render("paginas/inicio", { user: req.session.user });
 });
 
 app.get("/admin", (req, res) => {
