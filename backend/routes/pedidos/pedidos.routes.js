@@ -1,8 +1,8 @@
 import express from 'express';
 import { body, param, query } from 'express-validator';
-import PedidosController from '../controllers/pedidos.controller.js';
-import { verificarToken } from '../middlewares/auth.js';
-import { validarCampos } from '../middlewares/validador.js';
+import PedidosController from '../../controllers/pedidos.controller.js';
+import { verificarToken } from '../../middlewares/auth.js';
+import { validarCampos } from '../../middlewares/validador.js';
 
 const router = express.Router();
 

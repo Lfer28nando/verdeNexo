@@ -1,5 +1,5 @@
 import express from 'express';
-import checkoutController from '../../controllers/checkout/checkout.controller.js';
+import checkoutController from '../../controllers/checkout.controller.js';
 import auth from '../../middlewares/auth.js';
 import { body, param, query, validationResult } from 'express-validator';
 

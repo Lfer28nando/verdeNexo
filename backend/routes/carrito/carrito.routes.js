@@ -31,7 +31,7 @@ import {
   
   // Funciones auxiliares
   obtenerEstadisticas
-} from "../controllers/carrito.controller.js";
+} from "../../controllers/carrito.controller.js";
 
 // Middleware de autenticación (opcional para algunas rutas)
 import { verificarToken } from "../middlewares/auth.js";
