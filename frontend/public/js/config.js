@@ -1,10 +1,11 @@
 // Configuración del frontend
 const CONFIG = {
-    // URL del backend
-    API_BASE_URL: 'http://localhost:3333',
+    // URL del backend - Se actualiza según el entorno
+    API_BASE_URL: window.location.hostname === 'localhost' 
+        ? 'http://localhost:3333'
+        : 'https://verdenexo-backend.onrender.com',
     
     // API Key para autenticación con el backend
-    // Esta debe coincidir con la API_KEY definida en el archivo .env del backend
     API_KEY: 'verdenexo_dev_123',
     
     // Headers por defecto para todas las peticiones

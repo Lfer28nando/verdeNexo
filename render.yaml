@@ -1,10 +1,10 @@
 services:
-  # Backend Service
+  # Backend API Service
   - type: web
     name: verdenexo-backend
-    runtime: node
+    env: node
     plan: free
-    rootDir: ./backend
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
@@ -16,32 +16,33 @@ services:
       - key: MONGO_URI
         sync: false
       - key: MONGO_DB_NAME
-        value: verdenexo
-      - key: API_KEY
         sync: false
       - key: SESSION_SECRET
-        generateValue: true
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: API_KEY
+        sync: false
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: verdenexo-frontend
-          property: host
+        value: https://verdenexo-frontend.onrender.com
 
   # Frontend Service
   - type: web
     name: verdenexo-frontend
-    runtime: node
+    env: node
     plan: free
-    rootDir: ./frontend
+    rootDir: frontend
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: BACKEND_URL
-        fromService:
-          type: web
-          name: verdenexo-backend
-          property: host
+        value: https://verdenexo-backend.onrender.com

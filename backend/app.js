@@ -61,7 +61,9 @@ app.use(session({
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:4444",
+    origin: process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL] 
+      : ["http://localhost:4444", "http://localhost:3000"],
     credentials: true,
   })
 );
@@ -82,7 +84,7 @@ app.get("/health", (req, res) => {
 app.use("/api", verificarApiKey);
 
 // ============================
-// Rutas principales
+// Rutas principales (SOLO API)
 // ============================
 app.use("/api/auth", authRoutes);
 app.use("/api/productos", productosRoutes);
@@ -93,24 +95,14 @@ app.use("/api/pedidos", pedidosRoutes);
 // Servir archivos estáticos (imágenes, pdf, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, "../frontend/public")));
-
-// Configurar el motor de plantillas EJS
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "../frontend/views"));
-
-// Rutas del frontend
+// Health check para Render
 app.get("/", (req, res) => {
-  res.render("paginas/home", { user: req.session.user });
-});
-
-app.get("/admin", (req, res) => {
-  // Verificar si el usuario es admin
-  if (!req.session.user || req.session.user.rol !== 'admin') {
-    return res.redirect('/');
-  }
-  res.render("paginas/homeAdmin", { user: req.session.user });
+  res.json({ 
+    message: "VerdeNexo API funcionando", 
+    status: "OK",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
+  });
 });
 
 //404 y errores
@@ -138,6 +130,10 @@ mongoose
 // ============================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Backend corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Backend corriendo en puerto ${PORT}`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`📱 Aplicación disponible en: ${process.env.FRONTEND_URL || 'https://tu-app.onrender.com'}`);
+  }
 });

@@ -1,4 +1,16 @@
 {
+  "name": "verdenexo",
+  "version": "1.0.0",
+  "description": "Plataforma de venta de plantas verdeNexo",
+  "main": "backend/app.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
