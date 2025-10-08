@@ -1,6 +1,6 @@
 import express from 'express';
 import checkoutController from '../../controllers/checkout.controller.js';
-import auth from '../../middlewares/auth.js';
+import { verificarToken, soloAdmin } from '../../middlewares/auth.js';
 import { body, param, query, validationResult } from 'express-validator';
 
 const router = express.Router();
@@ -46,7 +46,7 @@ const verificarSesionCheckout = (req, res, next) => {
 
 // RF-CHECK-01: Ingresar datos de compra
 router.post('/datos-compra', [
-  auth,
+  verificarToken,
   body('datosPersonales.nombre')
     .notEmpty()
     .withMessage('Nombre es requerido')
@@ -98,7 +98,7 @@ router.post('/datos-compra', [
 
 // RF-CHECK-02: Guardar direcciones
 router.post('/direcciones', [
-  auth,
+  verificarToken,
   body('alias')
     .notEmpty()
     .withMessage('Alias es requerido')
@@ -136,11 +136,11 @@ router.post('/direcciones', [
 ], checkoutController.guardarDireccion);
 
 // Obtener direcciones del usuario
-router.get('/direcciones', auth, checkoutController.obtenerDirecciones);
+router.get('/direcciones', verificarToken, checkoutController.obtenerDirecciones);
 
 // Establecer dirección principal
 router.put('/direcciones/:direccionId/principal', [
-  auth,
+  verificarToken,
   param('direccionId').isMongoId().withMessage('ID de dirección inválido'),
   handleValidationErrors
 ], checkoutController.establecerDireccionPrincipal);
@@ -151,7 +151,7 @@ router.put('/direcciones/:direccionId/principal', [
 
 // RF-CHECK-03: Seleccionar método de envío
 router.get('/metodos-envio', [
-  auth,
+  verificarToken,
   verificarSesionCheckout,
   query('direccionId').isMongoId().withMessage('ID de dirección requerido'),
   handleValidationErrors
@@ -159,7 +159,7 @@ router.get('/metodos-envio', [
 
 // RF-CHECK-10: Programar entrega - Obtener ventanas disponibles
 router.get('/ventanas-entrega', [
-  auth,
+  verificarToken,
   verificarSesionCheckout,
   query('direccionId').isMongoId().withMessage('ID de dirección requerido'),
   query('metodoEnvio').notEmpty().withMessage('Método de envío requerido'),
@@ -172,7 +172,7 @@ router.get('/ventanas-entrega', [
 
 // RF-CHECK-04: Resumir compra
 router.post('/resumen', [
-  auth,
+  verificarToken,
   verificarSesionCheckout,
   body('direccionId').isMongoId().withMessage('ID de dirección requerido'),
   body('metodoEnvio')
@@ -189,13 +189,13 @@ router.post('/resumen', [
 
 // RF-CHECK-06: Validar stock y precios
 router.get('/validar-productos', [
-  auth,
+  verificarToken,
   verificarSesionCheckout
 ], checkoutController.validarStockPrecios);
 
 // RF-CHECK-09: Validar pedido mayorista
 router.post('/validar-mayorista', [
-  auth,
+  verificarToken,
   body('datosEmpresa.nit')
     .matches(/^[0-9]{8,11}-[0-9]$/)
     .withMessage('NIT debe tener formato válido'),
@@ -224,7 +224,7 @@ router.post('/validar-mayorista', [
 
 // RF-CHECK-05: Generar pedido
 router.post('/generar-pedido', [
-  auth,
+  verificarToken,
   verificarSesionCheckout,
   body('terminosAceptados')
     .equals('true')
@@ -239,7 +239,7 @@ router.post('/generar-pedido', [
 
 // RF-CHECK-07: Enviar notificación de pedido
 router.post('/pedidos/:pedidoId/notificar', [
-  auth,
+  verificarToken,
   param('pedidoId').isMongoId().withMessage('ID de pedido inválido'),
   body('tipo')
     .optional()
@@ -255,7 +255,7 @@ router.post('/pedidos/:pedidoId/notificar', [
 
 // Obtener métodos de pago disponibles
 router.get('/metodos-pago', [
-  auth,
+  verificarToken,
   query('tipoCliente')
     .optional()
     .isIn(['particular', 'mayorista'])
@@ -299,7 +299,7 @@ router.get('/metodos-pago', [
 // ===============================
 
 // Obtener estado de sesión de checkout
-router.get('/sesion', auth, (req, res) => {
+router.get('/sesion', verificarToken, (req, res) => {
   const sesion = req.session?.checkout;
   
   if (!sesion) {
@@ -333,7 +333,7 @@ router.get('/sesion', auth, (req, res) => {
 });
 
 // Cancelar sesión de checkout
-router.delete('/sesion', auth, (req, res) => {
+router.delete('/sesion', verificarToken, (req, res) => {
   if (req.session?.checkout) {
     delete req.session.checkout;
   }
@@ -346,7 +346,7 @@ router.delete('/sesion', auth, (req, res) => {
 
 // Renovar sesión de checkout
 router.post('/sesion/renovar', [
-  auth,
+  verificarToken,
   verificarSesionCheckout
 ], (req, res) => {
   req.session.checkout.expiracion = new Date(Date.now() + 30 * 60 * 1000);
