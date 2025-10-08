@@ -1,0 +1,47 @@
+services:
+  # Backend Service
+  - type: web
+    name: verdenexo-backend
+    runtime: node
+    plan: free
+    rootDir: ./backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: verdenexo
+      - key: API_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: verdenexo-frontend
+          property: host
+
+  # Frontend Service
+  - type: web
+    name: verdenexo-frontend
+    runtime: node
+    plan: free
+    rootDir: ./frontend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: verdenexo-backend
+          property: host

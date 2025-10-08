@@ -9,6 +9,11 @@ const asyncMiddleware = (fn) => (req, res, next) => {
 function verificarApiKey(req, res, next) {
   // deja pasar el preflight CORS
   if (req.method === 'OPTIONS') return next();
+  
+  // Permitir health check sin API key para Render
+  if (req.path === '/health' || req.path === '/api/health') {
+    return next();
+  }
 
   const provided =
     req.get('x-api-key') ||

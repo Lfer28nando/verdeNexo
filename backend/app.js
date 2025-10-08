@@ -12,11 +12,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Rutas
-import authRoutes from "./routes/auth.routes.js";
-import productosRoutes from "./routes/productos.routes.js";
-import carritoRoutes from "./routes/carrito.routes.js";
-import checkoutRoutes from "./routes/checkout.routes.js";
-import pedidosRoutes from "./routes/pedidos.routes.js";
+import authRoutes from "./routes/auth/index.js";
+import productosRoutes from "./routes/productos/productos.routes.js";
+import carritoRoutes from "./routes/carrito/index.js";
+import checkoutRoutes from "./routes/checkout/index.js";
+import pedidosRoutes from "./routes/pedidos/index.js";
 
 // Middlewares
 import { verificarApiKey } from "./middlewares/apikey.js";
@@ -69,6 +69,16 @@ app.use(
 // ============================
 // Seguridad API Key
 // ============================
+
+// Health check para deploy
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    ok: true, 
+    message: "Server is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use("/api", verificarApiKey);
 
 // ============================
@@ -115,9 +125,13 @@ mongoose
     dbName: process.env.MONGO_DB_NAME || "mi_base_datos",
   })
   .then(() => console.log("✅ MongoDB Conectado"))
-  .catch((err) =>
-    console.error("❌ Error de conexión MongoDB:", err.message)
-  );
+  .catch((err) => {
+    console.error("❌ Error de conexión MongoDB:", err.message);
+    // En producción, no salir del proceso si MongoDB falla inicialmente
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
 
 // ============================
 // Arranque del servidor

@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import checkoutController from '../../controllers/checkout/checkout.controller.js';
+import auth from '../../middlewares/auth.js';
+import { body, param, query, validationResult } from 'express-validator';
+
 const router = express.Router();
-const checkoutController = require('../../controllers/checkout/checkout.controller');
-const auth = require('../../middlewares/auth');
-const { body, param, query, validationResult } = require('express-validator');
 
 // Middleware para manejar errores de validación
 const handleValidationErrors = (req, res, next) => {
@@ -405,4 +406,4 @@ router.use((error, req, res, next) => {
   });
 });
 
-module.exports = router;
+export default router;

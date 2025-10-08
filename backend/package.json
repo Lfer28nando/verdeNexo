@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "check-config": "node scripts/check-config.js",
+    "build": "echo 'No build step required for Node.js'"
   },
   "keywords": [],
   "author": "",

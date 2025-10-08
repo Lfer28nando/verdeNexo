@@ -1,7 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import { Producto } from "../models/producto/index.js";
+import { Producto } from "../../models/producto/index.js";
 import {
   obtenerProductos,
   crearProducto,
@@ -21,7 +21,7 @@ import {
   calificarProducto,
   agregarEtiqueta,
   actualizarVisibilidad
-} from "../controllers/productos.controller.js";
+} from "../../controllers/productos.controller.js";
 
 const router = Router();
 
