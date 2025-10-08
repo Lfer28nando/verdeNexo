@@ -34,7 +34,7 @@ import {
 } from "../../controllers/carrito.controller.js";
 
 // Middleware de autenticación (opcional para algunas rutas)
-import { verificarToken } from "../middlewares/auth.js";
+import { verificarToken } from "../../middlewares/auth.js";
 
 const router = Router();
 
