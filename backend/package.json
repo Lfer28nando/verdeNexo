@@ -1,0 +1,52 @@
+{
+  "name": "verdenexo-backend",
+  "version": "1.0.0",
+  "description": "Sistema de autenticación completo para VerdeNexo - Backend con Node.js, Express y MongoDB",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "verdenexo",
+    "authentication",
+    "nodejs",
+    "express",
+    "mongodb",
+    "jwt",
+    "backend",
+    "api"
+  ],
+  "author": "VerdeNexo Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/verdenexo/backend-auth.git"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "express-slow-down": "^3.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.1",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.9",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
