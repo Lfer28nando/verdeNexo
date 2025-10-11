@@ -426,3 +426,27 @@ def contacto(request):
         'titulo': 'Contacto'
     }
     return render(request, 'tienda/contacto.html', context)
+
+
+# -----------------------
+# Endpoints de prueba
+# -----------------------
+def api_test_productos(request):
+    """Endpoint de prueba que devuelve una lista simple de productos en JSON."""
+    productos = Producto.objects.filter(activo=True).prefetch_related('imagenes')[:20]
+    data = []
+    for p in productos:
+        data.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_final': float(p.precio_final),
+            'imagen': p.imagenes.first().imagen.url if p.imagenes.exists() else '',
+            'url': p.get_absolute_url(),
+        })
+    return JsonResponse({'success': True, 'count': len(data), 'productos': data})
+
+
+def api_test_productos_count(request):
+    """Endpoint de prueba que devuelve el conteo total de productos activos."""
+    total = Producto.objects.filter(activo=True).count()
+    return JsonResponse({'success': True, 'total_productos': total})

@@ -5,6 +5,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
 from .serializers import UsuarioSerializer
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_http_methods
 
 Usuario = get_user_model()
 
@@ -94,3 +98,20 @@ class UsuarioEliminar(APIView):
         usuario = get_object_or_404(Usuario, email=email)
         usuario.delete()
         return Response({"status": "ok", "message": f"Usuario {email} eliminado"})
+
+
+# --------------------
+# Logout por sesión
+# --------------------
+@method_decorator([login_required, require_http_methods(["POST"])], name='dispatch')
+class LogoutSessionView(APIView):
+    """Cerrar sesión usando django.contrib.auth.logout para aplicaciones que usan sesiones."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Django logout: borra la sesión del usuario
+            logout(request)
+            return Response({"status": "ok", "message": "Sesión cerrada"})
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

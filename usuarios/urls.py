@@ -2,6 +2,8 @@ from django.urls import path
 from .views import RegistrarUsuario, LoginUsuario, UsuarioDetalleActualizar, UsuarioEliminar
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.views.generic import TemplateView
+from .views import RegistrarUsuario, LoginUsuario, UsuarioDetalleActualizar, UsuarioEliminar
+from .views import LogoutSessionView
 
 urlpatterns = [
     # Usuarios
@@ -19,4 +21,7 @@ urlpatterns = [
 urlpatterns += [
     path('login/page/', TemplateView.as_view(template_name='usuarios/login.html'), name='login_page'),
     path('register/page/', TemplateView.as_view(template_name='usuarios/register.html'), name='register_page'),
+    path('logout/', TemplateView.as_view(template_name='usuarios/login.html'), name='logout_page'),
+    # Endpoint POST para cerrar sesión (session logout)
+    path('logout/session/', LogoutSessionView.as_view(), name='logout_session'),
 ]

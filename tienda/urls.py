@@ -32,6 +32,10 @@ urlpatterns = [
     
     # URLs antiguas para compatibilidad
     path('agregar-carrito/', views.carrito_ajax, name='agregar_carrito'),
+
+    # Endpoints de prueba (JSON)
+    path('api/test/productos/', views.api_test_productos, name='api_test_productos'),
+    path('api/test/productos/count/', views.api_test_productos_count, name='api_test_productos_count'),
 ]
 
 # Servir archivos estáticos en desarrollo

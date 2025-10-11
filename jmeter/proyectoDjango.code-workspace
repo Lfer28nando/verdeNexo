@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "proyectoDjango",
+			"path": ".."
+		},
+		{
+			"name": "static",
+			"path": "../../../Documentos/VNdjango/proyectoDjango/static"
+		}
+	],
+	"settings": {}
+}
