@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ producto.nombre }}{% endblock %}
+
+{% block content %}
+<h2>{{ producto.nombre }}</h2>
+<p>{{ producto.descripcion }}</p>
+<p>Precio: {{ producto.precio_final }}</p>
+<p>Stock: {{ producto.stock }}</p>
+
+<h3>Reviews ({{ producto.total_reviews }})</h3>
+<ul>
+    {% for r in reviews %}
+    <li>{{ r.usuario }}: {{ r.rating }} - {{ r.comentario }}</li>
+    {% empty %}
+    <li>No hay reviews.</li>
+    {% endfor %}
+</ul>
+
+<h3>Productos relacionados</h3>
+<ul>
+    {% for rp in productos_relacionados %}
+    <li><a href="{{ rp.get_absolute_url }}">{{ rp.nombre }}</a></li>
+    {% empty %}
+    <li>No hay productos relacionados.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

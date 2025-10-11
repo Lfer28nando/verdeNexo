@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Wishlist{% endblock %}
+
+{% block content %}
+<h2>Mi Wishlist</h2>
+<ul>
+    {% for wi in wishlist_items %}
+    <li><a href="{{ wi.producto.get_absolute_url }}">{{ wi.producto.nombre }}</a></li>
+    {% empty %}
+    <li>No hay elementos en la wishlist.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

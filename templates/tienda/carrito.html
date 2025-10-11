@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito{% endblock %}
+
+{% block content %}
+<h2>Carrito</h2>
+<ul>
+    {% for item in items_carrito %}
+    <li>{{ item.cantidad }} x <a href="{{ item.producto.get_absolute_url }}">{{ item.producto.nombre }}</a> - {{ item.subtotal }}</li>
+    {% empty %}
+    <li>Carrito vacío.</li>
+    {% endfor %}
+</ul>
+<p>Subtotal: {{ subtotal }}</p>
+{% endblock %}

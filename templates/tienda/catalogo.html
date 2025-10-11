@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Catálogo - Verde Nexo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <div class="container">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tienda:home' %}">Inicio</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Catálogo</li>
+        </ol>
+    </div>
+</nav>
+
+<!-- Barra de búsqueda simplificada -->
+<div class="search-bar-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="search-input-group">
+                    <input type="text" id="searchInput" class="form-control search-input" placeholder="Buscar productos...">
+                    <button class="btn search-btn" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="quick-filters text-end">
+                    <button class="btn btn-outline-success btn-sm filter-chip" data-filter="ofertas">Ofertas</button>
+                    <button class="btn btn-outline-success btn-sm filter-chip" data-filter="nuevos">Nuevos</button>
+                    <button class="btn btn-outline-success btn-sm filter-chip" data-filter="destacados">Destacados</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenido principal del catálogo -->
+<div class="catalog-main">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Contenido de productos (a la izquierda, más ancho) -->
+            <div class="col-lg-9 col-md-8">
+                <!-- Header de resultados y controles -->
+                <div class="catalog-header">
+                    <div class="results-info">
+                        <span id="resultsCount">{{ productos.count }}</span> producto{{ productos.count|pluralize }} encontrado{{ productos.count|pluralize }}
+                        <span id="activeFilters" class="active-filters-text"></span>
+                    </div>
+                    <div class="catalog-controls">
+                        <!-- Ordenamiento -->
+                        <div class="sort-dropdown">
+                            <select class="form-select" id="sortSelect">
+                                <option value="default">Ordenar por</option>
+                                <option value="name_asc">Nombre A-Z</option>
+                                <option value="name_desc">Nombre Z-A</option>
+                                <option value="price_asc">Precio menor a mayor</option>
+                                <option value="price_desc">Precio mayor a menor</option>
+                                <option value="rating_desc">Mejor valorados</option>
+                                <option value="newest">Más nuevos</option>
+                                <option value="popular">Más populares</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Toggle vista grid/lista -->
+                        <div class="view-toggle">
+                            <button class="btn btn-outline-secondary btn-sm view-btn active" data-view="grid" title="Vista en grilla">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm view-btn" data-view="list" title="Vista en lista">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Items per page -->
+                        <div class="items-per-page">
+                            <select class="form-select form-select-sm" id="itemsPerPage">
+                                <option value="12">12 por página</option>
+                                <option value="24">24 por página</option>
+                                <option value="36">36 por página</option>
+                                <option value="48">48 por página</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de productos -->
+                <div class="products-grid" id="productsGrid">
+                    {% for producto in productos %}
+                    <div class="product-card" data-product-id="{{ producto.id }}">
+                        <div class="product-image">
+                            {% if producto.imagen_principal %}
+                                <img src="{{ producto.imagen_principal.url }}" alt="{{ producto.nombre }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'images/placeholder.svg' %}" alt="{{ producto.nombre }}" loading="lazy">
+                            {% endif %}
+                            
+                            <!-- Badges -->
+                            <div class="product-badges">
+                                {% if producto.tiene_descuento %}
+                                    <span class="badge badge-sale">-{{ producto.porcentaje_descuento }}%</span>
+                                {% endif %}
+                                {% if producto.nuevo %}
+                                    <span class="badge badge-new">Nuevo</span>
+                                {% endif %}
+                                {% if producto.destacado %}
+                                    <span class="badge badge-featured">Destacado</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Overlay con acciones -->
+                            <div class="product-overlay">
+                                <button class="btn btn-white btn-sm quick-view" data-product-id="{{ producto.id }}" title="Vista rápida">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-white btn-sm wishlist-btn" data-product-id="{{ producto.id }}" title="Agregar a favoritos">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category">{{ producto.categoria.nombre }}</div>
+                            <h5 class="product-title">
+                                <a href="{% url 'tienda:producto_detalle' producto.slug %}">{{ producto.nombre }}</a>
+                            </h5>
+                            
+                            <!-- Rating -->
+                            <div class="product-rating">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= producto.rating_promedio %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="rating-count">({{ producto.total_reviews }})</span>
+                            </div>
+
+                            <div class="product-price">
+                                {% if producto.tiene_descuento %}
+                                    <span class="price-original">${{ producto.precio }}</span>
+                                    <span class="price-current">${{ producto.precio_con_descuento }}</span>
+                                {% else %}
+                                    <span class="price-current">${{ producto.precio }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Stock -->
+                            <div class="product-stock">
+                                {% if producto.stock > 0 %}
+                                    {% if producto.stock <= producto.stock_minimo %}
+                                        <span class="stock-low">¡Últimas {{ producto.stock }} unidades!</span>
+                                    {% else %}
+                                        <span class="stock-available">En stock</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="stock-out">Agotado</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="product-actions">
+                                {% if producto.stock > 0 %}
+                                    <button class="btn btn-success btn-sm add-to-cart" data-product-id="{{ producto.id }}">
+                                        <i class="fas fa-shopping-cart"></i> Agregar al carrito
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        <i class="fas fa-times"></i> No disponible
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="no-results">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h3>No se encontraron productos</h3>
+                            <p>Intenta ajustar tus filtros o realizar una nueva búsqueda.</p>
+                            <button class="btn btn-success" onclick="clearAllFilters()">Limpiar filtros</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if productos.has_other_pages %}
+                <div class="pagination-wrapper">
+                    <nav aria-label="Navegación de productos">
+                        <ul class="pagination justify-content-center">
+                            {% if productos.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ productos.previous_page_number }}" aria-label="Anterior">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in productos.paginator.page_range %}
+                                {% if productos.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num > productos.number|add:'-3' and num < productos.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if productos.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ productos.next_page_number }}" aria-label="Siguiente">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar de filtros simplificado (a la derecha) -->
+            <div class="col-lg-3 col-md-4">
+                <div class="filters-sidebar" id="filtersSidebar">
+                    <!-- Header simplificado -->
+                    <div class="filters-header">
+                        <h5><i class="fas fa-filter"></i> Filtros</h5>
+                        <button class="btn btn-link btn-sm clear-filters" id="clearFilters">
+                            Limpiar todo
+                        </button>
+                    </div>
+
+                    <!-- Filtro por categorías simplificado -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">
+                            <i class="fas fa-tags"></i> Categorías
+                        </h6>
+                        <div class="filter-options">
+                            {% for categoria in categorias %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="{{ categoria.id }}" id="cat{{ categoria.id }}" name="categoria">
+                                <label class="form-check-label" for="cat{{ categoria.id }}">
+                                    {{ categoria.nombre }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Filtro de precio simplificado -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">
+                            <i class="fas fa-dollar-sign"></i> Precio
+                        </h6>
+                        <div class="filter-options">
+                            <div class="row">
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="priceMin" name="precio_min" placeholder="Mín">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="priceMax" name="precio_max" placeholder="Máx">
+                                </div>
+                            </div>
+                            <div class="price-presets mt-2">
+                                <button class="btn btn-outline-success btn-sm price-preset" data-min="0" data-max="50">Hasta $50</button>
+                                <button class="btn btn-outline-success btn-sm price-preset" data-min="50" data-max="100">$50-$100</button>
+                                <button class="btn btn-outline-success btn-sm price-preset" data-min="100" data-max="200">$100+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por marca simplificado -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">
+                            <i class="fas fa-bookmark"></i> Marcas
+                        </h6>
+                        <div class="filter-options">
+                            {% for marca in marcas %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="{{ marca.id }}" id="brand{{ marca.id }}" name="marca">
+                                <label class="form-check-label" for="brand{{ marca.id }}">
+                                    {{ marca.nombre }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Filtro por disponibilidad simplificado -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">
+                            <i class="fas fa-check-circle"></i> Disponibilidad
+                        </h6>
+                        <div class="filter-options">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="disponible" id="available" name="disponibilidad">
+                                <label class="form-check-label" for="available">En stock</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ofertas" id="offers" name="ofertas">
+                                <label class="form-check-label" for="offers">En oferta</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="nuevos" id="news" name="nuevos">
+                                <label class="form-check-label" for="news">Nuevos</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para vista rápida -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickViewModalLabel">Vista rápida del producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- Contenido cargado dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast para notificaciones -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-shopping-cart text-success me-2"></i>
+            <strong class="me-auto">Carrito</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Producto agregado al carrito exitosamente
+        </div>
+    </div>
+</div>
+
+<!-- Carrito lateral -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartSidebar" aria-labelledby="cartSidebarLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="cartSidebarLabel">Carrito de compras</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="cartItems">
+            <!-- Items del carrito cargados dinámicamente -->
+        </div>
+        <div class="cart-total">
+            <div class="d-flex justify-content-between">
+                <strong>Total: <span id="cartTotal">$0.00</span></strong>
+            </div>
+        </div>
+        <div class="cart-actions mt-3">
+            <a href="{% url 'tienda:carrito' %}" class="btn btn-outline-success w-100 mb-2">Ver carrito</a>
+            <a href="{% url 'tienda:catalogo' %}" class="btn btn-primary">Continuar comprando</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/catalogo.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <h2>Iniciar sesión</h2>
+      <div id="msg" class="mb-3"></div>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-success">Entrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const res = await fetch('/usuarios/login/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email, password})
+  });
+  const data = await res.json();
+  const msg = document.getElementById('msg');
+  if(res.ok){
+    msg.innerHTML = '<div class="alert alert-success">Login correcto. Token de acceso guardado en localStorage.</div>';
+    localStorage.setItem('access', data.tokens.access);
+    localStorage.setItem('refresh', data.tokens.refresh);
+    // Redirigir al home
+    setTimeout(()=> window.location.href='/', 800);
+  } else {
+    msg.innerHTML = '<div class="alert alert-danger">'+(data.message||'Error al iniciar sesión')+'</div>';
+  }
+});
+</script>
+{% endblock %}

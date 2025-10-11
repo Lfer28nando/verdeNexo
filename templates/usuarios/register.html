@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h2>Registro</h2>
+      <div id="msg" class="mb-3"></div>
+      <form id="registerForm">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" required>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="telefono">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="password1" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password1" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="password2" class="form-label">Confirmar Contraseña</label>
+            <input type="password" class="form-control" id="password2" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="rol" class="form-label">Rol</label>
+          <select id="rol" class="form-select">
+            <option value="cliente" selected>Cliente</option>
+            <option value="vendedor">Vendedor</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">Registrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const payload = {
+    email: document.getElementById('email').value,
+    nombre: document.getElementById('nombre').value,
+    apellido: document.getElementById('apellido').value,
+    telefono: document.getElementById('telefono').value,
+    rol: document.getElementById('rol').value,
+    password: document.getElementById('password1').value,
+  };
+  if(document.getElementById('password1').value !== document.getElementById('password2').value){
+    document.getElementById('msg').innerHTML = '<div class="alert alert-danger">Las contraseñas no coinciden.</div>';
+    return;
+  }
+  const res = await fetch('/usuarios/registrar/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  const msg = document.getElementById('msg');
+  if(res.ok){
+    msg.innerHTML = '<div class="alert alert-success">Registro correcto. Redirigiendo al login...</div>';
+    setTimeout(()=> window.location.href='/usuarios/login/page/', 800);
+  } else {
+    msg.innerHTML = '<div class="alert alert-danger">'+(data.errors? JSON.stringify(data.errors) : data.message || 'Error al registrar')+'</div>';
+  }
+});
+</script>
+{% endblock %}

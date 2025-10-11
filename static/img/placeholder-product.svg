@@ -1,0 +1,85 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <!-- Gradiente de fondo -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradiente para la planta -->
+    <linearGradient id="plantGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#28a745;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#20c997;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradiente para la maceta -->
+    <linearGradient id="potGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c757d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#495057;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Sombra suave -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Fondo -->
+  <rect width="400" height="400" fill="url(#bgGradient)" rx="12"/>
+  
+  <!-- Círculo de fondo para el ícono -->
+  <circle cx="200" cy="160" r="80" fill="white" opacity="0.8" filter="url(#softShadow)"/>
+  
+  <!-- Maceta -->
+  <path d="M 140 200 L 260 200 L 250 240 L 150 240 Z" fill="url(#potGradient)" filter="url(#softShadow)"/>
+  <ellipse cx="200" cy="200" rx="60" ry="8" fill="url(#potGradient)" opacity="0.6"/>
+  
+  <!-- Tierra -->
+  <ellipse cx="200" cy="202" rx="55" ry="6" fill="#8d5524" opacity="0.8"/>
+  
+  <!-- Tallo principal -->
+  <rect x="198" y="180" width="4" height="25" fill="url(#plantGradient)" rx="2"/>
+  
+  <!-- Hojas -->
+  <!-- Hoja izquierda grande -->
+  <path d="M 200 190 Q 170 175 160 150 Q 165 140 180 145 Q 200 155 200 190" fill="url(#plantGradient)" opacity="0.9"/>
+  
+  <!-- Hoja derecha grande -->
+  <path d="M 200 190 Q 230 175 240 150 Q 235 140 220 145 Q 200 155 200 190" fill="url(#plantGradient)" opacity="0.9"/>
+  
+  <!-- Hoja izquierda pequeña -->
+  <path d="M 190 185 Q 170 175 165 165 Q 168 160 175 162 Q 190 170 190 185" fill="url(#plantGradient)" opacity="0.7"/>
+  
+  <!-- Hoja derecha pequeña -->
+  <path d="M 210 185 Q 230 175 235 165 Q 232 160 225 162 Q 210 170 210 185" fill="url(#plantGradient)" opacity="0.7"/>
+  
+  <!-- Hoja central superior -->
+  <path d="M 200 175 Q 200 155 200 140 Q 205 135 200 140 Q 195 135 200 140 Q 200 155 200 175" fill="url(#plantGradient)" opacity="0.8"/>
+  
+  <!-- Detalles de las hojas (venas) -->
+  <path d="M 180 155 Q 185 150 190 160" stroke="#20c997" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M 220 155 Q 215 150 210 160" stroke="#20c997" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M 200 165 L 200 155" stroke="#20c997" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Texto principal -->
+  <text x="200" y="290" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="20" font-weight="600" fill="#28a745" text-anchor="middle" opacity="0.9">
+    Verde Nexo
+  </text>
+  
+  <!-- Subtexto -->
+  <text x="200" y="315" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-size="14" fill="#6c757d" text-anchor="middle" opacity="0.8">
+    Imagen no disponible
+  </text>
+  
+  <!-- Pequeños elementos decorativos -->
+  <circle cx="120" cy="120" r="3" fill="#28a745" opacity="0.3"/>
+  <circle cx="280" cy="130" r="2" fill="#20c997" opacity="0.4"/>
+  <circle cx="300" cy="180" r="2.5" fill="#28a745" opacity="0.3"/>
+  <circle cx="100" cy="180" r="2" fill="#20c997" opacity="0.4"/>
+  
+  <!-- Efecto de brillo sutil -->
+  <path d="M 180 145 Q 190 140 200 145" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+  <path d="M 200 145 Q 210 140 220 145" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+</svg>

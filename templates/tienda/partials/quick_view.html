@@ -1,0 +1,198 @@
+<!-- Vista rápida del producto -->
+<div class="quick-view-content">
+    <div class="row">
+        <!-- Imagen del producto -->
+        <div class="col-md-6">
+            <div class="product-gallery">
+                {% if producto.imagenes.exists %}
+                    <div class="main-image">
+                        <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}" class="img-fluid">
+                    </div>
+                    {% if producto.imagenes.count > 1 %}
+                        <div class="thumbnail-images mt-3">
+                            <div class="row">
+                                {% for imagen in producto.imagenes.all %}
+                                <div class="col-3 mb-2">
+                                    <img src="{{ imagen.imagen.url }}" alt="{{ producto.nombre }}" class="img-thumbnail thumbnail-img" onclick="changeMainImage(this.src)">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="main-image">
+                        <img src="{% static 'img/placeholder-product.svg' %}" alt="{{ producto.nombre }}" class="img-fluid">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información del producto -->
+        <div class="col-md-6">
+            <div class="product-details">
+                <!-- Categoría -->
+                <div class="product-category">
+                    <span class="badge bg-secondary">{{ producto.categoria.nombre }}</span>
+                    {% if producto.marca %}
+                        <span class="badge bg-outline-primary ms-2">{{ producto.marca.nombre }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Nombre -->
+                <h2 class="product-title mt-3">{{ producto.nombre }}</h2>
+
+                <!-- Rating -->
+                <div class="product-rating mb-3">
+                    <div class="stars">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= producto.rating_promedio %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-text ms-2">({{ producto.total_reviews }} reseñas)</span>
+                </div>
+
+                <!-- Precio -->
+                <div class="product-price mb-4">
+                    {% if producto.tiene_descuento %}
+                        <span class="price-original text-muted text-decoration-line-through me-2">${{ producto.precio }}</span>
+                        <span class="price-final h3 text-success">${{ producto.precio_final }}</span>
+                        <span class="discount-badge badge bg-danger ms-2">-{{ producto.porcentaje_descuento }}%</span>
+                    {% else %}
+                        <span class="price-final h3 text-success">${{ producto.precio_final }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción corta -->
+                <div class="product-description mb-4">
+                    <p class="text-muted">{{ producto.descripcion_corta }}</p>
+                </div>
+
+                <!-- Stock -->
+                <div class="product-stock mb-4">
+                    {% if producto.en_stock %}
+                        {% if producto.stock_bajo %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ¡Solo quedan {{ producto.stock }} unidades!
+                            </div>
+                        {% else %}
+                            <div class="text-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                En stock ({{ producto.stock }} disponibles)
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Producto agotado
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Atributos del producto -->
+                {% if producto.atributos.exists %}
+                <div class="product-attributes mb-4">
+                    <h6>Características:</h6>
+                    <ul class="list-unstyled">
+                        {% for atributo in producto.atributos.all %}
+                        <li><strong>{{ atributo.nombre }}:</strong> {{ atributo.valor }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Cantidad y botones -->
+                <div class="product-actions">
+                    <div class="quantity-selector mb-3">
+                        <label for="quantity" class="form-label">Cantidad:</label>
+                        <div class="input-group" style="max-width: 150px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
+                            <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="{{ producto.stock }}">
+                            <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        {% if producto.en_stock %}
+                            <button class="btn btn-success btn-lg me-2 add-to-cart-btn" data-product-id="{{ producto.id }}">
+                                <i class="fas fa-shopping-cart me-2"></i>Agregar al carrito
+                            </button>
+                        {% else %}
+                            <button class="btn btn-secondary btn-lg me-2" disabled>
+                                <i class="fas fa-ban me-2"></i>No disponible
+                            </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-primary btn-lg me-2 wishlist-btn" data-product-id="{{ producto.id }}">
+                            <i class="far fa-heart me-2"></i>Favoritos
+                        </button>
+                        
+                        <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-eye me-2"></i>Ver detalles
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enlaces sociales -->
+                <div class="social-share mt-4">
+                    <h6>Compartir:</h6>
+                    <div class="social-buttons">
+                        <a href="#" class="btn btn-outline-primary btn-sm me-2" onclick="shareOnFacebook()">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm me-2" onclick="shareOnTwitter()">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-success btn-sm me-2" onclick="shareOnWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function changeMainImage(src) {
+    document.querySelector('.main-image img').src = src;
+}
+
+function decreaseQuantity() {
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    if (currentValue > 1) {
+        input.value = currentValue - 1;
+    }
+}
+
+function increaseQuantity() {
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    const maxValue = parseInt(input.max);
+    if (currentValue < maxValue) {
+        input.value = currentValue + 1;
+    }
+}
+
+function shareOnFacebook() {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+}
+
+function shareOnTwitter() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('{{ producto.nombre }} - {{ producto.descripcion_corta }}');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+}
+
+function shareOnWhatsApp() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('{{ producto.nombre }} - {{ producto.descripcion_corta }}');
+    window.open(`https://wa.me/?text=${text} ${url}`, '_blank');
+}
+</script>
