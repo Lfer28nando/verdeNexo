@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vivero Verde Nexo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-blur"></div>
+    <!-- NAVBAR (DESKTOP)-->
+    <nav class="navbar navbar-expand-lg navbar-vn sticky-top d-none d-lg-flex">
+        <div class="container-fluid px-4 align-items-center">
+            <!-- Secciones -->
+            <div class="collapse navbar-collapse order-1 order-lg-0" id="navbar-vn-1" style="flex: 1;">
+                <ul class="navbar-nav mb-3 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/catalogo">Catálogo</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/servicios">Servicios</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/blog">Blog</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <!--Logo -->
+            <div class="text-center order-0" style="flex: 1;">
+                <a href="/"><img src="/img/logo.png" alt="Verde Nexo" height="45"></a>
+            </div>
+            <!--Buscador + botones -->
+            <!---Buscador-->
+            <div class="d-flex align-items-center justify-content-end order-2" style="flex: 1; gap: 0.75rem;">
+                <form class="d-none d-lg-flex" role="search" style="min-width: 200px;">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <img src="/img/search-alt.png" alt="Buscar" width="16" height="16">
+                        </span>
+                        <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar">
+                    </div>
+                </form>
+                <!-- Botones de inicio de sesión y carrito -->
+                <div id="botonesSesion" class="d-flex" style="gap: 0.5rem;">
+                    <!-- Carrito de compras -->
+                    <button class="btn btn-vn-session position-relative" aria-expanded="false" type="button">
+                        <img src="/img/shopping-cart-alt.png" alt="carrito" width="20" height="20">
+                        <span
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- NAVBAR (MOBILE)-->
+    <header class="d-lg-none py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <!-- logo centrado -->
+            <div class="flex-fill text-start">
+                <!--icono izquierdo vacío para centrar mejor -->
+            </div>
+            <div class="flex-fill text-center">
+                <a href="/"><img src="/img/logo.png" alt="Verde Nexo" height="40"></a>
+            </div>
+            <div class="flex-fill text-end">
+                <a href="/carrito" class="me-2">
+                    <img src="/img/shopping-cart-alt.png" alt="carrito" width="26" height="26">
+                </a>
+            </div>
+        </div>
+
+    </header>
+    <!-- BOTTOM NAV para mobile -->
+    <nav class="bottom-nav d-lg-none">
+        <a href="/" class="bottom-nav-item">
+            <img src="/img/icon-home.svg" alt="Home" width="22" height="22" class="icon-white"><span>Inicio</span>
+        </a>
+        <a href="/catalogo" class="bottom-nav-item">
+            <img src="/img/icon-search.svg" alt="Buscar" width="22" height="22" class="icon-white"><span>Buscar</span>
+        </a>
+        <a href="/favoritos" class="bottom-nav-item">
+            <img src="/img/icon-heart.svg" alt="Favoritos" width="22" height="22"
+                class="icon-white"><span>Favoritos</span>
+        </a>
+        <a href="/perfil" class="bottom-nav-item">
+            <img src="/img/icon-user.svg" alt="Perfil" width="22" height="22" class="icon-white"><span>Perfil</span>
+        </a>
+    </nav>
+    <style>
+        .bottom-nav .icon-white {
+            filter: brightness(0) invert(1);
+        }
+    </style>
+
+    <!--Contenido-->
+    <div class="container-fluid d-flex align-items-center justify-content-center">
+        <div class="row w-100 mx-auto"
+            style="max-width:1100px; width:100%; height:80vh; min-height:600px; box-shadow:0 0 32px rgba(0,0,0,0.08); border-radius:18px; overflow:hidden; position:relative;">
+
+            <!-- Imagen a la izquierda (solo desktop) -->
+            <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center p-0"
+                style="background:url('https://img.freepik.com/foto-gratis/joven-apuesto-jardinero-alegre-sonriendo-regando-cuidando-plantas_176420-3827.jpg?t=st=1760150502~exp=1760154102~hmac=dea190916d9b4b0ea2869e40ba7777345799e888ab5c0fdf85b143683c0b59ce&w=1060') bottom/cover no-repeat; position:relative; height:100%; min-height:400px;">
+                <div class="w-100 h-100 d-flex flex-column justify-content-end align-items-center text-center">
+                    <div class="d-flex flex-column align-items-center w-100 px-3 py-1"
+                        style="background:rgba(0,0,0,0.85); border-radius:12px; max-width:340px; width:100%; margin-bottom:0.5rem; display:flex; justify-content:center;">
+                        <h2 class="fw-bold mb-2" style="font-size:1.25rem; color:#f8f9fa; text-shadow:0 2px 8px #000;">
+                            Te extrañamos!</h2>
+                        <p class="mb-3" style="font-size:0.95rem; color:#f8f9fa; text-shadow:0 2px 8px #000;">Bienvenido de nuevo, accede para continuar disfrutando de nuestra comunidad sostenible.</p>
+                        <small class="mb-2 fw-bold"
+                            style="color:#f8f9fa; text-shadow:0 2px 8px #000; font-size:0.92rem;">¿No tienes una
+                            cuenta?</small>
+                        <a href="/register" class="btn btn-success px-3 py-1 d-flex align-items-center gap-2 fw-bold"
+                            style="font-size:0.97rem; min-height:32px;">
+                            <img src="https://pic.onlinewebfonts.com/thumbnails/icons_330894.svg?width=5&config=eyJwYXRoIjpbImZiZmJmYiIsImZiZmJmYiJdfQ=="
+                                alt="user" width="18" height="18"> Registrarse
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Formulario a la derecha -->
+            <div class="col-12 col-lg-6 p-0 d-flex flex-column justify-content-center align-items-center"
+                style="background:#181818; color:#fff; height:100%; min-height:400px;">
+                <div class="form-card w-100"
+                    style="margin:auto; padding:48px 48px; max-width:340px; height:auto; overflow-y:auto;">
+                    <h1 class="mb-2 fw-bold" style="font-size:2rem;">Iniciar Sesión</h1>
+                    <p class="mb-4" style="font-size:1.09rem;">Ingresa tus datos para acceder a VerdeNexo</p>
+                    <form id="loginForm" autocomplete="on" method="POST" action="/login">
+                        <label for="email" class="mb-1">Correo Electrónico</label>
+                        <input type="email" id="email" name="email" class="form-control mb-2"
+                            placeholder="tu@ejemplo.com" required style="height:38px;" autocomplete="email">
+                        <label for="password" class="mb-1">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-control mb-2"
+                            placeholder="Ingresa tu contraseña" required style="height:38px;"
+                            autocomplete="current-password">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <a href="/recuperar" class="text-success" style="font-size:0.95rem;">¿Olvidaste tu
+                                contraseña?</a>
+                        </div>
+                        <button type="submit"
+                            class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2 fw-bold mb-2"
+                            style="font-size:1rem; height:40px;">
+                            <img src="https://pic.onlinewebfonts.com/thumbnails/icons_211161.svg?width=5&amp;config=eyJwYXRoIjpbImZmZmZmZiJdfQ=="
+                                alt="user" width="20" height="20"> Iniciar Sesión
+                        </button>
+                        <div class="divider my-3 text-center text-secondary" style="font-size:0.95rem;">o continúa con
+                        </div>
+                        <button type="button" id="googleAuth"
+                            class="btn btn-light w-100 d-flex align-items-center justify-content-center gap-2 border mb-1"
+                            style="height:40px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                                alt="Google" width="20" height="20"> Continuar con Google
+                        </button>
+                    </form>
+                    <div class="mt-3 text-center" style="font-size:0.97rem;">
+                        ¿No tienes cuenta? <a href="/register" class="text-success fw-bold">Regístrate</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- Responsive: solo se muestra el formulario y ocupa todo el ancho -->
+    <style>
+        .bg-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: url('https://img.freepik.com/foto-gratis/joven-apuesto-jardinero-alegre-sonriendo-cuidando-flores_176420-3797.jpg?t=st=1760149704~exp=1760153304~hmac=7c0a080af340aefc1fd5bcc69aa2a1f0c17cd83d45d3f7bde751c2e7dd140b05&w=1060') center/cover no-repeat;
+            filter: blur(12px) brightness(0.95);
+            opacity: 0.7;
+        }
+
+        body>*:not(.bg-blur) {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Estilo personalizado para la barra de desplazamiento del formulario */
+        .form-card::-webkit-scrollbar {
+            width: 8px;
+            background: #222;
+            border-radius: 8px;
+        }
+
+        .form-card::-webkit-scrollbar-thumb {
+            background: #4caf50;
+            border-radius: 8px;
+        }
+
+        .form-card::-webkit-scrollbar-thumb:hover {
+            background: #388e3c;
+        }
+
+        /* Firefox */
+        .form-card {
+            scrollbar-width: thin;
+            scrollbar-color: #4caf50 #222;
+        }
+
+        @media (max-width: 991px) {
+            .row.w-100 {
+                max-width: 99vw !important;
+                height: auto !important;
+                min-height: 500px !important;
+                border-radius: 12px !important;
+            }
+
+            .col-lg-6.d-none.d-lg-flex {
+                display: none !important;
+            }
+
+            .col-12.col-lg-6 {
+                min-height: 500px !important;
+                height: auto !important;
+                padding: 32px 12px !important;
+                border-radius: 12px !important;
+                overflow-y: auto !important;
+            }
+
+            .form-card {
+                max-width: 98vw !important;
+                margin: 0 auto !important;
+                padding: 20px 10px !important;
+                height: auto !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .row.w-100,
+            .col-12.col-lg-6 {
+                min-height: 100vw !important;
+                padding: 16px !important;
+            }
+
+            .form-card {
+                max-width: 100vw !important;
+                padding: 10px 5px !important;
+                height: auto !important;
+            }
+
+            h1.fw-bold {
+                font-size: 1.4rem !important;
+            }
+
+            .btn {
+                font-size: 0.97rem !important;
+                height: 38px !important;
+            }
+        }
+    </style>
+
+    <script src="/js/register.js"></script>
+</body>
+
+</html>
+
+<%- include('../partials/footer') %>

@@ -19,6 +19,9 @@ app.get('/', (req, res) => {
 app.get('/register', (req, res) => {
     res.render('pages/register');
 });
+app.get('/login', (req, res) => {
+    res.render('pages/login');
+});
 
 const PORT = process.env.PORT || 5173;
 
