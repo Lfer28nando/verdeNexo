@@ -1,7 +1,7 @@
-:root{
+:root {
   --color-primary: #22c55e;
   --color-secondary: #334155;
-  --shadow-navbar: 0 6px 18px rgba(0,0,0,0.08);
+  --shadow-navbar: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 /* NavbarDesktop styles: Open */
@@ -11,33 +11,37 @@
   padding: 15px 0;
 }
 
-    /* Links */
+/* Links */
 .navbar-vn-links {
-  position: relative;          /* necesario para ::after */
-  display: inline-block;       /* facilita posicionamiento y tamaño del ::after */
+  position: relative;
+  /* necesario para ::after */
+  display: inline-block;
+  /* facilita posicionamiento y tamaño del ::after */
   font-weight: 500;
   color: var(--color-secondary);
   margin: 0 10px;
   text-transform: uppercase;
   font-size: 14px;
-  padding-bottom: 6px;         /* espacio para la línea */
+  padding-bottom: 6px;
+  /* espacio para la línea */
   transition: color .25s ease;
 }
 
-    /* Hover / focus color */
+/* Hover / focus color */
 .navbar-vn-links:hover,
 .navbar-vn-links:focus {
   color: var(--color-primary);
-  outline: none;               /* usaremos outline personalizado */
+  outline: none;
+  /* usaremos outline personalizado */
 }
 
-    /* accesibilidad: marcador de foco visible */
+/* accesibilidad: marcador de foco visible */
 .navbar-vn-links:focus {
-  box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
   border-radius: 3px;
 }
 
-    /* Línea animada debajo del enlace */
+/* Línea animada debajo del enlace */
 .navbar-vn-links::after {
   content: '';
   position: absolute;
@@ -50,40 +54,42 @@
   z-index: 1;
 }
 
-    /* Expande la línea al hover/focus */
+/* Expande la línea al hover/focus */
 .navbar-vn-links:hover::after,
 .navbar-vn-links:focus::after {
   width: 100%;
 }
+
 /* NavbarDesktop styles: Close */
 
 /* NavbarMobile styles: Open */
 .mobile-search-input {
-    width: 100%;
-    border: 1px solid var(--color-secondary);
-    border-radius: var(--radius-lg);
-    padding: 8px 12px;
-    font-size: 14px;
-    transition: var(--transition-normal);
+  width: 100%;
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: var(--transition-normal);
 }
+
 mobile-search {
   background: #3b3b3b;
   border-radius: 40px;
   padding: 16px 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
   gap: .75rem;
   border: 1px solid #e7e7e7;
 }
 
 .mobile-search-input {
-        background-color: transparent;
-        box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px;
-        border-width: initial;
-        border-style: none;
-        border-color: initial;
-        border-image: initial;
-        border-radius: 5px;
-    }
+  background-color: transparent;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px;
+  border-width: initial;
+  border-style: none;
+  border-color: initial;
+  border-image: initial;
+  border-radius: 5px;
+}
 
 .mobile-search-input::placeholder {
   color: #9b9b9b;
@@ -91,13 +97,13 @@ mobile-search {
 
 /* botón buscar dentro del mobile search */
 .mobile-search-btn {
-        background-color: transparent;
-        box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px;
-        border-width: initial;
-        border-style: none;
-        border-color: initial;
-        border-image: initial;
-        border-radius: 5px;
+  background-color: transparent;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 5px;
+  border-width: initial;
+  border-style: none;
+  border-color: initial;
+  border-image: initial;
+  border-radius: 5px;
   justify-content: center;
 }
 
@@ -114,7 +120,7 @@ mobile-search {
   align-items: center;
   justify-content: space-around;
   z-index: 1050;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
   padding: 0;
 }
 
@@ -134,17 +140,20 @@ mobile-search {
 .bottom-nav-item img {
   display: block;
 }
+
 /* Margen y padding para evitar solapamiento con bottom nav en mobile */
 .main-content-mobile {
   margin-bottom: 80px;
   padding-bottom: 90px;
 }
+
 @media (min-width: 992px) {
   .main-content-mobile {
     margin-bottom: 0;
     padding-bottom: 0;
   }
 }
+
 /* ajustar safe area en iOS notch */
 @supports (padding: max(0px)) {
   .bottom-nav {
@@ -152,6 +161,55 @@ mobile-search {
     height: calc(64px + env(safe-area-inset-bottom));
   }
 }
+
 /* NavbarMobile styles: Close */
 
-/* Button styles: Open */
+/* auth styles: Open */
+.auth-form-container {
+  max-width: 1000px;
+  width: 100%;
+  height: 80vh;
+  min-height: 500px;
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0);
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.container-login {
+  background: #181818;
+  color: #fff;
+  height: 100%;
+  overflow: hidden;
+}
+
+.login-form-card {
+  width: 500px;
+  transform: translateX(0%);
+  transition: transform 0.5s ease-in;
+  overflow: hidden;
+}
+
+.container-register {
+  background: #181818;
+  color: #fff;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #4caf50 #222
+}
+
+.register-form-card {
+  width: 500px;
+  transform: translateX(100%);
+  transition: transform 0.5s ease-in;
+}
+
+
+.auth-form-container.tooggle .login-form-card {
+  transform: translateX(100%);
+}
+.auth-form-container.tooggle .register-form-card {
+  transform: translateX(0%);
+}

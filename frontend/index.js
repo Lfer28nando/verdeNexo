@@ -22,6 +22,9 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
     res.render('pages/login');
 });
+app.get('/auth', (req, res) => {
+    res.render('pages/auth');
+});
 
 const PORT = process.env.PORT || 5173;
 
