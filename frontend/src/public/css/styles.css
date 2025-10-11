@@ -104,18 +104,18 @@ mobile-search {
 /* --- Bottom nav --- */
 .bottom-nav {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   height: 64px;
   background: #0b0b0b;
-  border-radius: 16px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: space-around;
   z-index: 1050;
   box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-  padding: 0 6px;
+  padding: 0;
 }
 
 /* cada item */
@@ -134,7 +134,17 @@ mobile-search {
 .bottom-nav-item img {
   display: block;
 }
-
+/* Margen y padding para evitar solapamiento con bottom nav en mobile */
+.main-content-mobile {
+  margin-bottom: 80px;
+  padding-bottom: 90px;
+}
+@media (min-width: 992px) {
+  .main-content-mobile {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
 /* ajustar safe area en iOS notch */
 @supports (padding: max(0px)) {
   .bottom-nav {
@@ -144,25 +154,4 @@ mobile-search {
 }
 /* NavbarMobile styles: Close */
 
-
 /* Button styles: Open */
- /* Botónes del navbar (Sesiones)*/
- .btn-vn-session {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-lg);
-    border: none;
-    background-color: transparent;
-    transition: var(--transition-normal);
-}
-
-.btn-vn-session:hover {
-    background-color: transparent;
-    border: none;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-/* Button styles: Close */
