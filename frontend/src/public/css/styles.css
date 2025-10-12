@@ -165,6 +165,12 @@ mobile-search {
 /* NavbarMobile styles: Close */
 
 /* auth styles: Open */
+.img-container {
+  background: url('https://img.freepik.com/foto-gratis/joven-apuesto-jardinero-alegre-sonriendo-regando-cuidando-plantas_176420-3827.jpg?t=st=1760150502~exp=1760154102~hmac=dea190916d9b4b0ea2869e40ba7777345799e888ab5c0fdf85b143683c0b59ce&w=1060') bottom/cover no-repeat;
+  position: relative;
+  align-items: center;
+}
+
 .auth-form-container {
   max-width: 1000px;
   width: 100%;
@@ -210,6 +216,7 @@ mobile-search {
 .auth-form-container.tooggle .login-form-card {
   transform: translateX(100%);
 }
+
 .auth-form-container.tooggle .register-form-card {
   transform: translateX(0%);
 }
