@@ -6,6 +6,7 @@ import cors from 'cors';
 
 import authRoutes from "./routes/auth.routes.js";
 import googleAuthRoutes from "./routes/googleAuth.routes.js";
+import productoRoutes from "./routes/product.routes.js";
 import session from 'express-session';
 import './config/googleAuth.js'; // Importar la configuración de Google OAuth
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware.js';
@@ -18,10 +19,10 @@ import {
 const app = express();
 dotenv.config()
 
-// 🛡️ Configurar trust proxy para producción (debe ir ANTES de rate limiters)
+// Configurar trust proxy para producción
 trustProxyMiddleware(app);
 
-// 🚦 Rate limiting global (aplicar ANTES de otras configuraciones)
+// Rate limiting global
 app.use(generalLimiter);
 app.use(logRateLimit);
 
@@ -37,7 +38,7 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Configurar sesión (opcional, principalmente usamos JWT)
+// Configurar sesión
 app.use(session({
     secret: process.env.SESSION_SECRET || 'verdenexo-secret-session-2025',
     resave: false,
@@ -51,6 +52,8 @@ app.use(session({
 // Rutas de autenticación
 app.use("/api/auth", authRoutes);      // Rutas tradicionales (register, login, etc.)
 app.use("/auth", googleAuthRoutes);    // Rutas de Google OAuth (/auth/google, /auth/google/callback, etc.)
+// Rutas de productos
+app.use("/api/products", productoRoutes);
 
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)
 app.use(notFoundHandler);  // Para rutas 404

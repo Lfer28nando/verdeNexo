@@ -14,8 +14,6 @@ import {
 
 const router = Router()
 
-// 📝 RUTAS CON RATE LIMITING ESPECÍFICO
-
 // Registro - máximo 3 por hora
 router.post('/register', registerLimiter, validateSchema(registerSchema), register);
 
