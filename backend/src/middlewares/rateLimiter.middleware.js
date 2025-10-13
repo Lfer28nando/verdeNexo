@@ -126,7 +126,7 @@ export const generalLimiter = rateLimit({
 export const authSlowDown = slowDown({
     windowMs: 15 * 60 * 1000, // 15 minutos
     delayAfter: process.env.NODE_ENV === 'development' ? 10 : 2, // más requests sin delay en desarrollo
-    delayMs: process.env.NODE_ENV === 'development' ? 100 : 500, // menos delay en desarrollo
+    delayMs: () => process.env.NODE_ENV === 'development' ? 100 : 500, // menos delay en desarrollo
     maxDelayMs: process.env.NODE_ENV === 'development' ? 1000 : 5000, // menor delay máximo en desarrollo
     skip: (req) => {
         return process.env.NODE_ENV === 'development' && 

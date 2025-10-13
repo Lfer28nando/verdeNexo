@@ -9,7 +9,16 @@ const userSchema = new mongoose.Schema({
 
   password: { type: String, required: true },
 
-  role: { type: String, enum: ['client', 'seller', 'admin'], default: 'client' },
+  // Información de vendedor (solo para role: 'seller')
+  informacionVendedor: {
+    porcentajeComision: { type: Number, default: 5.0 }, // Porcentaje de comisión (5.0 = 5%)
+    comisionesAcumuladas: { type: Number, default: 0 }, // Total de comisiones ganadas
+    comisionesPendientes: { type: Number, default: 0 }, // Comisiones pendientes de pago
+    ventasTotales: { type: Number, default: 0 }, // Número total de ventas realizadas
+    ultimaVenta: { type: Date }, // Fecha de la última venta
+    metaMensual: { type: Number, default: 0 }, // Meta de ventas mensual
+    activo: { type: Boolean, default: true } // Si el vendedor está activo
+  },
 
   // Google OAuth fields
   googleId: { type: String, required: false },
