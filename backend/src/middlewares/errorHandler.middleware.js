@@ -1,52 +1,69 @@
-import { isAppError, convertToAppError } from '../utils/customError.js';
+import { isAppError, convertToAppError, createError } from '../utils/customError.js';
 
 // Este middleware es como el "guardia de seguridad" de la app
 // Captura TODOS los errores que ocurren y los convierte en respuestas JSON bonitas
 // Tiene que ir AL FINAL de todos los middlewares en app.js
 export const errorHandler = (err, req, res, next) => {
-    // Primero convierto cualquier error raro a mi formato
-    let error = convertToAppError(err);
-    
-    // Log del error para que yo pueda debuggear después
-    // En producción no quiero mostrar el stack trace al usuario
-    console.error('🚨 Error capturado:', {
-        code: error.code,
-        message: error.userMessage,
-        url: req.originalUrl,
-        method: req.method,
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        timestamp: error.timestamp,
-        // Solo en desarrollo muestro info sensible
-        ...(process.env.NODE_ENV === 'development' && {
-            stack: error.stack,
-            additionalInfo: error.additionalInfo
-        })
-    });
+    try {
+        // Convertir cualquier error raro a AppError (mi formato)
+        let error = convertToAppError(err);
 
-    // Crear la respuesta base que siempre voy a enviar
-    const response = {
-        success: false,
-        error: {
-            code: error.code,
-            message: error.userMessage,
-            timestamp: error.timestamp
+        // Registrar el error (uso una función dedicada para poder adaptar logs fácilmente)
+        logError(error, req);
+
+        // Si por alguna razón el error no es operativo, genero un error genérico para no filtrar detalles
+        if (!error || error.isOperational === false) {
+            // Guardar info original para los desarrolladores
+            const original = {
+                message: (err && err.message) || 'Unknown error',
+                stack: (err && err.stack) || undefined
+            };
+            // Reemplazo por un AppError seguro
+            error = createError('SRV_INTERNAL_ERROR', { originalError: original.message, stack: original.stack });
         }
-    };
 
-    // Si estoy en desarrollo, agrego info extra para debuggear
-    if (process.env.NODE_ENV === 'development') {
-        response.devInfo = {
-            devMessage: error.devMessage,
-            stack: error.stack,
-            additionalInfo: error.additionalInfo,
-            originalUrl: req.originalUrl,
-            method: req.method
+        // Construir la respuesta estándar
+        const response = {
+            success: false,
+            error: {
+                code: error.code || 'SRV_999',
+                message: error.userMessage || 'Error interno del servidor',
+                timestamp: error.timestamp || new Date().toISOString()
+            }
         };
-    }
 
-    // Enviar la respuesta con el código HTTP correcto
-    res.status(error.httpStatus).json(response);
+        // En desarrollo añado información para debugging
+        if (process.env.NODE_ENV === 'development') {
+            response.devInfo = {
+                devMessage: error.devMessage || (err && err.message),
+                stack: error.stack || (err && err.stack),
+                additionalInfo: error.additionalInfo || {},
+                originalUrl: req.originalUrl,
+                method: req.method
+            };
+        }
+
+        // Enviar la respuesta con el código HTTP correcto
+        return res.status(error.httpStatus || 500).json(response);
+    } catch (handlerError) {
+        // Si el manejador de errores falla por alguna razón, aseguramos no romper la app
+        console.error('Fallo en errorHandler:', handlerError);
+        try {
+            // Intento enviar una respuesta mínima
+            return res.status(500).json({
+                success: false,
+                error: {
+                    code: 'SRV_999',
+                    message: 'Error interno del servidor',
+                    timestamp: new Date().toISOString()
+                }
+            });
+        } catch (finalErr) {
+            // Si ni siquiera puedo enviar la respuesta, finalizo sin tirar stack al cliente
+            console.error('Fallo crítico al enviar respuesta de error:', finalErr);
+            return;
+        }
+    }
 };
 
 // Middleware para capturar rutas que no existen (404)

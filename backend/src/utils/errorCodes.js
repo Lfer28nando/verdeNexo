@@ -159,6 +159,92 @@ export const ERROR_CODES = {
         httpStatus: 400
     },
 
+    // ERRORES DE PRODUCTOS (PROD_xxx, IMG_xxx, PRICE_xxx, FICHA_xxx)
+    PROD_01: {
+        code: 'PROD_01',
+        userMessage: 'Producto no encontrado',
+        devMessage: 'Product not found in database',
+        httpStatus: 404
+    },
+    PROD_02: {
+        code: 'PROD_02',
+        userMessage: 'Parámetro de búsqueda es requerido',
+        devMessage: 'Missing required search parameter',
+        httpStatus: 400
+    },
+    PROD_03: {
+        code: 'PROD_03',
+        userMessage: 'Se requieren al menos dos IDs de productos para combinar',
+        devMessage: 'At least two product IDs are required to combine products',
+        httpStatus: 400
+    },
+    IMG_01: {
+        code: 'IMG_01',
+        userMessage: 'No se subió ningún archivo',
+        devMessage: 'No image or file was uploaded in the request',
+        httpStatus: 400
+    },
+    PRICE_01: {
+        code: 'PRICE_01',
+        userMessage: 'listasPrecios inválida',
+        devMessage: 'listasPrecios must be an array',
+        httpStatus: 400
+    },
+    PRICE_02: {
+        code: 'PRICE_02',
+        userMessage: 'Elemento de listasPrecios inválido',
+        devMessage: 'Each listasPrecios item must be an object',
+        httpStatus: 400
+    },
+    PRICE_03: {
+        code: 'PRICE_03',
+        userMessage: 'Canal en lista de precios es requerido',
+        devMessage: 'listasPrecios item missing canal field',
+        httpStatus: 400
+    },
+    PRICE_04: {
+        code: 'PRICE_04',
+        userMessage: 'Precio en lista de precios inválido',
+        devMessage: 'listasPrecios item has invalid precio value',
+        httpStatus: 400
+    },
+    FICHA_01: {
+        code: 'FICHA_01',
+        userMessage: 'Ficha técnica no disponible',
+        devMessage: 'Technical sheet file not found or not available',
+        httpStatus: 404
+    },
+    FICHA_02: {
+        code: 'FICHA_02',
+        userMessage: 'Error al eliminar ficha técnica',
+        devMessage: 'Failed to delete technical sheet file from disk',
+        httpStatus: 500
+    },
+    CAL_01: {
+        code: 'CAL_01',
+        userMessage: 'usuarioId y estrellas son requeridos',
+        devMessage: 'Rating requires usuarioId and estrellas',
+        httpStatus: 400
+    },
+    CAL_02: {
+        code: 'CAL_02',
+        userMessage: 'Estrellas debe estar entre 1 y 5',
+        devMessage: 'Rating estrellas out of range',
+        httpStatus: 400
+    },
+    TAG_01: {
+        code: 'TAG_01',
+        userMessage: 'Se requieren etiquetas para agregar',
+        devMessage: 'Tags are required to add to product',
+        httpStatus: 400
+    },
+    CANAL_01: {
+        code: 'CANAL_01',
+        userMessage: 'Se requiere un array de canales',
+        devMessage: 'canales must be an array',
+        httpStatus: 400
+    },
+
     // ERRORES DEL SERVIDOR (SRV_xxx)
     SRV_DATABASE_ERROR: {
         code: 'SRV_001',

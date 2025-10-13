@@ -98,7 +98,7 @@ export async function editProduct(req, res, next) {
 
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
 
         // Guardar el nombre anterior para detectar cambios
@@ -146,7 +146,7 @@ export async function deleteProduct(req, res, next) {
         const { id } = req.params;
         const product = await Producto.findByIdAndDelete(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
     res.json({ ok: true, message: 'Producto eliminado' });
 } catch (error) {
@@ -159,12 +159,12 @@ export async function uploadProductImage(req, res, next) {
     try {
         const { id } = req.params;
         if (!req.file) {
-            return next(createError(400, 'IMG_01', 'No se subió ninguna imagen'));
+            return next(createError('IMG_01', { detail: 'No se subió ninguna imagen' }));
         }
 
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
 
         product.imagenes.push(req.file.path);
@@ -184,7 +184,7 @@ export async function configureVariants(req, res, next) {
 
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
 
         product.variantes.push({ atributo, valor, precioAdicional: precio || 0, stock: stock || 0 });
@@ -204,7 +204,7 @@ export async function updatePrices(req, res, next) {
 
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
 
         if (precioBase) product.precioBase = precioBase;
@@ -246,7 +246,7 @@ export async function verifyAvailability(req, res, next) {
 
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
 
         res.json({ ok: true, data: { disponible: product.disponibilidad, stock: product.stock } });
@@ -316,10 +316,10 @@ export async function downloadTechnicalSheet(req, res, next) {
         const { id } = req.params;
         const product = await Producto.findById(id);
         if (!product) {
-            return next(createError(404, 'PROD_01', 'Producto no encontrado'));
+            return next(createError('PROD_01'));
         }
         if (!product.fichaTecnica) {
-            return next(createError(404, 'PROD_02', 'Ficha técnica no disponible'));
+            return next(createError('FICHA_01'));
         }
 
         // Intentar ruta principal
@@ -340,7 +340,7 @@ export async function downloadTechnicalSheet(req, res, next) {
         }
 
         console.log('[downloadTechnicalSheet] tried paths:', tried);
-        return next(createError('FICHA_01', { detail: 'Archivo de ficha técnica no encontrado en el servidor', tried }));
+    return next(createError('FICHA_01', { detail: 'Archivo de ficha técnica no encontrado en el servidor', tried }));
     } catch (error) {
         next(error);
     }
@@ -400,7 +400,7 @@ export async function searchProducts(req, res, next) {
     try {
         const { q } = req.query;
         if (!q) {
-            return next(createError(400, 'PROD_02', 'Parámetro de búsqueda es requerido'));
+            return next(createError('PROD_02', { detail: 'Parámetro de búsqueda es requerido' }));
         }
 
         const productos = await Producto.find({
