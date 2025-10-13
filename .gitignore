@@ -1,12 +1,13 @@
-# Dependencies
+# Root .gitignore - General project rules
+# Each subdirectory (backend/, frontend/) has its own .gitignore for specific rules
+
+# Global dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 
 # Environment variables
 .env
-backend/src/.env
 *.env
 .env.local
 .env.development.local
@@ -118,9 +119,21 @@ dist/
 test-results/
 coverage/
 
-# PM2 process files
-ecosystem.config.js
-
 # Docker
 .dockerignore
-Dockerfile.prod
+Dockerfile*
+
+# PM2
+ecosystem.config.js
+
+# Framework-specific (uncomment as needed)
+# .next
+# .nuxt
+# .storybook-out
+# .out
+
+# ==========================================
+# NOTA: Cada subdirectorio tiene su propio .gitignore
+# - backend/.gitignore: Reglas específicas del backend Node.js
+# - frontend/.gitignore: Reglas específicas del frontend (si existe)
+# ==========================================

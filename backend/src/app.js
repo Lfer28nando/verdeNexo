@@ -7,6 +7,7 @@ import cors from 'cors';
 import authRoutes from "./routes/auth.routes.js";
 import googleAuthRoutes from "./routes/googleAuth.routes.js";
 import productoRoutes from "./routes/product.routes.js";
+import shopCartRoutes from "./routes/shopCart.routes.js";
 import session from 'express-session';
 import './config/googleAuth.js'; // Importar la configuración de Google OAuth
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware.js';
@@ -54,7 +55,8 @@ app.use("/api/auth", authRoutes);      // Rutas tradicionales (register, login, 
 app.use("/auth", googleAuthRoutes);    // Rutas de Google OAuth (/auth/google, /auth/google/callback, etc.)
 // Rutas de productos
 app.use("/api/products", productoRoutes);
-
+// Rutas del carrito de compras
+app.use("/api/cart", shopCartRoutes);
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)
 app.use(notFoundHandler);  // Para rutas 404
 app.use(errorHandler);     // Para todos los otros errores
