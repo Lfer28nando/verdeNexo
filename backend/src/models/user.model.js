@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
 
   password: { type: String, required: true },
 
+  role: { type: String, enum: ['admin', 'seller', 'client'], default: 'client' },
+
   // Información de vendedor (solo para role: 'seller')
   informacionVendedor: {
     porcentajeComision: { type: Number, default: 5.0 }, // Porcentaje de comisión (5.0 = 5%)

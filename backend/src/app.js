@@ -10,6 +10,7 @@ import productoRoutes from "./routes/product.routes.js";
 import shopCartRoutes from "./routes/shopCart.routes.js";
 import checkoutRoutes from "./routes/checkout.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import session from 'express-session';
 import './config/googleAuth.js'; // Importar la configuración de Google OAuth
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware.js';
@@ -63,10 +64,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../../frontend/src/views/pages'));
 
-// Ruta para servir la vista de login
-app.get('/login', (req, res) => {
-    // Puedes pasar parámetros si lo necesitas
-    res.render('login', { requires2fa: req.query.requires2fa === 'true' });
+// Ruta para servir la vista de carrito
+app.get('/carrito', (req, res) => {
+    res.render('carrito');
+});
+
+// Ruta para servir la vista de checkout
+app.get('/checkout', (req, res) => {
+    res.render('checkout');
+});
+
+// Ruta para servir la vista de confirmación de pedido
+app.get('/pedido-confirmado', (req, res) => {
+    res.render('pedido-confirmado');
+});
+
+// Ruta para servir la vista de admin (solo para admins)
+app.get('/admin', (req, res) => {
+    res.render('admin');
 });
 
 // Rutas de autenticación
@@ -80,6 +95,8 @@ app.use("/api/cart", shopCartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 // Rutas de usuarios
 app.use("/api/users", userRoutes);
+// Rutas de administrador
+app.use("/api/admin", adminRoutes);
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)
 app.use(notFoundHandler);  // Para rutas 404
 app.use(errorHandler);     // Para todos los otros errores

@@ -962,6 +962,16 @@
             // Guardar en localStorage para edición
             localStorage.setItem('user', JSON.stringify(user));
             
+            // Función para traducir roles
+            function translateRole(role) {
+                const roleTranslations = {
+                    'admin': 'Administrador',
+                    'seller': 'Vendedor',
+                    'client': 'Cliente'
+                };
+                return roleTranslations[role] || 'Usuario';
+            }
+            
             // Header
             document.getElementById('welcomeName').textContent = `¡Hola, ${user.username}!`;
             document.getElementById('welcomeEmail').textContent = user.email;
@@ -998,7 +1008,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Rol:</span>
-                    <span class="info-value">${user.role || 'Usuario'}</span>
+                    <span class="info-value">${translateRole(user.role)}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Miembro desde:</span>

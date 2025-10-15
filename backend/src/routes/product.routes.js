@@ -45,9 +45,15 @@ router.get("/featured", getFeaturedProducts);
 // Obtener un producto por ID
 router.get("/:id", getProductById); //T
 // Crear un nuevo producto
-router.post("/create", createProduct); //T
+router.post("/", upload.fields([
+  { name: "imagenes", maxCount: 10 },
+  { name: "fichaTecnica", maxCount: 1 }
+]), createProduct); //T
 // Editar un producto existente
-router.put("/edit/:id", editProduct); //T
+router.put("/edit/:id", upload.fields([
+  { name: "imagenes", maxCount: 10 },
+  { name: "fichaTecnica", maxCount: 1 }
+]), editProduct); //T
 // Eliminar un producto
 router.delete("/delete/:id", deleteProduct); //T
 // Subir imagen
@@ -68,7 +74,7 @@ router.post("/:id/technical-sheet", upload.single('file'), uploadTechnicalSheet)
 router.delete("/:id/technical-sheet", deleteTechnicalSheet); //T
 router.get("/:id/related", getRelatedProducts);
 // Calificar
-router.post("/:id/rate", rateProduct); //T
+router.post("/:id/rate", authRequired, rateProduct); //T
 // Agregar etiquetas
 router.post("/:id/tags", addProductTags); //T
 // Configurar canales de visibilidad

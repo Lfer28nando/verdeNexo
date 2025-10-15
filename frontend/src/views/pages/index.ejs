@@ -422,7 +422,7 @@ html {
         </div>
         
         <div class="text-center mt-5">
-            <a href="{% url 'tienda:catalogo' %}" class="btn btn-success btn-lg">
+            <a href="/catalogo" class="btn btn-success btn-lg">
                 <i class="fas fa-eye me-2"></i>Ver Todos los Productos
             </a>
         </div>
@@ -484,7 +484,7 @@ html {
                         <div class="text-center text-white">
                             <h4 class="fw-bold mb-3">Plantas de Interior</h4>
                             <p class="mb-3">Ideales para decorar tu hogar</p>
-                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
                         </div>
                     </div>
                 </div>
@@ -498,7 +498,7 @@ html {
                         <div class="text-center text-white">
                             <h4 class="fw-bold mb-3">Plantas de Exterior</h4>
                             <p class="mb-3">Para jardines y balcones</p>
-                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
                         </div>
                     </div>
                 </div>
@@ -512,7 +512,7 @@ html {
                         <div class="text-center text-white">
                             <h4 class="fw-bold mb-3">Plantas Aromáticas</h4>
                             <p class="mb-3">Hierbas y especias naturales</p>
-                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
                         </div>
                     </div>
                 </div>
@@ -609,10 +609,10 @@ html {
                 <h2 class="display-5 fw-bold mb-4">¿Listo para Transformar tu Espacio?</h2>
                 <p class="lead mb-4">Únete a miles de clientes satisfechos que ya han transformado sus hogares con nuestras plantas premium y servicios especializados.</p>
                 <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
-                    <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-lg px-4">
+                    <a href="/catalogo" class="btn btn-light btn-lg px-4">
                         <i class="fas fa-shopping-cart me-2"></i>Comprar Ahora
                     </a>
-                    <a href="{% url 'tienda:contacto' %}" class="btn btn-outline-light btn-lg px-4">
+                    <a href="/contacto" class="btn btn-outline-light btn-lg px-4">
                         <i class="fas fa-phone me-2"></i>Consultar Gratis
                     </a>
                 </div>
@@ -971,6 +971,26 @@ function showToast(message, type = 'info') {
         toast.remove();
     });
 }
+
+// Mostrar botón de admin si es usuario admin
+async function mostrarBotonAdmin() {
+    try {
+        const res = await API.get('/api/auth/profile');
+        if (res.data.success && res.data.user && res.data.user.role === 'admin') {
+            const adminBtn = document.createElement('a');
+            adminBtn.href = '/admin';
+            adminBtn.className = 'btn btn-danger btn-lg position-fixed bottom-0 end-0 m-4 shadow-lg';
+            adminBtn.style.zIndex = '9999';
+            adminBtn.innerHTML = '<i class="fas fa-user-shield me-2"></i>Panel Administrador';
+            document.body.appendChild(adminBtn);
+        }
+    } catch (err) {
+        // No mostrar nada si no es admin
+    }
+}
+
+// Ejecutar al cargar la página principal
+mostrarBotonAdmin();
 
 // Hacer funciones globales
 window.show2FAModal = show2FAModal;

@@ -51,10 +51,10 @@
             <img src="/img/user-plus-alt.png" alt="Registrarse" width="20" height="20">
           </a>
           <!-- Carrito de compras -->
-          <button class="btn btn-vn-session position-relative" aria-expanded="false" type="button">
+          <a href="/carrito" class="btn btn-vn-session position-relative" aria-expanded="false" type="button">
             <img src="/img/shopping-cart-alt.png" alt="carrito" width="20" height="20">
-            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">0</span>
-          </button>
+            <span id="cartCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill" style="display: none;">0</span>
+          </a>
         </div>
         <!-- Botón de perfil (oculto por defecto) -->
         <button id="btnPerfil" class="btn btn-vn-session" type="button" style="display: none;">
@@ -211,6 +211,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script type="module" src="/js/navbar.js"></script>
+  <script type="module" src="/js/cart.js"></script>
   <script type="module" src="/js/register.functions.js"></script>
 
   <style>

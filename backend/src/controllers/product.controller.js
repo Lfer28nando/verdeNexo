@@ -55,43 +55,70 @@ const skip = (page - 1) * limit;
 // Registrar Producto
 export const createProduct = async (req, res, next) => {
     try {
-        console.log('DEBUG received data for new product:', req.body);
-    const {
-        nombre,
-        descripcion,
-        precioBase,
-        disponibilidad = true,
-        stock = 0,
-        imagenes = [],
-        fichaTecnica = null,
-        etiquetas = []
-    } = req.body || {};
+        // Extraer datos del body
+        const {
+            nombre,
+            descripcion,
+            precioBase,
+            disponibilidad = true,
+            stock = 0,
+            etiquetas = [],
+            variantes = []
+        } = req.body || {};
 
-    const productData = {
-        nombre,
-        descripcion,
-        precioBase,
-        disponibilidad: disponibilidad !== false, // por defecto true
-        stock: stock || 0,
-        imagenes,
-        fichaTecnica,
-        etiquetas: Array.isArray(etiquetas) ? etiquetas : [], // Asegurarse de que sea un array
-    };
+        // Procesar imágenes
+        let imagenes = [];
+        if (req.files && req.files["imagenes"]) {
+            imagenes = req.files["imagenes"].map(f => f.filename);
+        }
+
+        // Procesar ficha técnica
+        let fichaTecnica = null;
+        if (req.files && req.files["fichaTecnica"] && req.files["fichaTecnica"][0]) {
+            fichaTecnica = req.files["fichaTecnica"][0].filename;
+        }
+
+        // Procesar etiquetas (puede venir como string o array)
+        let etiquetasFinal = Array.isArray(etiquetas) ? etiquetas : (typeof etiquetas === "string" ? etiquetas.split(",").map(t => t.trim()).filter(Boolean) : []);
+
+        // Procesar variantes (puede venir como JSON string)
+        let variantesFinal = [];
+        if (typeof variantes === "string" && variantes.trim()) {
+            try {
+                variantesFinal = JSON.parse(variantes);
+            } catch (e) {
+                variantesFinal = [];
+            }
+        } else if (Array.isArray(variantes)) {
+            variantesFinal = variantes;
+        }
+
+        const productData = {
+            nombre,
+            descripcion,
+            precioBase,
+            disponibilidad: disponibilidad !== false,
+            stock: stock || 0,
+            imagenes,
+            fichaTecnica,
+            etiquetas: etiquetasFinal,
+            variantes: variantesFinal
+        };
         console.log('DEBUG processed data for new product:', productData);
 
-    const newProduct = new Producto(productData);
-    const savedProduct = await newProduct.save();
+        const newProduct = new Producto(productData);
+        const savedProduct = await newProduct.save();
 
-    console.log('DEBUG saved product:', savedProduct);
-    res.status(201).json({ ok: true, data: savedProduct });
+        console.log('DEBUG saved product:', savedProduct);
+        res.status(201).json({ ok: true, data: savedProduct });
     } catch (error) {
         next(error);
     }
 };
 
 
-//Editar Producto
-export async function editProduct(req, res, next) {
+// Editar Producto
+export const editProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
         const data = req.body;
@@ -99,6 +126,30 @@ export async function editProduct(req, res, next) {
         const product = await Producto.findById(id);
         if (!product) {
             return next(createError('PROD_01'));
+        }
+
+        // Procesar imágenes
+        if (req.files && req.files["imagenes"]) {
+            data.imagenes = req.files["imagenes"].map(f => f.filename);
+        }
+
+        // Procesar ficha técnica
+        if (req.files && req.files["fichaTecnica"] && req.files["fichaTecnica"][0]) {
+            data.fichaTecnica = req.files["fichaTecnica"][0].filename;
+        }
+
+        // Procesar etiquetas (puede venir como string o array)
+        if (data.etiquetas) {
+            data.etiquetas = Array.isArray(data.etiquetas) ? data.etiquetas : (typeof data.etiquetas === "string" ? data.etiquetas.split(",").map(t => t.trim()).filter(Boolean) : []);
+        }
+
+        // Procesar variantes (puede venir como JSON string)
+        if (typeof data.variantes === "string" && data.variantes.trim()) {
+            try {
+                data.variantes = JSON.parse(data.variantes);
+            } catch (e) {
+                data.variantes = [];
+            }
         }
 
         // Guardar el nombre anterior para detectar cambios
@@ -141,7 +192,7 @@ export async function editProduct(req, res, next) {
 }
 
 // Eliminar Producto
-export async function deleteProduct(req, res, next) {
+export const deleteProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
         const product = await Producto.findByIdAndDelete(id);
@@ -328,7 +379,9 @@ export async function downloadTechnicalSheet(req, res, next) {
         tried.push(ruteFichas);
         if (fs.existsSync(ruteFichas)) {
             console.log('[downloadTechnicalSheet] Found file at', ruteFichas);
-            return res.download(ruteFichas, product.fichaTecnica);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="' + product.fichaTecnica + '"');
+            return res.sendFile(ruteFichas);
         }
 
         // Fallback: tal vez se guardó en uploads/imagenes por mimetype incorrecto
@@ -336,7 +389,9 @@ export async function downloadTechnicalSheet(req, res, next) {
         tried.push(ruteImagenes);
         if (fs.existsSync(ruteImagenes)) {
             console.log('[downloadTechnicalSheet] Found file at', ruteImagenes);
-            return res.download(ruteImagenes, product.fichaTecnica);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="' + product.fichaTecnica + '"');
+            return res.sendFile(ruteImagenes);
         }
 
         console.log('[downloadTechnicalSheet] tried paths:', tried);
@@ -396,7 +451,7 @@ export async function deleteTechnicalSheet(req, res, next) {
 }
 
 //Buscar
-export async function searchProducts(req, res, next) {
+export const searchProducts = async (req, res, next) => {
     try {
         const { q } = req.query;
         if (!q) {
@@ -412,28 +467,8 @@ export async function searchProducts(req, res, next) {
     }
 }
 
-// Filtrar
-export async function filterProducts(req, res, next) {
-    try {
-        const { categoria, minPrecio, maxPrecio, disponible } = req.query;
-        const filter = {};
-        if (categoria) filter.categoria = categoria;
-        if (disponible) filter.disponibilidad = disponible === 'true';
-        if (minPrecio || maxPrecio) {
-            filter.precioBase = {};
-            if (minPrecio) filter.precioBase.$gte = Number(minPrecio);
-            if (maxPrecio) filter.precioBase.$lte = Number(maxPrecio);
-        }
-
-        const productos = await Producto.find(filter);
-        res.json({ ok: true, data: productos });
-    } catch (error) {
-        next(error);
-    }
-}
-
 // Ordenar
-export async function sortProducts(req, res, next) {
+export const sortProducts = async (req, res, next) => {
     try {
         const { sortBy = 'precioBase', order = 'asc' } = req.query;
         const sortOrder = order === 'asc' ? 1 : -1;
@@ -446,7 +481,7 @@ export async function sortProducts(req, res, next) {
 }
 
 //Relacionados
-export async function getRelatedProducts(req, res, next) {
+export const getRelatedProducts = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -462,7 +497,7 @@ export async function getRelatedProducts(req, res, next) {
 }
 
 //combinar productos
-export async function combineProducts(req, res, next) {
+export const combineProducts = async (req, res, next) => {
     try {
         const { ids } = req.body; // espera un array de IDs
         if (!ids || !Array.isArray(ids) || ids.length < 2) {
@@ -503,33 +538,55 @@ export async function combineProducts(req, res, next) {
 }
 
 //Calif
-export async function rateProduct(req, res, next) {
+export const rateProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { usuarioId, estrellas, comentario } = req.body;
-        
-        if (!usuarioId || !estrellas) {
-            return next(createError(400, 'CAL_01', 'usuarioId y estrellas son requeridos'));
+        const { estrellas, comentario } = req.body;
+        const usuarioId = req.user._id; // Obtener del usuario autenticado
+
+        if (!estrellas) {
+            return next(createError(400, 'CAL_01', 'Las estrellas son requeridas'));
         }
         if (estrellas < 1 || estrellas > 5) {
             return next(createError(400, 'CAL_02', 'Estrellas debe estar entre 1 y 5'));
         }
-        
+
         const product = await Producto.findById(id);
         if (!product) {
             return next(createError(404, 'PROD_01', 'Producto no encontrado'));
         }
-        
-        product.calificaciones.push({ usuarioId, estrellas, comentario });
+
+        // Verificar si el usuario ya ha calificado este producto
+        const existingRating = product.calificaciones.find(cal =>
+            cal.usuarioId.toString() === usuarioId.toString()
+        );
+
+        if (existingRating) {
+            return next(createError(400, 'CAL_03', 'Ya has calificado este producto'));
+        }
+
+        // Agregar nueva calificación
+        product.calificaciones.push({
+            usuarioId,
+            estrellas: Number(estrellas),
+            comentario: comentario || undefined,
+            fecha: new Date()
+        });
+
         await product.save();
-        res.json({ ok: true, data: product });
+
+        res.json({
+            ok: true,
+            data: product,
+            message: 'Calificación agregada exitosamente'
+        });
     } catch (error) {
         next(error);
     }
 }
 
 // Etiquetas
-export async function addProductTags(req, res, next) {
+export const addProductTags = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { etiquetas } = req.body;
@@ -553,7 +610,7 @@ export async function addProductTags(req, res, next) {
 }
 
 // Visibilidad por canal
-export async function setProductVisibilityChannels(req, res, next) {
+export const setProductVisibilityChannels = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { canales } = req.body;
@@ -577,7 +634,7 @@ export async function setProductVisibilityChannels(req, res, next) {
 }
 
 // Obtener producto por ID
-export async function getProductById(req, res, next) {
+export const getProductById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const product = await Producto.findById(id);
@@ -603,6 +660,119 @@ export const getFeaturedProducts = async (req, res, next) => {
             data: productos
         });
     } catch (error) {
+        res.status(500).json({ ok: false, message: error.message });
+    }
+};
+
+// Filtrar productos avanzado
+export const filterProducts = async (req, res, next) => {
+    try {
+        const {
+            page = 1,
+            limit = 12,
+            search = '',
+            sort = 'nombre',
+            minPrice = '',
+            maxPrice = '',
+            categories = '',
+            availability = '',
+            tags = ''
+        } = req.query;
+
+        // Construir el filtro dinámico
+        const filter = {};
+
+        // Filtro de búsqueda por nombre o descripción
+        if (search && search.trim()) {
+            filter.$or = [
+                { nombre: { $regex: search.trim(), $options: 'i' } },
+                { descripcion: { $regex: search.trim(), $options: 'i' } }
+            ];
+        }
+
+        // Filtro por precio
+        if (minPrice || maxPrice) {
+            filter.precioBase = {};
+            if (minPrice && !isNaN(Number(minPrice))) {
+                filter.precioBase.$gte = Number(minPrice);
+            }
+            if (maxPrice && !isNaN(Number(maxPrice))) {
+                filter.precioBase.$lte = Number(maxPrice);
+            }
+        }
+
+        // Filtro por categorías
+        if (categories && categories.trim()) {
+            const categoryArray = categories.split(',').map(c => c.trim()).filter(Boolean);
+            if (categoryArray.length > 0) {
+                filter.categoria = { $in: categoryArray };
+            }
+        }
+
+        // Filtro por disponibilidad
+        if (availability && availability.trim()) {
+            const availabilityArray = availability.split(',').map(a => a.trim()).filter(Boolean);
+            if (availabilityArray.length > 0) {
+                const availabilityValues = availabilityArray.map(a => a === 'true');
+                filter.disponibilidad = { $in: availabilityValues };
+            }
+        }
+
+        // Filtro por etiquetas
+        if (tags && tags.trim()) {
+            const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean);
+            if (tagsArray.length > 0) {
+                filter.etiquetas = { $in: tagsArray };
+            }
+        }
+
+        // Construir opciones de ordenamiento
+        let sortOptions = {};
+        switch (sort) {
+            case 'nombre':
+                sortOptions = { nombre: 1 };
+                break;
+            case 'precioBase':
+                sortOptions = { precioBase: 1 };
+                break;
+            case '-precioBase':
+                sortOptions = { precioBase: -1 };
+                break;
+            case '-createdAt':
+                sortOptions = { creadoEn: -1 };
+                break;
+            case 'createdAt':
+                sortOptions = { creadoEn: 1 };
+                break;
+            default:
+                sortOptions = { nombre: 1 };
+        }
+
+        // Paginación
+        const skip = (Number(page) - 1) * Number(limit);
+
+        // Ejecutar consulta
+        const productos = await Producto.find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit));
+
+        // Contar total para paginación
+        const total = await Producto.countDocuments(filter);
+        const pages = Math.ceil(total / Number(limit));
+
+        res.json({
+            ok: true,
+            data: {
+                products: productos,
+                total,
+                pages,
+                currentPage: Number(page),
+                limit: Number(limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error in filterProducts:', error);
         res.status(500).json({ ok: false, message: error.message });
     }
 };

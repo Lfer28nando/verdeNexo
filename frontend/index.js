@@ -31,7 +31,21 @@ app.get('/perfil', (req, res) => {
 app.get('/recuperar', (req, res) => {
     res.render('pages/recuperar');
 });
-
+app.get('/admin', (req, res) => {
+    res.render('pages/admin');
+});
+app.get('/catalogo', (req, res) => {
+    res.render('pages/catalogo');
+});
+app.get('/carrito', (req, res) => {
+    res.render('pages/carrito');
+});
+app.get('/checkout', (req, res) => {
+    res.render('pages/checkout');
+});
+app.get('/pedido-confirmado', (req, res) => {
+    res.render('pages/pedido-confirmado');
+});
 
 const PORT = process.env.PORT || 5173;
 
