@@ -8,7 +8,7 @@ const port = process.env.PORT || 2000;
 
 connectDB();
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
 	console.log(`VerdeNexo Backend running on http://localhost:${port}`);
 });
 
