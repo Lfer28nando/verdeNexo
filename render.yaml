@@ -1,9 +1,13 @@
+previews:
+  generation: manual   # opcional: evita que Render cree previews automáticos
+
 services:
   - type: web
     name: verdeNexo-backend
-    env: node
+    runtime: node
     repo: https://github.com/Lfer28nando/verdeNexo
     branch: develop
+    plan: free            # <- agrega esto
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm run dev
     envVars:
@@ -34,9 +38,10 @@ services:
 
   - type: web
     name: verdeNexo-frontend
-    env: static
+    runtime: static
     repo: https://github.com/Lfer28nando/verdeNexo
     branch: develop
+    plan: free            # <- y esto también
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
@@ -44,5 +49,3 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: VITE_BACKEND_URL
-        value: https://verdenexo-backend.onrender.com
