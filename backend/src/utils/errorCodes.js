@@ -72,6 +72,42 @@ export const ERROR_CODES = {
         devMessage: 'Google OAuth authentication failed',
         httpStatus: 400
     },
+    AUTH_EMAIL_NOT_VERIFIED: {
+        code: 'AUTH_013',
+        userMessage: 'Debes verificar tu email antes de activar 2FA',
+        devMessage: 'Email must be verified before enabling 2FA',
+        httpStatus: 400
+    },
+    AUTH_2FA_ALREADY_ENABLED: {
+        code: 'AUTH_014',
+        userMessage: 'La autenticación de dos factores ya está activada',
+        devMessage: 'Two-factor authentication is already enabled',
+        httpStatus: 400
+    },
+    AUTH_2FA_NOT_ENABLED: {
+        code: 'AUTH_015',
+        userMessage: 'La autenticación de dos factores no está activada',
+        devMessage: 'Two-factor authentication is not enabled',
+        httpStatus: 400
+    },
+    AUTH_2FA_NOT_SETUP: {
+        code: 'AUTH_016',
+        userMessage: 'Primero debes configurar la autenticación de dos factores',
+        devMessage: 'Two-factor authentication setup not completed',
+        httpStatus: 400
+    },
+    AUTH_INVALID_2FA_CODE: {
+        code: 'AUTH_017',
+        userMessage: 'Código 2FA inválido. Verifica e intenta nuevamente',
+        devMessage: 'Two-factor authentication code is invalid',
+        httpStatus: 400
+    },
+    AUTH_INVALID_EMAIL_CHANGE_CODE: {
+        code: 'AUTH_018',
+        userMessage: 'Código de cambio de email inválido o expirado',
+        devMessage: 'Email change confirmation code is invalid or expired',
+        httpStatus: 400
+    },
 
     // ERRORES DE VALIDACIÓN (VAL_xxx)
     VAL_EMAIL_REQUIRED: {

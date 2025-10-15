@@ -41,6 +41,8 @@ export const editUserSchema = z.object({
         }, {
             message: 'Document must be 5-20 characters and contain only letters, numbers and hyphens'
         }),
+    documentType: z.enum(['Cédula', 'Cédula de extranjería', 'PPT', 'Pasaporte'])
+        .optional(),
     cellphone: z.string()
         .optional()
         .refine((val) => {
@@ -101,3 +103,41 @@ export const verifyEmailSchema = z.object({
 });
 
 export const requestEmailVerificationSchema = z.object({});
+
+// Esquemas para 2FA
+export const setup2FASchema = z.object({});
+
+export const verifyAndEnable2FASchema = z.object({
+    code: z.string({
+        required_error: '2FA code is required'
+    }).regex(/^\d{6}$/, '2FA code must be exactly 6 digits')
+});
+
+export const disable2FASchema = z.object({
+    currentPassword: z.string({
+        required_error: 'Current password is required'
+    }).min(6, 'Current password must be at least 6 characters long')
+});
+
+export const verify2FASchema = z.object({
+    code: z.string().regex(/^\d{6}$/, '2FA code must be exactly 6 digits').optional(),
+    backupCode: z.string().min(8, 'Backup code must be at least 8 characters').max(10, 'Backup code cannot exceed 10 characters').optional()
+}).refine(data => data.code || data.backupCode, {
+    message: "Either 2FA code or backup code must be provided"
+});
+
+// Esquemas para cambio de email
+export const requestEmailChangeSchema = z.object({
+    newEmail: z.string({
+        required_error: 'New email is required'
+    }).email('Invalid email address'),
+    currentPassword: z.string({
+        required_error: 'Current password is required'
+    }).min(6, 'Current password must be at least 6 characters long')
+});
+
+export const confirmEmailChangeSchema = z.object({
+    code: z.string({
+        required_error: 'Confirmation code is required'
+    }).regex(/^\d{6}$/, 'Confirmation code must be exactly 6 digits')
+});

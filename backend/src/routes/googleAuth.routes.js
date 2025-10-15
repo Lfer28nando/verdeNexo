@@ -1,6 +1,6 @@
 import { Router } from "express";
 import passport from "../config/googleAuth.js";
-import { setAuthCookie } from "../config/googleAuth.js";
+import { setAuthCookie, setTemp2FACookie } from "../config/googleAuth.js";
 import { authRequired } from "../middlewares/validateToken.middleware.js";
 import User from "../models/user.model.js";
 
@@ -24,7 +24,7 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback', 
     passport.authenticate('google', { 
         session: false,
-        failureRedirect: '/auth/google/failure'
+        failureRedirect: '/login?error=google_failed'
     }),
     async (req, res) => {
         try {
@@ -32,39 +32,42 @@ router.get('/google/callback',
             const user = req.user;
 
             if (!user) {
-                return res.status(400).json({ 
-                    ok: false, 
-                    message: 'Error en la autenticación con Google' 
-                });
+                return res.redirect('/login?error=google_auth_failed');
             }
 
-            // Generar JWT y configurar cookie
+                        // Verificar si el usuario tiene 2FA activado
+                        if (user.twoFactorEnabled) {
+                                // Crear token temporal para el proceso de 2FA
+                                await setTemp2FACookie(res, user);
+                                // Redirigir en la ventana principal usando window.opener
+                                                return res.send(`
+                                                    <html>
+                                                        <head><title>Verificación 2FA</title></head>
+                                                        <body>
+                                                            <script>
+                                                                const frontendUrl = 'http://localhost:5173/login?requires2fa=true';
+                                                                if (window.opener) {
+                                                                    window.opener.location = frontendUrl;
+                                                                    window.close();
+                                                                } else {
+                                                                    window.location = frontendUrl;
+                                                                }
+                                                            </script>
+                                                            <p>Redirigiendo...</p>
+                                                        </body>
+                                                    </html>
+                                                `);
+                        }
+
+            // Login normal sin 2FA
             const token = await setAuthCookie(res, user);
 
-            // Respuesta exitosa
-            res.json({
-                ok: true,
-                message: 'Autenticación exitosa con Google',
-                user: {
-                    id: user._id,
-                    username: user.username,
-                    email: user.email,
-                    role: user.role,
-                    avatar: user.avatar,
-                    provider: user.provider,
-                    verifiedEmail: user.verifiedEmail,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt
-                },
-                token: token
-            });
+            // Redirigir a la página principal
+            res.redirect('/');
 
         } catch (error) {
             console.error('Error en Google OAuth callback:', error);
-            res.status(500).json({ 
-                ok: false, 
-                message: 'Error interno del servidor' 
-            });
+            res.redirect('/login?error=internal_error');
         }
     }
 );

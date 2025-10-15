@@ -25,6 +25,13 @@ app.get('/login', (req, res) => {
 app.get('/auth', (req, res) => {
     res.render('pages/auth');
 });
+app.get('/perfil', (req, res) => {
+    res.render('pages/perfil');
+});
+app.get('/recuperar', (req, res) => {
+    res.render('pages/recuperar');
+});
+
 
 const PORT = process.env.PORT || 5173;
 

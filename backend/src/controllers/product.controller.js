@@ -589,3 +589,20 @@ export async function getProductById(req, res, next) {
         next(error);
     }
 }
+
+// Productos destacados
+export const getFeaturedProducts = async (req, res, next) => {
+    try {
+        let productos = await Producto.find({ etiquetas: 'destacado' }).limit(6).sort({ creadoEn: -1 });
+        if (productos.length === 0) {
+            // Fallback: obtener los primeros 6 productos disponibles
+            productos = await Producto.find({ disponibilidad: true }).limit(6).sort({ creadoEn: -1 });
+        }
+        res.json({
+            ok: true,
+            data: productos
+        });
+    } catch (error) {
+        res.status(500).json({ ok: false, message: error.message });
+    }
+};

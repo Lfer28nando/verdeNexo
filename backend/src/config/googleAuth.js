@@ -108,4 +108,26 @@ export const setAuthCookie = async (res, user) => {
     }
 };
 
+// Función helper para generar token temporal de 2FA
+export const setTemp2FACookie = async (res, user) => {
+    try {
+        const token = await createAccessToken({ 
+            id: user._id, 
+            requires2FA: true 
+        });
+        
+        // Configurar cookie temporal HttpOnly (5 minutos)
+        res.cookie("temp_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 5 * 60 * 1000 // 5 minutos
+        });
+
+        return token;
+    } catch (error) {
+        throw new Error('Error al generar token temporal de 2FA');
+    }
+};
+
 export default passport;

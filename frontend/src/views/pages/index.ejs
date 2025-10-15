@@ -1,3 +1,980 @@
 <%- include('../partials/header') %>
-<h1>home</h1>
+
+<style>
+/* Estilos profesionales para la página principal */
+
+/* Tipografía mejorada */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #2c3e50;
+}
+
+/* Banner principal */
+.position-relative {
+    position: relative;
+}
+
+.position-relative img {
+    filter: brightness(0.7);
+}
+
+.position-absolute {
+    z-index: 2;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
+
+/* Sección de características */
+.features-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 5rem 0;
+}
+
+.features-section .bg-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.features-section .bg-success:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+}
+
+/* Slider de productos */
+.products-preview {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.producto-card-hover {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.producto-card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+.producto-card-hover img {
+    transition: transform 0.3s ease;
+}
+
+.producto-card-hover:hover img {
+    transform: scale(1.05);
+}
+
+.slider-arrow {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.slider-arrow:hover {
+    background: linear-gradient(135deg, #218838, #1aa085);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+/* Sección de estadísticas */
+.stats-section {
+    background: linear-gradient(135deg, #2f5233 0%, #4a7c59 50%, #2f5233 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="60" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+    opacity: 0.3;
+}
+
+.stat-item {
+    padding: 2rem;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Categorías */
+.categories-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.category-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: scale(1.02);
+}
+
+.category-card img {
+    transition: transform 0.5s ease;
+}
+
+.category-card:hover img {
+    transform: scale(1.1);
+}
+
+.category-overlay {
+    transition: all 0.3s ease;
+}
+
+.category-card:hover .category-overlay {
+    background: rgba(47, 82, 51, 0.8) !important;
+}
+
+/* Testimonios */
+.testimonials-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.testimonial-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+.avatar {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+/* Call to Action */
+.cta-section {
+    background: linear-gradient(135deg, rgba(47, 82, 51, 0.9), rgba(74, 124, 89, 0.9)) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,50 Q25,25 50,50 T100,50 L100,100 L0,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+}
+
+.btn-light {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: none;
+    color: #28a745;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-light:hover {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.btn-outline-light {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+    transform: translateY(-2px);
+}
+
+/* FAQ */
+.faq-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.accordion-button {
+    font-weight: 600;
+    color: #2c3e50;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: none;
+    box-shadow: none;
+    transition: all 0.3s ease;
+}
+
+.accordion-button:hover {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+/* Newsletter */
+.newsletter-section {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.newsletter-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="90" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="20" r="0.5" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.features-section,
+.products-preview,
+.categories-section,
+.testimonials-section,
+.cta-section,
+.faq-section,
+.newsletter-section {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .position-absolute {
+        margin-left: 2%;
+        max-width: 96%;
+    }
+    
+    .stat-item {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .producto-slide {
+        width: 280px !important;
+        margin-right: 1rem !important;
+    }
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading states */
+.producto-card-hover img {
+    transition: opacity 0.3s ease;
+}
+
+.producto-card-hover img[src=""] {
+    opacity: 0.5;
+}
+
+/* Focus states */
+.btn:focus,
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+</style>
+
+<!-- Banner principal con texto sobre la imagen -->
+<section class="position-relative" style="height: 650px; overflow: hidden;">
+  <!-- Imagen de fondo -->
+  <img src="/img/l1.png" alt="monstera" class="w-100 h-100" style="object-fit: cover; object-position: center;">
+
+  <!-- Contenido encima de la imagen -->
+  <div class="position-absolute top-50 start-0 translate-middle-y text-white p-4 p-md-5" 
+       style="background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)); 
+              max-width: 550px; border-radius: 15px; margin-left: 5%; 
+              backdrop-filter: blur(2px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+    <h1 class="fw-bold mb-4" style="font-size: 2.5rem; line-height: 1.1; color: #ffffff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: -0.01em;">
+      Transforma tu espacio con <span style="color: #90EE90;">naturaleza viva</span>
+    </h1>
+    <p class="mb-4" style="font-size: 1.1rem; line-height: 1.6; color: #f8f9fa; opacity: 0.95; letter-spacing: 0.01em;">
+      Nuestras plantas están cuidadosamente seleccionadas para armonizar tu hogar, oficina o negocio, 
+      aportando frescura, estilo y bienestar en cada rincón de tu vida.
+    </p>
+    <a href="{% url 'tienda:catalogo' %}" class="btn btn-light fw-bold px-4 py-3" 
+       style="font-size: 1rem; letter-spacing: 0.02em; border-radius: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.3); transition: all 0.3s ease;">
+      <i class="fas fa-leaf me-2"></i>Descubre Nuestro Catálogo
+    </a>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">¿Por qué elegir Vivero Verde Nexo?</h2>
+                <p class="lead text-muted">Tu vivero comprometido con la sostenibilidad y calidad</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_39920.svg" alt="Ecológico" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">100% Ecológico</h4>
+                    <p class="text-muted">Todos nuestros productos son respetuosos con el medio ambiente y certificados.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_224289.svg" alt="Envío Sostenible" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">Envío Sostenible</h4>
+                    <p class="text-muted">Entregamos tus productos con empaques biodegradables y transporte eco-friendly.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_454300.svg" alt="Calidad Premium" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">Calidad Premium</h4>
+                    <p class="text-muted">Seleccionamos cuidadosamente cada producto para garantizar la mejor calidad.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Preview Slider -->
+<section class="products-preview py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Productos Destacados</h2>
+                <p class="lead text-muted">Descubre nuestros productos más populares</p>
+            </div>
+        </div>
+        
+        <!-- Slider Container -->
+        <div class="position-relative">
+            <div class="productos-slider-container overflow-hidden">
+                <div class="productos-slider d-flex transition-all" id="productosSlider" style="transform: translateX(0px); transition: transform 0.5s ease;">
+                    <!-- Productos se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+            
+            <!-- Navigation Arrows -->
+            <button class="slider-arrow slider-arrow-left btn btn-success position-absolute top-50 start-0 translate-middle-y ms-2" 
+                    onclick="moverSlider('prev')" style="z-index: 10; width: 50px; height: 50px; border-radius: 50%; display: none;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="slider-arrow slider-arrow-right btn btn-success position-absolute top-50 end-0 translate-middle-y me-2" 
+                    onclick="moverSlider('next')" style="z-index: 10; width: 50px; height: 50px; border-radius: 50%; display: none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'tienda:catalogo' %}" class="btn btn-success btn-lg">
+                <i class="fas fa-eye me-2"></i>Ver Todos los Productos
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Estadísticas Section -->
+<section class="stats-section py-5" style="background: linear-gradient(135deg, #2f5233, #4a7c59);">
+    <div class="container">
+        <div class="row text-center text-white">
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="21">0</div>
+                    <h5 class="stat-label">Plantas Vendidas</h5>
+                    <p class="small opacity-75">Este mes</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="98">0</div>
+                    <h5 class="stat-label">% Satisfacción</h5>
+                    <p class="small opacity-75">Clientes felices</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="250">0</div>
+                    <h5 class="stat-label">Especies Diferentes</h5>
+                    <p class="small opacity-75">En catálogo</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="5">0</div>
+                    <h5 class="stat-label">Años Experiencia</h5>
+                    <p class="small opacity-75">En el mercado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categorías Destacadas -->
+<section class="categories-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Explora por Categorías</h2>
+                <p class="lead text-muted">Encuentra exactamente lo que necesitas para tu espacio verde</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <img src="https://img.freepik.com/foto-gratis/plantas-interior-estudio_23-2151022060.jpg?t=st=1760465784~exp=1760469384~hmac=bf8183b3fab8652d56fcd33879dda09b29b0a5f737cce661d2f8fb9826b3b658&w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas de Interior</h4>
+                            <p class="mb-3">Ideales para decorar tu hogar</p>
+                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <img src="https://img.freepik.com/foto-gratis/arreglo-plantas-verdes-alto-angulo_23-2149413491.jpg?t=st=1760465975~exp=1760469575~hmac=9c7bb4b527664a7e12907a588c10d58b37b04cd59784a1444a7c3239598abdbf&w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas de Exterior</h4>
+                            <p class="mb-3">Para jardines y balcones</p>
+                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <img src="https://img.freepik.com/fotos-premium/exuberante-romero-fresco-olla-sobre-mesa-cocina_212840-465.jpg?w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas Aromáticas</h4>
+                            <p class="mb-3">Hierbas y especias naturales</p>
+                            <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios -->
+<section class="testimonials-section py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Lo que Dicen Nuestros Clientes</h2>
+                <p class="lead text-muted">Experiencias reales de nuestra comunidad verde</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Las plantas llegaron en perfectas condiciones y el servicio al cliente fue excepcional. Mi hogar ahora está lleno de vida y color."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">MR</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">María Rodríguez</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Excelente variedad de plantas y muy buenos precios. El equipo de Verde Nexo realmente sabe de plantas y te asesoran perfectamente."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">CL</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Carlos López</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Mi jardín se transformó completamente con sus plantas y servicios. El delivery es súper rápido y el empaque ecológico me encanta."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">AG</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Ana García</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section py-5" style="background: linear-gradient(135deg, rgba(47, 82, 51, 0.9), rgba(74, 124, 89, 0.9)); background-size: cover; background-position: center;">
+    <div class="container text-center text-white">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="display-5 fw-bold mb-4">¿Listo para Transformar tu Espacio?</h2>
+                <p class="lead mb-4">Únete a miles de clientes satisfechos que ya han transformado sus hogares con nuestras plantas premium y servicios especializados.</p>
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="{% url 'tienda:catalogo' %}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-shopping-cart me-2"></i>Comprar Ahora
+                    </a>
+                    <a href="{% url 'tienda:contacto' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-phone me-2"></i>Consultar Gratis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Preguntas Frecuentes</h2>
+                <p class="lead text-muted">Resolvemos tus dudas más comunes</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                ¿Cómo cuido mis plantas recién llegadas?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Todas nuestras plantas vienen con instrucciones detalladas de cuidado. Recomendamos regarlas gradualmente los primeros días y ubicarlas en un lugar con luz indirecta hasta que se adapten a su nuevo hogar.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                ¿Ofrecen garantía en las plantas?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sí, ofrecemos garantía de 30 días en todas nuestras plantas. Si alguna planta no prospera siguiendo nuestras instrucciones de cuidado, la reemplazamos sin costo adicional.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                ¿Cuánto tiempo tarda el envío?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                El tiempo de envío varía según tu ubicación: 1-2 días en la ciudad, 3-5 días en el área metropolitana y 5-7 días a nivel nacional. Todos los envíos incluyen tracking.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                ¿Puedo devolver una planta si no me gusta?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Aceptamos devoluciones dentro de los primeros 15 días si la planta está en perfectas condiciones. El cliente cubre los costos de envío de devolución.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="newsletter-section py-5 bg-success text-white">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-6">
+                <h3 class="fw-bold mb-3">¡Mantente conectado con Vivero Verde Nexo!</h3>
+                <p class="mb-4">Suscríbete a nuestro newsletter y recibe ofertas exclusivas y consejos de jardinería.</p>
+                
+                <form class="d-flex gap-2">
+                    <input type="email" class="form-control" placeholder="Tu email...">
+                    <button class="btn btn-light" type="submit">
+                        <i class="fas fa-paper-plane me-1"></i>Suscribirme
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Modal para 2FA -->
+    <div class="modal fade" id="twoFAModal" tabindex="-1" aria-labelledby="twoFAModalLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#181818; color:#fff;">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="twoFAModalLabel">Verificación de Dos Factores</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_281692.svg" alt="2FA" width="60" height="60" class="mb-3">
+                        <p>Ingresa el código de 6 dígitos de tu aplicación autenticadora</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="twoFACode" class="form-label">Código 2FA</label>
+                        <input type="text" class="form-control text-center" id="twoFACode" maxlength="6" placeholder="000000" style="font-size:1.2rem; letter-spacing:0.5rem;">
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted">¿No tienes acceso a tu código? <a href="/recuperar" class="text-success">Recupera tu cuenta</a></small>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="verify2FA()">Verificar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Cargando productos destacados...');
+    await cargarProductosDestacados();
+    
+    // Verificar si requiere 2FA (sin usar authGuard por ahora)
+    const urlParams = new URLSearchParams(window.location.search);
+    const requires2FA = urlParams.get('requires2fa');
+    
+    if (requires2FA === 'true') {
+        console.log('Requiere 2FA, mostrando modal...');
+        if (typeof show2FAModal === 'function') {
+            show2FAModal();
+        }
+        return; // No continuar con otras verificaciones
+    }
+    
+    // TEMPORALMENTE DESACTIVADO: authGuard causando loop infinito
+    // Pequeño delay para asegurar que todo esté listo antes de ejecutar authGuard
+    // setTimeout(async () => {
+    //     try {
+    //         const { default: authGuard } = await import('/js/authGuard.js');
+    //         await authGuard('/');
+    //     } catch (error) {
+    //         console.error('Error al cargar authGuard:', error);
+    //     }
+    // }, 100); // 100ms delay
+});
+
+async function cargarProductosDestacados() {
+    try {
+        const response = await axios.get('http://localhost:3000/api/products/featured');
+        console.log('Respuesta de productos:', response.data);
+        if (response.data.ok) {
+            renderizarProductos(response.data.data);
+        } else {
+            console.error('Error al cargar productos:', response.data.message);
+        }
+    } catch (error) {
+        console.error('Error de red:', error);
+    }
+}
+
+function renderizarProductos(productos) {
+    const slider = document.getElementById('productosSlider');
+    slider.innerHTML = '';
+
+    console.log('Número de productos a renderizar:', productos.length);
+
+    productos.forEach(producto => {
+        console.log('Renderizando producto:', producto.nombre);
+        const imagen = producto.imagenes && producto.imagenes.length > 0 ? `http://localhost:3000/uploads/imagenes/${producto.imagenes[0]}` : 'https://pic.onlinewebfonts.com/thumbnails/icons_574013.svg';
+        const card = `
+            <div class="producto-slide flex-shrink-0" style="width: 300px; margin-right: 1.5rem;">
+                <div class="card h-100 shadow-sm producto-card-hover">
+                    <img src="${imagen}" class="card-img-top" alt="${producto.nombre}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">${producto.nombre}</h5>
+                        <p class="card-text text-muted flex-grow-1">${producto.descripcion || 'Descripción no disponible'}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 text-success mb-0">$${producto.precioBase.toFixed(2)}</span>
+                            <button class="btn btn-outline-success btn-sm" onclick="agregarAlCarrito('${producto._id}', ${producto.precioBase})">
+                                <i class="fas fa-cart-plus me-1"></i>Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        slider.innerHTML += card;
+    });
+
+    console.log('Productos renderizados en el DOM:', slider.children.length);
+
+    // Mostrar flechas si hay más de 3 productos
+    if (productos.length > 3) {
+        document.querySelector('.slider-arrow-left').style.display = 'block';
+        document.querySelector('.slider-arrow-right').style.display = 'block';
+    }
+}
+
+function agregarAlCarrito(id, precio) {
+    // Implementación simple: usar localStorage para carrito
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    const item = carrito.find(i => i.id === id);
+    if (item) {
+        item.cantidad += 1;
+    } else {
+        carrito.push({ id, precio, cantidad: 1 });
+    }
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    showToast('Producto agregado al carrito', 'success');
+}
+
+function moverSlider(direccion) {
+    const slider = document.getElementById('productosSlider');
+    const slideWidth = 315; // 300px + 15px margin
+    const currentTransform = slider.style.transform;
+    const currentX = parseInt(currentTransform.replace('translateX(', '').replace('px)', '')) || 0;
+    let newX;
+    if (direccion === 'next') {
+        newX = currentX - slideWidth;
+    } else {
+        newX = currentX + slideWidth;
+    }
+    // Limitar el movimiento
+    const maxX = 0;
+    const minX = - (slider.children.length - 3) * slideWidth;
+    newX = Math.max(minX, Math.min(maxX, newX));
+    slider.style.transform = `translateX(${newX}px)`;
+}
+
+// Animación de contadores de estadísticas
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number');
+    const speed = 500; // Velocidad de animación (mayor = más lento)
+
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        const current = parseInt(counter.innerText);
+        const increment = target / speed;
+
+        if (current < target) {
+            counter.innerText = Math.ceil(current + increment);
+            setTimeout(() => animateCounters(), 10); // Un poco más lento
+        } else {
+            counter.innerText = target;
+        }
+    });
+}
+
+// Intersection Observer para activar animación cuando la sección sea visible
+const statsSection = document.querySelector('.stats-section');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            animateCounters();
+            observer.unobserve(entry.target); // Animar solo una vez
+        }
+    });
+}, { threshold: 0.5 });
+
+if (statsSection) {
+    observer.observe(statsSection);
+}
+
+// Funciones para 2FA
+// API configuration
+const API = axios.create({
+  baseURL: 'http://localhost:3000/',
+  withCredentials: true,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+// Función para mostrar modal de 2FA
+function show2FAModal() {
+    document.getElementById('twoFACode').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('twoFAModal'));
+    modal.show();
+}
+
+// Función para verificar 2FA
+async function verify2FA() {
+    const code = document.getElementById('twoFACode').value.trim();
+    const verifyButton = document.querySelector('#twoFAModal .btn-success');
+    const originalText = verifyButton.innerHTML;
+    
+    if (!code || code.length !== 6) {
+        showToast('Por favor ingresa un código válido de 6 dígitos.', 'danger');
+        return;
+    }
+
+    // Deshabilitar botón y mostrar loading
+    verifyButton.disabled = true;
+    verifyButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+
+    try {
+        const res = await API.post('/api/auth/verify2FACode', { code });
+        
+        if (res.data.success) {
+            // Cerrar modal y redirigir
+            bootstrap.Modal.getInstance(document.getElementById('twoFAModal')).hide();
+            showToast('Verificación exitosa. Redirigiendo...', 'success');
+            setTimeout(() => {
+                window.location.replace('/');
+            }, 1000);
+        } else {
+            showToast(res.data.message || 'Código inválido.', 'danger');
+        }
+    } catch (err) {
+        const message = err.response?.data?.error?.message || err.response?.data?.message || 'Error al verificar código';
+        showToast(message, 'danger');
+    } finally {
+        // Rehabilitar botón
+        verifyButton.disabled = false;
+        verifyButton.innerHTML = originalText;
+    }
+}
+
+// Función para mostrar toast de notificación
+function showToast(message, type = 'info') {
+    // Crear toast container si no existe
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    // Crear toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+    
+    // Mostrar toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+
+    // Limpiar toast después de que se oculte
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+// Hacer funciones globales
+window.show2FAModal = show2FAModal;
+window.verify2FA = verify2FA;
+</script>
+
 <%- include('../partials/footer') %>

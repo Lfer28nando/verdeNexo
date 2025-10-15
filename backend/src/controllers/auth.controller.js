@@ -1,8 +1,11 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
-import { sendPasswordResetEmail, sendEmailVerificationCode } from "../config/email.js";
+import { sendPasswordResetEmail, sendEmailVerificationCode, sendEmailChangeNotification } from "../config/email.js";
 import { createError } from "../utils/customError.js";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+import jwt from "jsonwebtoken";
 
 // 01- Registrar usuario.
 export const register = async (req, res, next) => {
@@ -79,6 +82,34 @@ export const login = async (req, res, next) => {
         userFound.lastLogin = new Date();
         await userFound.save();
 
+        // Verificar si el usuario tiene 2FA activado
+        if (userFound.twoFactorEnabled) {
+            // Crear token temporal para el proceso de 2FA (válido por 5 minutos)
+            const tempToken = await createAccessToken({ 
+                id: userFound._id, 
+                requires2FA: true 
+            });
+
+            res.cookie("temp_token", tempToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 5 * 60 * 1000 // 5 minutos
+            });
+
+            return res.json({
+                success: true,
+                requires2FA: true,
+                message: 'Se requiere verificación de dos factores',
+                user: {
+                    id: userFound._id,
+                    username: userFound.username,
+                    email: userFound.email
+                }
+            });
+        }
+
+        // Login normal sin 2FA
         const token = await createAccessToken({ id: userFound._id });
         
         res.cookie("token", token, {
@@ -134,6 +165,7 @@ export const profile = (req, res) => {
             email: req.user.email,
             cellphone: req.user.cellphone,
             document: req.user.document,
+            documentType: req.user.documentType,
             address: req.user.address,
             role: req.user.role,
             active: req.user.active,
@@ -152,7 +184,7 @@ export const profile = (req, res) => {
 // 05 - Editar perfil de usuario.
 export const editUser = async (req, res, next) => {
     try {
-        const allowedFields = ['username', 'cellphone', 'document', 'address'];
+        const allowedFields = ['username', 'cellphone', 'document', 'documentType', 'address'];
         const updates = {};
         
         for (const key of Object.keys(req.body || {})) {
@@ -184,6 +216,7 @@ export const editUser = async (req, res, next) => {
                 email: userFound.email,
                 cellphone: userFound.cellphone,
                 document: userFound.document,
+                documentType: userFound.documentType,
                 address: userFound.address,
                 role: userFound.role,
                 active: userFound.active,
@@ -379,6 +412,348 @@ export const verifyEmail = async (req, res, next) => {
             }
         });
         
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 11 - Generar setup 2FA TOTP
+export const setup2FA = async (req, res, next) => {
+    try {
+        console.log('setup2FA -> req.user:', req.user ? req.user._id : 'undefined');
+        console.log('setup2FA -> req.body:', req.body);
+
+        const userFound = await User.findById(req.user._id);
+        if (!userFound) {
+            throw createError('AUTH_USER_NOT_FOUND', { userId: req.user._id });
+        }
+
+        if (!userFound.verifiedEmail) {
+            throw createError('AUTH_EMAIL_NOT_VERIFIED');
+        }
+
+        if (userFound.twoFactorEnabled) {
+            throw createError('AUTH_2FA_ALREADY_ENABLED');
+        }
+
+        // Generar secreto TOTP
+        const secret = speakeasy.generateSecret({
+            name: `Verde Nexo (${userFound.username})`,
+            issuer: 'Verde Nexo'
+        });
+
+        // Generar códigos de respaldo (10 códigos únicos)
+        const backupCodes = [];
+        for (let i = 0; i < 10; i++) {
+            backupCodes.push(Math.random().toString(36).substring(2, 10).toUpperCase());
+        }
+
+        // Generar QR code
+        const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
+
+        // Guardar temporalmente (no activar aún)
+        userFound.twoFactorSecret = secret.base32;
+        userFound.twoFactorBackupCodes = backupCodes;
+        await userFound.save();
+
+        res.json({
+            success: true,
+            message: 'Setup 2FA iniciado',
+            secret: secret.base32,
+            qrCode: qrCodeUrl,
+            backupCodes: backupCodes
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 12 - Verificar y activar 2FA
+export const verifyAndEnable2FA = async (req, res, next) => {
+    try {
+        const { code } = req.body;
+
+        const userFound = await User.findById(req.user._id);
+        if (!userFound) {
+            throw createError('AUTH_USER_NOT_FOUND', { userId: req.user._id });
+        }
+
+        if (!userFound.twoFactorSecret) {
+            throw createError('AUTH_2FA_NOT_SETUP');
+        }
+
+        if (userFound.twoFactorEnabled) {
+            throw createError('AUTH_2FA_ALREADY_ENABLED');
+        }
+
+        // Verificar código TOTP
+        const verified = speakeasy.totp.verify({
+            secret: userFound.twoFactorSecret,
+            encoding: 'base32',
+            token: code,
+            window: 2 // 2 intervalos de tolerancia (30 segundos cada uno)
+        });
+
+        if (!verified) {
+            throw createError('AUTH_INVALID_2FA_CODE');
+        }
+
+        // Activar 2FA
+        userFound.twoFactorEnabled = true;
+        await userFound.save();
+
+        res.json({
+            success: true,
+            message: '2FA activado correctamente'
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 13 - Desactivar 2FA
+export const disable2FA = async (req, res, next) => {
+    try {
+        const { currentPassword } = req.body;
+
+        const userFound = await User.findById(req.user._id);
+        if (!userFound) {
+            throw createError('AUTH_USER_NOT_FOUND', { userId: req.user._id });
+        }
+
+        if (!userFound.twoFactorEnabled) {
+            throw createError('AUTH_2FA_NOT_ENABLED');
+        }
+
+        // Verificar contraseña actual
+        const isValidPassword = await bcrypt.compare(currentPassword, userFound.password);
+        if (!isValidPassword) {
+            throw createError('AUTH_INVALID_PASSWORD');
+        }
+
+        // Desactivar 2FA
+        userFound.twoFactorEnabled = false;
+        userFound.twoFactorSecret = undefined;
+        userFound.twoFactorBackupCodes = [];
+        await userFound.save();
+
+        res.json({
+            success: true,
+            message: '2FA desactivado correctamente'
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 14 - Verificar código 2FA (para login)
+export const verify2FA = async (req, res, next) => {
+    try {
+        const { code, backupCode } = req.body;
+
+        const userFound = await User.findById(req.user._id);
+        if (!userFound) {
+            throw createError('AUTH_USER_NOT_FOUND', { userId: req.user._id });
+        }
+
+        if (!userFound.twoFactorEnabled) {
+            throw createError('AUTH_2FA_NOT_ENABLED');
+        }
+
+        let verified = false;
+
+        // Intentar verificar con TOTP
+        if (code) {
+            verified = speakeasy.totp.verify({
+                secret: userFound.twoFactorSecret,
+                encoding: 'base32',
+                token: code,
+                window: 2
+            });
+        }
+
+        // Si no funcionó TOTP, intentar con código de respaldo
+        if (!verified && backupCode) {
+            const backupCodeIndex = userFound.twoFactorBackupCodes.indexOf(backupCode);
+            if (backupCodeIndex !== -1) {
+                verified = true;
+                // Remover el código usado
+                userFound.twoFactorBackupCodes.splice(backupCodeIndex, 1);
+                await userFound.save();
+            }
+        }
+
+        if (!verified) {
+            throw createError('AUTH_INVALID_2FA_CODE');
+        }
+
+        // Verificar si hay un token temporal (login con 2FA)
+        const tempToken = req.cookies?.temp_token;
+        if (tempToken) {
+            try {
+                const decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+                if (decoded.requires2FA) {
+                    // Es un login con 2FA - borrar cookie temporal y crear cookie normal
+                    res.clearCookie('temp_token');
+                    
+                    const token = await createAccessToken({ id: userFound._id });
+                    res.cookie("token", token, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: 'lax',
+                        maxAge: 24 * 60 * 60 * 1000
+                    });
+                }
+            } catch (err) {
+                // Token temporal inválido, continuar normalmente
+            }
+        }
+
+        res.json({
+            success: true,
+            message: '2FA verificado correctamente',
+            user: {
+                id: userFound._id,
+                username: userFound.username,
+                email: userFound.email,
+                role: userFound.role,
+                avatar: userFound.avatar,
+                verifiedEmail: userFound.verifiedEmail,
+                lastLogin: userFound.lastLogin,
+                createdAt: userFound.createdAt,
+                updatedAt: userFound.updatedAt
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 15 - Solicitar cambio de email
+export const requestEmailChange = async (req, res, next) => {
+    try {
+        const { newEmail, currentPassword } = req.body;
+
+        const userFound = await User.findById(req.user._id);
+        if (!userFound) {
+            throw createError('AUTH_USER_NOT_FOUND', { userId: req.user._id });
+        }
+
+        // Verificar contraseña actual
+        const isValidPassword = await bcrypt.compare(currentPassword, userFound.password);
+        if (!isValidPassword) {
+            throw createError('AUTH_INVALID_PASSWORD');
+        }
+
+        // Verificar que el nuevo email no esté en uso
+        const existingUser = await User.findOne({ email: newEmail.toLowerCase().trim() });
+        if (existingUser && existingUser._id.toString() !== userFound._id.toString()) {
+            throw createError('VAL_EMAIL_ALREADY_EXISTS', { email: newEmail });
+        }
+
+        // Generar token de cambio
+        const changeToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+        userFound.emailChangeToken = changeToken;
+        userFound.emailChangeExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+        userFound.pendingEmail = newEmail.toLowerCase().trim();
+        await userFound.save();
+
+        // Enviar código de confirmación al nuevo email
+        await sendEmailChangeNotification(newEmail, changeToken, userFound.username);
+
+        res.json({
+            success: true,
+            message: 'Código de confirmación enviado al nuevo email'
+        });
+
+    } catch (error) {
+        if (error.message.includes('Email service')) {
+            next(createError('SRV_EMAIL_SEND_FAILED', { originalError: error.message }));
+        } else {
+            next(error);
+        }
+    }
+};
+
+// 16 - Confirmar cambio de email
+export const confirmEmailChange = async (req, res, next) => {
+    try {
+        const { code } = req.body;
+
+        const userFound = await User.findOne({
+            _id: req.user._id,
+            emailChangeToken: code.trim(),
+            emailChangeExpires: { $gt: new Date() }
+        });
+
+        if (!userFound) {
+            throw createError('AUTH_INVALID_EMAIL_CHANGE_CODE');
+        }
+
+        // Actualizar email
+        const oldEmail = userFound.email;
+        userFound.email = userFound.pendingEmail;
+        userFound.verifiedEmail = true; // El nuevo email queda verificado
+        userFound.emailChangeToken = undefined;
+        userFound.emailChangeExpires = undefined;
+        userFound.pendingEmail = undefined;
+        await userFound.save();
+
+        res.json({
+            success: true,
+            message: 'Email actualizado correctamente',
+            user: {
+                id: userFound._id,
+                username: userFound.username,
+                email: userFound.email,
+                verifiedEmail: userFound.verifiedEmail
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 13- Eliminar cuenta (unsubscribe)
+export const unsubscribe = async (req, res, next) => {
+    try {
+        const { password } = req.body;
+        const userId = req.user._id;
+
+        // Verificar que se proporcionó la contraseña
+        if (!password) {
+            throw createError('VAL_MISSING_PASSWORD', {});
+        }
+
+        // Buscar el usuario
+        const user = await User.findById(userId);
+        if (!user) {
+            throw createError('AUTH_USER_NOT_FOUND', {});
+        }
+
+        // Verificar la contraseña
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw createError('AUTH_INVALID_PASSWORD', {});
+        }
+
+        // Eliminar el usuario de la base de datos
+        await User.findByIdAndDelete(userId);
+
+        // Limpiar la cookie del token
+        res.clearCookie("token");
+
+        res.json({
+            success: true,
+            message: 'Cuenta eliminada correctamente'
+        });
+
     } catch (error) {
         next(error);
     }

@@ -9,6 +9,7 @@ import googleAuthRoutes from "./routes/googleAuth.routes.js";
 import productoRoutes from "./routes/product.routes.js";
 import shopCartRoutes from "./routes/shopCart.routes.js";
 import checkoutRoutes from "./routes/checkout.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import session from 'express-session';
 import './config/googleAuth.js'; // Importar la configuración de Google OAuth
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware.js';
@@ -39,6 +40,10 @@ app.use(cors({
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Para manejar form data también
+
+// Servir archivos estáticos de uploads
+app.use('/uploads', express.static('uploads'));
 
 // Configurar sesión
 app.use(session({
@@ -51,6 +56,19 @@ app.use(session({
     }
 }));
 
+// Configurar motor de vistas EJS
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../../frontend/src/views/pages'));
+
+// Ruta para servir la vista de login
+app.get('/login', (req, res) => {
+    // Puedes pasar parámetros si lo necesitas
+    res.render('login', { requires2fa: req.query.requires2fa === 'true' });
+});
+
 // Rutas de autenticación
 app.use("/api/auth", authRoutes);      // Rutas tradicionales (register, login, etc.)
 app.use("/auth", googleAuthRoutes);    // Rutas de Google OAuth (/auth/google, /auth/google/callback, etc.)
@@ -60,6 +78,8 @@ app.use("/api/products", productoRoutes);
 app.use("/api/cart", shopCartRoutes);
 // Rutas de checkout
 app.use("/api/checkout", checkoutRoutes);
+// Rutas de usuarios
+app.use("/api/users", userRoutes);
 // Middlewares de manejo de errores (DEBEN IR AL FINAL)
 app.use(notFoundHandler);  // Para rutas 404
 app.use(errorHandler);     // Para todos los otros errores

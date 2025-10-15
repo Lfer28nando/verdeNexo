@@ -1,0 +1,150 @@
+// public/js/auth.functions.js
+// Módulo que importa API y maneja el registro (formulario)
+
+import { API } from './api.js';
+
+export function initGoogleAuthButton(buttonSelector = '#googleAuth') {
+  const btn = document.querySelector(buttonSelector);
+  if (!btn) return;
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    // URL donde tu backend inicia OAuth (ajusta si tu baseURL tiene /api)
+    const authUrl = 'http://localhost:3000/auth/google';
+    // si tu backend usa /api prefix: 'http://localhost:3000/api/auth/google'
+
+    // Tamaño y posición del popup (opcional)
+    const width = 600;
+    const height = 700;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+
+    const popup = window.open(
+      authUrl,
+      'googleAuth',
+      `toolbar=no, location=no, status=no, menubar=no, width=${width}, height=${height}, top=${top}, left=${left}`
+    );
+
+    if (!popup) {
+      return alert('Popup bloqueado. Permite popups y vuelve a intentarlo.');
+    }
+
+    // Polling: cada 700ms comprobaremos si el popup fue cerrado.
+    const popupCheckInterval = 700;
+    const maxWait = 1000 * 60 * 2; // 2 minutos máximo (ajusta)
+    let waited = 0;
+
+    const intervalId = setInterval(async () => {
+      if (popup.closed) {
+        clearInterval(intervalId);
+        // El usuario terminó el flujo (o lo cerró). Consultamos /auth/me para ver si quedó autenticado.
+        try {
+          const res = await API.get('/auth/me'); // backend debe aceptar credentials
+          if (res.data?.ok && res.data.user) {
+            // usuario autenticado — actualiza UI
+            console.log('Usuario logueado via Google:', res.data.user);
+            // ejemplo: redirigir al dashboard
+            window.location.href = '/';
+          } else {
+            // No autenticado — handle
+            console.warn('No autenticado después del popup Google', res.data);
+            alert('No se completó la autenticación con Google.');
+          }
+        } catch (err) {
+          console.error('Error al verificar auth después de Google:', err);
+          alert('No se pudo verificar la autenticación. Revisa la consola.');
+        }
+        return;
+      }
+
+      // timeout por si el usuario nunca cierra el popup
+      waited += popupCheckInterval;
+      if (waited > maxWait) {
+        clearInterval(intervalId);
+        try { popup.close(); } catch (e) {}
+        alert('Tiempo de autenticación agotado.');
+      }
+    }, popupCheckInterval);
+  });
+}
+  document.addEventListener('DOMContentLoaded', () => {
+    initGoogleAuthButton('#googleAuth');
+  }
+);
+
+
+const initRegister = () => {
+  const registerForm = document.getElementById('registerForm');
+  if (!registerForm) return;
+
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+  const passwordFeedback = document.getElementById('passwordFeedback');
+
+  const checkPasswords = () => {
+    if (!confirmPassword) return;
+    if (confirmPassword.value.length === 0) {
+      passwordFeedback.textContent = 'Recomendamos usar al menos 8 caracteres con mayúsculas, números y símbolos.';
+      passwordFeedback.classList.remove('text-success', 'text-warning');
+      passwordFeedback.classList.add('text-light');
+      return;
+    }
+    if (password.value !== confirmPassword.value) {
+      passwordFeedback.textContent = 'Las contraseñas no coinciden.';
+      passwordFeedback.classList.remove('text-light', 'text-success');
+      passwordFeedback.classList.add('text-warning');
+    } else {
+      passwordFeedback.textContent = 'Las contraseñas coinciden.';
+      passwordFeedback.classList.remove('text-light', 'text-warning');
+      passwordFeedback.classList.add('text-success');
+    }
+  };
+
+  password?.addEventListener('input', checkPasswords);
+  confirmPassword?.addEventListener('input', checkPasswords);
+
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(registerForm);
+    const payload = {
+      username: formData.get('username')?.trim(),
+      cellphone: formData.get('cellphone')?.trim(),
+      email: formData.get('email')?.trim(),
+      password: formData.get('password')
+    };
+
+    if (!payload.username || !payload.email || !payload.password) {
+      return alert('Por favor completa los campos obligatorios.');
+    }
+    if (payload.password.length < 6) {
+      return alert('La contraseña debe tener al menos 6 caracteres.');
+    }
+    if (payload.password !== formData.get('confirmPassword')) {
+      return alert('Las contraseñas no coinciden.');
+    }
+
+    try {
+      // Supuesto endpoint: POST /api/auth/register
+      const res = await API.post('api/auth/register', payload);
+      // Si devuelve token en body -> guardar localStorage (solo para prototipo)
+      if (res?.data?.token) {
+        localStorage.setItem('vn_token', res.data.token);
+      }
+      // Mensaje / redirección
+      alert('Cuenta creada con éxito.');
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Register error', err);
+      const message = err.response?.data?.message || err.message || 'Error en el registro';
+      alert(`Error: ${message}`);
+    }
+  });
+};
+
+// Exporta la función por si quieres inicializar manualmente
+export default initRegister;
+
+// Auto-init cuando se importe (opcional)
+document.addEventListener('DOMContentLoaded', initRegister);

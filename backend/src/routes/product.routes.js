@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { getAllProducts, createProduct, editProduct, deleteProduct, configureVariants, updatePrices, verifyAvailability, updateSEO,downloadTechnicalSheet, searchProducts, filterProducts, getRelatedProducts, combineProducts, addProductTags, setProductVisibilityChannels, getProductById, uploadProductImage, sortProducts, rateProduct, uploadTechnicalSheet, deleteTechnicalSheet } from "../controllers/product.controller.js";
+import { getAllProducts, createProduct, editProduct, deleteProduct, configureVariants, updatePrices, verifyAvailability, updateSEO,downloadTechnicalSheet, searchProducts, filterProducts, getRelatedProducts, combineProducts, addProductTags, setProductVisibilityChannels, getProductById, uploadProductImage, sortProducts, rateProduct, uploadTechnicalSheet, deleteTechnicalSheet, getFeaturedProducts } from "../controllers/product.controller.js";
 import { authRequired } from "../middlewares/validateToken.middleware.js";
 const router = Router();
 
@@ -38,6 +38,8 @@ router.get("/filter", filterProducts); //T
 router.get("/sort", sortProducts); //T
 // Combinar productos
 router.post("/combine", combineProducts); //T
+// Obtener productos destacados
+router.get("/featured", getFeaturedProducts);
 
 // Operaciones que usan ID
 // Obtener un producto por ID

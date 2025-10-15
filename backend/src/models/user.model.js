@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema({
 
   document: { type: String, required: false },
 
+  documentType: { type: String, enum: ['Cédula', 'Cédula de extranjería', 'PPT', 'Pasaporte'], required: false },
+
   cellphone: { type: String, required: false },
 
   address: { type: String,required: false },
@@ -44,9 +46,19 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: { type: String, required: false },
   resetPasswordExpires: { type: Date, required: false },
 
-  // Email verification fields
+    // Email verification fields
   emailVerificationToken: { type: String, required: false },
   emailVerificationExpires: { type: Date, required: false },
+
+  // Two-Factor Authentication fields
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String, required: false }, // TOTP secret
+  twoFactorBackupCodes: [{ type: String }], // Array of backup codes
+
+  // Email change fields
+  emailChangeToken: { type: String, required: false },
+  emailChangeExpires: { type: Date, required: false },
+  pendingEmail: { type: String, required: false }, // New email waiting verification
 
   // Métodos de pago
   paidMethods: {
@@ -71,7 +83,10 @@ const userSchema = new mongoose.Schema({
       predeterminada: { type: Boolean, default: false },
       fechaCreacion: { type: Date, default: Date.now }
     }]
-  }
+  },
+
+  // Favoritos del usuario
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
 }, {timestamps: true});
 
 // Índices únicos pero sparse: permite múltiples documentos sin el campo (null/absente) y garantiza que sean únicos cuando se proporciona
