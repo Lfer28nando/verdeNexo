@@ -10,7 +10,7 @@ async function start() {
   const port = process.env.PORT || 10000;
 
   // Intenta conectar a la DB pero no dejes que bloquee indefinidamente el start
-  try {
+ /* try {
     // espera la conexión si connectDB devuelve Promise
     await connectDB();
     console.log('✅ MongoDB connected');
@@ -19,7 +19,7 @@ async function start() {
     // Si la DB es crítica quizá quieras salir con error:
     // process.exit(1);
     // Pero para debug temporal, seguimos y arrancamos el servidor para comprobar puerto.
-  }
+  }*/
 
   // Escucha siempre en 0.0.0.0 y en el puerto correcto
   app.listen(port, '0.0.0.0', () => {
