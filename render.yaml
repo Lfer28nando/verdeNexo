@@ -1,21 +1,18 @@
 services:
+  # Backend API Service
   - type: web
-    name: verdeNexo-backend
-    runtime: node          # <-- usar 'runtime' (no 'env')
-    repo: https://github.com/Lfer28nando/verdeNexo
-    branch: develop
-    plan: free             # <- si quieres Free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm run dev
+    name: verdenexo-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-      - key: FRONTEND_URL
-        value: https://verdenexo-frontend-develop.onrender.com
-      - key: BACKEND_URL
-        value: https://verdenexo-backend-develop.onrender.com
       - key: MONGO_URI
         sync: false
       - key: MONGO_DB_NAME
@@ -30,19 +27,22 @@ services:
         sync: false
       - key: API_KEY
         sync: false
-      - key: MERCADOPAGO_ACCESS_TOKEN
-        sync: false
+      - key: FRONTEND_URL
+        value: https://verdenexo-frontend.onrender.com
 
-  - type: static             # <-- static site service (no es 'web')
-    name: verdeNexo-frontend
-    runtime: static
-    repo: https://github.com/Lfer28nando/verdeNexo
-    branch: develop
+  # Frontend Service
+  - type: web
+    name: verdenexo-frontend
+    env: node
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: BACKEND_URL
+        value: https://verdenexo-backend.onrender.com
