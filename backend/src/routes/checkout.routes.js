@@ -20,7 +20,9 @@ import {
   obtenerEstadisticasVentasPeriodo,
   obtenerTopProductos,
   obtenerRendimientoVendedoresEndpoint,
-  generarReporteCompletoVentas
+  generarReporteCompletoVentas,
+  crearPreferenciaPago,
+  webhookMercadoPago
 } from '../controllers/checkout.controller.js';
 import { authRequired as validateToken } from '../middlewares/validateToken.middleware.js';
 import { validateRole } from '../middlewares/validateRole.middleware.js';
@@ -59,6 +61,14 @@ router.get('/iniciar', iniciarCheckout);
  * }
  */
 router.post('/guardar-datos', guardarDatosCheckout);
+
+/**
+ * @route POST /api/checkout/crear-preferencia/:pedidoId
+ * @desc Crear preferencia de pago con Mercado Pago
+ * @access Public
+ * @param {string} pedidoId - ID del pedido en borrador
+ */
+router.post('/crear-preferencia/:pedidoId', crearPreferenciaPago);
 
 /**
  * @route GET /api/checkout/resumen/:pedidoId
@@ -286,5 +296,16 @@ router.get('/estadisticas/reporte-completo',
   validateRole(['admin']),
   generarReporteCompletoVentas
 );
+
+// ============================
+// RUTAS DE WEBHOOKS
+// ============================
+
+/**
+ * @route POST /api/checkout/webhooks/mercadopago
+ * @desc Webhook para notificaciones de Mercado Pago
+ * @access Public (desde Mercado Pago)
+ */
+router.post('/webhooks/mercadopago', webhookMercadoPago);
 
 export default router;

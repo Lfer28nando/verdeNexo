@@ -79,6 +79,9 @@ app.get('/pedido-confirmado', (req, res) => {
     res.render('pedido-confirmado');
 });
 
+
+
+
 // Ruta para servir la vista de admin (solo para admins)
 app.get('/admin', (req, res) => {
     res.render('admin');

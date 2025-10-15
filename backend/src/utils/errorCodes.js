@@ -194,6 +194,168 @@ export const ERROR_CODES = {
         devMessage: 'Verification code must be 6 digits long',
         httpStatus: 400
     },
+    VAL_CHECKOUT_FACTURACION_REQUIRED: {
+        code: 'VAL_015',
+        userMessage: 'Los datos de facturación son obligatorios',
+        devMessage: 'Facturacion data is required for checkout',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_TIPO_DOCUMENTO: {
+        code: 'VAL_016',
+        userMessage: 'El tipo de documento es obligatorio',
+        devMessage: 'tipoDocumento field is required in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_NUMERO_DOCUMENTO: {
+        code: 'VAL_017',
+        userMessage: 'El número de documento es obligatorio',
+        devMessage: 'numeroDocumento field is required in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_NOMBRE_COMPLETO: {
+        code: 'VAL_018',
+        userMessage: 'El nombre completo es obligatorio',
+        devMessage: 'nombreCompleto field is required in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_EMAIL: {
+        code: 'VAL_019',
+        userMessage: 'El email es obligatorio',
+        devMessage: 'email field is required in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_EMAIL_INVALID: {
+        code: 'VAL_020',
+        userMessage: 'El formato del email es inválido',
+        devMessage: 'email format is invalid in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_TELEFONO: {
+        code: 'VAL_021',
+        userMessage: 'El teléfono es obligatorio',
+        devMessage: 'telefono field is required in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURACION_TELEFONO_INVALID: {
+        code: 'VAL_022',
+        userMessage: 'El formato del teléfono es inválido (debe ser colombiano)',
+        devMessage: 'telefono format is invalid in facturacion',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_REQUIRED: {
+        code: 'VAL_023',
+        userMessage: 'Los datos de envío son obligatorios',
+        devMessage: 'Envio data is required for checkout',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_DIRECCION_ENVIO: {
+        code: 'VAL_024',
+        userMessage: 'La dirección de envío es obligatoria',
+        devMessage: 'direccionEnvio field is required in envio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_CALLE: {
+        code: 'VAL_025',
+        userMessage: 'La calle es obligatoria en la dirección de envío',
+        devMessage: 'calle field is required in direccionEnvio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_BARRIO: {
+        code: 'VAL_026',
+        userMessage: 'El barrio es obligatorio en la dirección de envío',
+        devMessage: 'barrio field is required in direccionEnvio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_CIUDAD: {
+        code: 'VAL_027',
+        userMessage: 'La ciudad es obligatoria en la dirección de envío',
+        devMessage: 'ciudad field is required in direccionEnvio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_NOMBRE_DESTINATARIO: {
+        code: 'VAL_028',
+        userMessage: 'El nombre del destinatario es obligatorio',
+        devMessage: 'nombreDestinatario field is required in envio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_ENVIO_TELEFONO_DESTINATARIO: {
+        code: 'VAL_029',
+        userMessage: 'El teléfono del destinatario es obligatorio',
+        devMessage: 'telefonoDestinatario field is required in envio',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PAGO_REQUIRED: {
+        code: 'VAL_030',
+        userMessage: 'Los datos de pago son obligatorios',
+        devMessage: 'Pago data is required for checkout',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PAGO_METODO: {
+        code: 'VAL_031',
+        userMessage: 'El método de pago es obligatorio',
+        devMessage: 'metodoPago field is required in pago',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PAGO_TARJETA_INVALID: {
+        code: 'VAL_032',
+        userMessage: 'La información de la tarjeta es incompleta',
+        devMessage: 'Tarjeta information is incomplete in pago',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PAGO_BANCARIO_INVALID: {
+        code: 'VAL_033',
+        userMessage: 'La información bancaria es incompleta',
+        devMessage: 'Bancaria information is incomplete in pago',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_CARRITO_VACIO: {
+        code: 'VAL_034',
+        userMessage: 'El carrito está vacío',
+        devMessage: 'Shopping cart is empty',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PRODUCTO_NO_DISPONIBLE: {
+        code: 'VAL_035',
+        userMessage: 'Uno o más productos ya no están disponibles',
+        devMessage: 'One or more products are no longer available',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_LIMITE_PRODUCTOS: {
+        code: 'VAL_036',
+        userMessage: 'El pedido excede el límite máximo de productos',
+        devMessage: 'Order exceeds maximum product limit',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO: {
+        code: 'VAL_037',
+        userMessage: 'El estado del pedido no permite esta operación',
+        devMessage: 'Order status does not allow this operation',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_STOCK_INSUFICIENTE: {
+        code: 'VAL_038',
+        userMessage: 'Stock insuficiente para uno o más productos',
+        devMessage: 'Insufficient stock for one or more products',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_FACTURA_ANULAR_MOTIVO: {
+        code: 'VAL_039',
+        userMessage: 'Se requiere un motivo para anular la factura',
+        devMessage: 'Reason is required to cancel invoice',
+        httpStatus: 400
+    },
+    VAL_CHECKOUT_PEDIDO_NO_ENCONTRADO: {
+        code: 'VAL_040',
+        userMessage: 'Pedido no encontrado',
+        devMessage: 'Order not found',
+        httpStatus: 404
+    },
+    VAL_CHECKOUT_FECHAS_REQUERIDAS: {
+        code: 'VAL_041',
+        userMessage: 'Se requieren fecha de inicio y fecha de fin',
+        devMessage: 'Start date and end date are required',
+        httpStatus: 400
+    },
 
     // ERRORES DE PRODUCTOS (PROD_xxx, IMG_xxx, PRICE_xxx, FICHA_xxx)
     PROD_01: {

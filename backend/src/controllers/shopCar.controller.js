@@ -149,6 +149,7 @@ export const agregarItem = async (req, res, next) => {
     // Obtener carrito
     const carrito = await findActiveCart(sessionId);
 
+
     // Verificar si el item ya existe en el carrito
     const itemExistente = carrito.items.find(item =>
       item.productoId.toString() === productoId &&
@@ -157,7 +158,7 @@ export const agregarItem = async (req, res, next) => {
 
     // Calcular cantidad total actual antes de agregar
     let cantidadTotalActual = carrito.items.reduce((total, item) => total + item.cantidad, 0);
-    
+
     if (itemExistente) {
       // Si existe, verificar límite antes de actualizar cantidad
       cantidadTotalActual = cantidadTotalActual - itemExistente.cantidad + (itemExistente.cantidad + cantidad);
@@ -167,6 +168,8 @@ export const agregarItem = async (req, res, next) => {
           message: `No se puede agregar esta cantidad. El carrito no puede tener más de 50 productos. Actualmente tiene ${carrito.items.reduce((total, item) => total + item.cantidad, 0)}`
         });
       }
+      // Sumar cantidad al item existente
+      itemExistente.cantidad += cantidad;
     } else {
       // Si no existe, verificar límite antes de agregar nuevo item
       cantidadTotalActual += cantidad;
@@ -176,6 +179,17 @@ export const agregarItem = async (req, res, next) => {
           message: `No se puede agregar este producto. El carrito no puede tener más de 50 productos. Actualmente tiene ${carrito.items.reduce((total, item) => total + item.cantidad, 0)}`
         });
       }
+      // Agregar nuevo item al carrito
+      carrito.items.push({
+        productoId,
+        cantidad,
+        variante,
+        esCombos,
+        comboItems,
+        notas,
+        precioUnitario: producto.precioBase,
+        fechaAgregado: new Date()
+      });
     }
 
     // Recalcular totales automáticamente (por el middleware pre-save)
@@ -325,7 +339,8 @@ export const aplicarCupon = async (req, res, next) => {
     const carrito = await findActiveCart(sessionId, true);
 
     if (carrito.items.length === 0) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      return res.status(400).json({
+        success: false,
         message: 'No se pueden aplicar cupones a un carrito vacío'
       });
     }
@@ -337,8 +352,8 @@ export const aplicarCupon = async (req, res, next) => {
     });
 
     if (!cupon) {
-      throw createError('VAL_INVALID_OBJECT_ID', {
-        field: 'codigo',
+      return res.status(404).json({
+        success: false,
         message: 'Cupón no válido o no encontrado'
       });
     }
@@ -346,7 +361,8 @@ export const aplicarCupon = async (req, res, next) => {
     // Verificar si el cupón ya está aplicado
     const cuponYaAplicado = carrito.cupones.find(c => c.codigo === cupon.codigo);
     if (cuponYaAplicado) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      return res.status(409).json({
+        success: false,
         message: 'Este cupón ya está aplicado'
       });
     }
@@ -354,7 +370,8 @@ export const aplicarCupon = async (req, res, next) => {
     // Validar cupón para este carrito
     const erroresValidacion = cupon.esValidoParaCarrito(carrito, usuario);
     if (erroresValidacion.length > 0) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      return res.status(400).json({
+        success: false,
         message: `Cupón no válido: ${erroresValidacion.join(', ')}`
       });
     }
@@ -362,7 +379,8 @@ export const aplicarCupon = async (req, res, next) => {
     // Calcular descuento
     const descuento = cupon.calcularDescuento(carrito);
     if (descuento === 0) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      return res.status(400).json({
+        success: false,
         message: 'Este cupón no aplica descuento a los productos en tu carrito'
       });
     }
@@ -375,7 +393,7 @@ export const aplicarCupon = async (req, res, next) => {
       valor: cupon.valor,
       descuentoAplicado: descuento,
       fechaAplicado: new Date(),
-      aplicadoPor: usuario ? 'cliente' : 'visitante'
+      aplicadoPor: usuario ? 'cliente' : 'sistema'
     });
 
     // Registrar uso en el cupón
@@ -392,7 +410,13 @@ export const aplicarCupon = async (req, res, next) => {
     });
 
   } catch (error) {
-    next(error);
+    // Log detallado para depuración
+    console.error('Error al aplicar cupón:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error interno al aplicar cupón',
+      error: error
+    });
   }
 };
 

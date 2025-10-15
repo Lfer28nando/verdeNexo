@@ -10,6 +10,81 @@ import { createError } from "../utils/customError.js";
 import { sendOrderConfirmationEmail } from "../utils/emailService.js";
 import { crearFacturaDesdePedido, obtenerFactura, obtenerFacturasUsuario, anularFactura } from "../utils/invoiceService.js";
 import { actualizarEstadisticasVenta, obtenerEstadisticasVentas, obtenerTopProductosVendidos, obtenerRendimientoVendedores, generarReporteVentas, obtenerMetricasTiempoReal } from "../utils/salesStatsService.js";
+import { Preference, Payment } from 'mercadopago';
+import config from '../config.js';
+
+// ============================
+// FUNCIONES AUXILIARES MODULARES
+// ============================
+
+export const helpersCheckout = {
+  async obtenerCarritoParaCheckout(sessionId, carritoId = null) {
+    let carrito;
+    if (carritoId) {
+      carrito = await Carrito.findById(carritoId).populate('items.productoId');
+      if (!carrito || carrito.estado !== 'activo') {
+        throw createError('VAL_INVALID_OBJECT_ID', { field: 'carritoId', message: 'Carrito no encontrado o no válido' });
+      }
+    } else {
+      carrito = await Carrito.findOne({ sessionId, estado: 'activo' }).populate('items.productoId');
+      if (!carrito) {
+        throw createError('VAL_INVALID_OBJECT_ID', { field: 'sessionId', message: 'No se encontró un carrito activo' });
+      }
+    }
+    if (carrito.items.length === 0) {
+      throw createError('VAL_CHECKOUT_CARRITO_VACIO');
+    }
+    for (const item of carrito.items) {
+      if (!item.productoId || !item.productoId.disponibilidad) {
+        throw createError('VAL_CHECKOUT_PRODUCTO_NO_DISPONIBLE', {
+          message: `El producto "${item.productoId?.nombre || 'Producto no encontrado'}" ya no está disponible`
+        });
+      }
+    }
+    return carrito;
+  },
+  validarFacturacion(facturacion) {
+    if (!facturacion) throw createError('VAL_CHECKOUT_FACTURACION_REQUIRED');
+    if (!facturacion.tipoDocumento) throw createError('VAL_CHECKOUT_FACTURACION_TIPO_DOCUMENTO');
+    if (!facturacion.numeroDocumento) throw createError('VAL_CHECKOUT_FACTURACION_NUMERO_DOCUMENTO');
+    if (!facturacion.nombreCompleto) throw createError('VAL_CHECKOUT_FACTURACION_NOMBRE_COMPLETO');
+    if (!facturacion.email) throw createError('VAL_CHECKOUT_FACTURACION_EMAIL');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(facturacion.email)) throw createError('VAL_CHECKOUT_FACTURACION_EMAIL_INVALID');
+    if (!facturacion.telefono) throw createError('VAL_CHECKOUT_FACTURACION_TELEFONO');
+    const telefonoRegex = /^(\+57|57)?[0-9]{10}$/;
+    if (!telefonoRegex.test(facturacion.telefono.replace(/\s+/g, ''))) throw createError('VAL_CHECKOUT_FACTURACION_TELEFONO_INVALID');
+  },
+  validarEnvio(envio) {
+    if (!envio) throw createError('VAL_CHECKOUT_ENVIO_REQUIRED');
+    if (!envio.direccionEnvio) throw createError('VAL_CHECKOUT_ENVIO_DIRECCION_ENVIO');
+    if (!envio.direccionEnvio.calle) throw createError('VAL_CHECKOUT_ENVIO_CALLE');
+    if (!envio.direccionEnvio.barrio) throw createError('VAL_CHECKOUT_ENVIO_BARRIO');
+    if (!envio.direccionEnvio.ciudad) throw createError('VAL_CHECKOUT_ENVIO_CIUDAD');
+    if (!envio.nombreDestinatario) throw createError('VAL_CHECKOUT_ENVIO_NOMBRE_DESTINATARIO');
+    if (!envio.telefonoDestinatario) throw createError('VAL_CHECKOUT_ENVIO_TELEFONO_DESTINATARIO');
+  },
+  validarPago(pago) {
+    if (!pago || pago.metodoPago !== 'mercadopago') {
+      throw createError('VAL_CHECKOUT_PAGO_METODO', {
+        message: 'Solo se permite Mercado Pago como método de pago.'
+      });
+    }
+  },
+  convertirItemsParaPedido(itemsCarrito) {
+    return itemsCarrito.map(item => ({
+      productoId: item.productoId._id,
+      nombreProducto: item.productoId.nombre,
+      descripcion: item.productoId.descripcion,
+      precioUnitario: item.precioUnitario,
+      cantidad: item.cantidad,
+      subtotal: item.precioUnitario * item.cantidad,
+      esCombo: item.esCombos || false,
+      comboItems: item.comboItems || [],
+      notas: item.notas
+    }));
+  }
+};
 
 // ============================
 // FUNCIONES AUXILIARES
@@ -21,132 +96,7 @@ import { actualizarEstadisticasVenta, obtenerEstadisticasVentas, obtenerTopProdu
  * @param {string} carritoId - ID del carrito (opcional)
  * @returns {Promise<Carrito>} Carrito encontrado
  */
-const obtenerCarritoParaCheckout = async (sessionId, carritoId = null) => {
-  let carrito;
-
-  if (carritoId) {
-    // Si se proporciona carritoId, buscar por ID
-    carrito = await Carrito.findById(carritoId).populate('items.productoId');
-    if (!carrito || carrito.estado !== 'activo') {
-      throw createError('VAL_INVALID_OBJECT_ID', { field: 'carritoId', message: 'Carrito no encontrado o no válido' });
-    }
-  } else {
-    // Buscar por sessionId
-    carrito = await Carrito.findOne({ sessionId, estado: 'activo' }).populate('items.productoId');
-    if (!carrito) {
-      throw createError('VAL_INVALID_OBJECT_ID', { field: 'sessionId', message: 'No se encontró un carrito activo' });
-    }
-  }
-
-  // Validar que el carrito tenga items
-  if (carrito.items.length === 0) {
-    throw createError('VAL_NO_FIELDS_TO_UPDATE', { message: 'El carrito está vacío' });
-  }
-
-  // Validar productos disponibles
-  for (const item of carrito.items) {
-    if (!item.productoId || !item.productoId.disponibilidad) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
-        message: `El producto "${item.productoId?.nombre || 'Producto no encontrado'}" ya no está disponible`
-      });
-    }
-  }
-
-  return carrito;
-};
-
-/**
- * Validar datos de facturación
- * @param {Object} facturacion - Datos de facturación
- */
-const validarFacturacion = (facturacion) => {
-  const required = ['tipoDocumento', 'numeroDocumento', 'nombreCompleto', 'email', 'telefono'];
-  for (const field of required) {
-    if (!facturacion[field]) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: `facturacion.${field}` });
-    }
-  }
-
-  // Validar email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(facturacion.email)) {
-    throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: 'facturacion.email', message: 'Email inválido' });
-  }
-
-  // Validar teléfono (Colombia)
-  const telefonoRegex = /^(\+57|57)?[0-9]{10}$/;
-  if (!telefonoRegex.test(facturacion.telefono.replace(/\s+/g, ''))) {
-    throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: 'facturacion.telefono', message: 'Teléfono inválido' });
-  }
-};
-
-/**
- * Validar datos de envío
- * @param {Object} envio - Datos de envío
- */
-const validarEnvio = (envio) => {
-  const required = ['direccionEnvio', 'nombreDestinatario', 'telefonoDestinatario'];
-  for (const field of required) {
-    if (!envio[field]) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: `envio.${field}` });
-    }
-  }
-
-  // Validar dirección de envío
-  const dirRequired = ['calle', 'numero', 'barrio', 'ciudad'];
-  for (const field of dirRequired) {
-    if (!envio.direccionEnvio[field]) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: `envio.direccionEnvio.${field}` });
-    }
-  }
-};
-
-/**
- * Validar datos de pago
- * @param {Object} pago - Datos de pago
- */
-const validarPago = (pago) => {
-  if (!pago.metodoPago) {
-    throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: 'pago.metodoPago' });
-  }
-
-  // Validaciones específicas por método de pago
-  switch (pago.metodoPago) {
-    case 'tarjeta_credito':
-    case 'tarjeta_debito':
-      if (!pago.informacionTarjeta?.tipoTarjeta || !pago.informacionTarjeta?.nombreTitular) {
-        throw createError('VAL_NO_FIELDS_TO_UPDATE', { message: 'Información de tarjeta incompleta' });
-      }
-      break;
-
-    case 'pse':
-    case 'transferencia':
-      if (!pago.informacionBancaria?.banco || !pago.informacionBancaria?.tipoCuenta) {
-        throw createError('VAL_NO_FIELDS_TO_UPDATE', { message: 'Información bancaria incompleta' });
-      }
-      break;
-  }
-};
-
-/**
- * Convertir items del carrito a items del pedido
- * @param {Array} itemsCarrito - Items del carrito
- * @returns {Array} Items del pedido
- */
-const convertirItemsParaPedido = (itemsCarrito) => {
-  return itemsCarrito.map(item => ({
-    productoId: item.productoId._id,
-    nombreProducto: item.productoId.nombre,
-    descripcion: item.productoId.descripcion,
-    precioUnitario: item.precioUnitario,
-    cantidad: item.cantidad,
-    variante: item.variante,
-    subtotal: item.precioUnitario * item.cantidad,
-    esCombo: item.esCombos || false,
-    comboItems: item.comboItems || [],
-    notas: item.notas
-  }));
-};
+// ...existing code...
 
 // ============================
 // RF-CHE-01 - INGRESAR DATOS DE COMPRA
@@ -211,6 +161,10 @@ export const iniciarCheckout = async (req, res, next) => {
  */
 export const guardarDatosCheckout = async (req, res, next) => {
   try {
+    // Log de datos recibidos
+    console.log('--- [Checkout] Datos recibidos en guardarDatosCheckout ---');
+    console.log('req.body:', JSON.stringify(req.body, null, 2));
+
     const {
       sessionId,
       carritoId,
@@ -221,20 +175,29 @@ export const guardarDatosCheckout = async (req, res, next) => {
       informacionMayorista = null
     } = req.body;
 
+    console.log('--- [Checkout] Estructura extraída ---');
+    console.log('sessionId:', sessionId);
+    console.log('carritoId:', carritoId);
+    console.log('facturacion:', JSON.stringify(facturacion, null, 2));
+    console.log('envio:', JSON.stringify(envio, null, 2));
+    console.log('pago:', JSON.stringify(pago, null, 2));
+    console.log('esPedidoMayorista:', esPedidoMayorista);
+    console.log('informacionMayorista:', JSON.stringify(informacionMayorista, null, 2));
+
     const usuarioId = req.usuario?.id;
 
-    // Validaciones
-    validarFacturacion(facturacion);
-    validarEnvio(envio);
-    validarPago(pago);
+  // Validaciones
+  helpersCheckout.validarFacturacion(facturacion);
+  helpersCheckout.validarEnvio(envio);
+  helpersCheckout.validarPago(pago);
 
-    // Obtener carrito
-    const carrito = await obtenerCarritoParaCheckout(sessionId, carritoId);
+  // Obtener carrito
+  const carrito = await helpersCheckout.obtenerCarritoParaCheckout(sessionId, carritoId);
 
     // Verificar límite de 50 productos
     const cantidadTotal = carrito.items.reduce((total, item) => total + item.cantidad, 0);
     if (cantidadTotal > 50) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      throw createError('VAL_CHECKOUT_LIMITE_PRODUCTOS', {
         message: `El pedido excede el límite de 50 productos (${cantidadTotal})`
       });
     }
@@ -259,6 +222,17 @@ export const guardarDatosCheckout = async (req, res, next) => {
       }
     }
 
+    // Crear dirección de facturación a partir de datos de envío si no viene en facturacion
+    const direccionFacturacion = facturacion.direccionFacturacion || {
+      calle: envio.direccionEnvio.calle,
+      numero: envio.direccionEnvio.numero || '',
+      complemento: envio.direccionEnvio.complemento || '',
+      barrio: envio.direccionEnvio.barrio,
+      ciudad: envio.direccionEnvio.ciudad,
+      departamento: envio.direccionEnvio.departamento,
+      codigoPostal: envio.direccionEnvio.codigoPostal || ''
+    };
+
     // Crear pedido en estado borrador
     const nuevoPedido = new Pedido({
       usuarioId,
@@ -266,8 +240,8 @@ export const guardarDatosCheckout = async (req, res, next) => {
       origen: req.headers['user-agent']?.includes('Mobile') ? 'mobile' : 'web',
       canalVenta: esPedidoMayorista ? 'mayorista' : 'b2c',
 
-      // Items del pedido
-      items: convertirItemsParaPedido(carrito.items),
+    // Items del pedido
+    items: helpersCheckout.convertirItemsParaPedido(carrito.items),
       cupones: carrito.cupones.map(c => ({
         codigo: c.codigo,
         descripcion: c.descripcion,
@@ -278,14 +252,17 @@ export const guardarDatosCheckout = async (req, res, next) => {
       })),
 
       // Información del cliente
-      facturacion,
+      facturacion: {
+        ...facturacion,
+        direccionFacturacion
+      },
       envio: {
         ...envio,
         costoEnvio,
         estadoEnvio: 'pendiente'
       },
       pago: {
-        ...pago,
+        metodoPago: 'mercadopago',
         montoTotal: carrito.totales.total + costoEnvio,
         estadoPago: 'pendiente'
       },
@@ -306,6 +283,11 @@ export const guardarDatosCheckout = async (req, res, next) => {
         urlOrigen: req.headers['referer']
       }
     });
+
+    // Forzar generación de número de pedido si no existe
+    if (!nuevoPedido.numeroPedido) {
+      nuevoPedido.numeroPedido = nuevoPedido.generarNumeroPedido();
+    }
 
     // Calcular totales
     nuevoPedido.calcularTotales();
@@ -332,6 +314,13 @@ export const guardarDatosCheckout = async (req, res, next) => {
     });
 
   } catch (error) {
+    // Log detallado para depuración
+    console.error('Error al guardar datos de checkout:', error);
+    if (error.errors) {
+      Object.keys(error.errors).forEach(key => {
+        console.error(`Campo con error: ${key} -`, error.errors[key].message);
+      });
+    }
     next(error);
   }
 };
@@ -453,7 +442,7 @@ export const confirmarPedido = async (req, res, next) => {
 
     // Verificar que el pedido esté en estado borrador
     if (pedido.estado !== 'borrador') {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      throw createError('VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO', {
         message: `El pedido no puede ser confirmado. Estado actual: ${pedido.estado}`
       });
     }
@@ -469,7 +458,7 @@ export const confirmarPedido = async (req, res, next) => {
 
       // Validar stock disponible
       if (producto.stock < item.cantidad) {
-        throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+        throw createError('VAL_CHECKOUT_STOCK_INSUFICIENTE', {
           message: `Stock insuficiente para "${item.nombreProducto}". Disponible: ${producto.stock}, solicitado: ${item.cantidad}`
         });
       }
@@ -480,7 +469,7 @@ export const confirmarPedido = async (req, res, next) => {
           v.atributo === item.variante.atributo && v.valor === item.variante.valor
         );
         if (variante && variante.stock < item.cantidad) {
-          throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+          throw createError('VAL_CHECKOUT_STOCK_INSUFICIENTE', {
             message: `Stock insuficiente para variante "${item.variante.atributo}: ${item.variante.valor}" de "${item.nombreProducto}". Disponible: ${variante.stock}, solicitado: ${item.cantidad}`
           });
         }
@@ -703,7 +692,7 @@ export const enviarNotificacionPedido = async (req, res, next) => {
 
     // Verificar que el pedido esté confirmado
     if (!['confirmado', 'pagado', 'enviado', 'entregado'].includes(pedido.estado)) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      throw createError('VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO', {
         message: 'Solo se pueden enviar notificaciones de pedidos confirmados'
       });
     }
@@ -780,7 +769,7 @@ export const procesarPedidoMayorista = async (req, res, next) => {
 
     // Verificar que sea un pedido mayorista
     if (!pedido.mayorista.esPedidoMayorista) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      throw createError('VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO', {
         message: 'Este pedido no está marcado como mayorista'
       });
     }
@@ -862,7 +851,7 @@ export const actualizarInformacionDespacho = async (req, res, next) => {
 
     // Verificar que el pedido esté en estado que permita despacho
     if (!['pagado', 'en_preparacion', 'enviado'].includes(pedido.estado)) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
+      throw createError('VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO', {
         message: `No se puede actualizar información de despacho para un pedido en estado: ${pedido.estado}`
       });
     }
@@ -1105,7 +1094,7 @@ export const anularFacturaPedido = async (req, res, next) => {
     const { motivo } = req.body;
 
     if (!motivo) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', { field: 'motivo' });
+      throw createError('VAL_CHECKOUT_FACTURA_ANULAR_MOTIVO');
     }
 
     const factura = await anularFactura(facturaId, motivo);
@@ -1395,9 +1384,7 @@ export const obtenerEstadisticasVentasPeriodo = async (req, res, next) => {
     const { fechaInicio, fechaFin } = req.query;
 
     if (!fechaInicio || !fechaFin) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
-        message: 'Se requieren fechaInicio y fechaFin'
-      });
+      throw createError('VAL_CHECKOUT_FECHAS_REQUERIDAS');
     }
 
     const estadisticas = await obtenerEstadisticasVentas(
@@ -1424,9 +1411,7 @@ export const obtenerTopProductos = async (req, res, next) => {
     const { fechaInicio, fechaFin, limite = 10 } = req.query;
 
     if (!fechaInicio || !fechaFin) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
-        message: 'Se requieren fechaInicio y fechaFin'
-      });
+      throw createError('VAL_CHECKOUT_FECHAS_REQUERIDAS');
     }
 
     const topProductos = await obtenerTopProductosVendidos(
@@ -1458,9 +1443,7 @@ export const obtenerRendimientoVendedoresEndpoint = async (req, res, next) => {
     const { fechaInicio, fechaFin, limite = 10 } = req.query;
 
     if (!fechaInicio || !fechaFin) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
-        message: 'Se requieren fechaInicio y fechaFin'
-      });
+      throw createError('VAL_CHECKOUT_FECHAS_REQUERIDAS');
     }
 
     const rendimiento = await obtenerRendimientoVendedores(
@@ -1492,9 +1475,7 @@ export const generarReporteCompletoVentas = async (req, res, next) => {
     const { fechaInicio, fechaFin } = req.query;
 
     if (!fechaInicio || !fechaFin) {
-      throw createError('VAL_NO_FIELDS_TO_UPDATE', {
-        message: 'Se requieren fechaInicio y fechaFin'
-      });
+      throw createError('VAL_CHECKOUT_FECHAS_REQUERIDAS');
     }
 
     const reporte = await generarReporteVentas(
@@ -1512,3 +1493,202 @@ export const generarReporteCompletoVentas = async (req, res, next) => {
     next(error);
   }
 };
+
+// ============================
+// RF-CHE-07 - INTEGRACIÓN MERCADO PAGO
+// ============================
+
+/**
+ * Crear preferencia de pago con Mercado Pago
+ */
+export const crearPreferenciaPago = async (req, res, next) => {
+  try {
+    const { pedidoId } = req.params;
+    // Buscar pedido
+    const pedido = await Pedido.findById(pedidoId).populate('items.productoId');
+    if (!pedido) {
+      throw createError('VAL_INVALID_OBJECT_ID', { field: 'pedidoId' });
+    }
+    // Verificar que el pedido esté en estado borrador
+    if (pedido.estado !== 'borrador') {
+      throw createError('VAL_CHECKOUT_PEDIDO_ESTADO_INVALIDO', {
+        message: `No se puede crear preferencia para un pedido en estado: ${pedido.estado}`
+      });
+    }
+    // Preparar items para Mercado Pago
+    const mpItems = pedido.items.map(item => ({
+      id: item.productoId._id.toString(),
+      title: item.nombreProducto,
+      description: item.descripcion,
+      picture_url: item.productoId.imagenes?.[0] || null,
+      quantity: item.cantidad,
+      currency_id: 'COP',
+      unit_price: item.precioUnitario
+    }));
+    // Crear objeto de preferencia
+    const frontendUrl = process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim() !== ''
+      ? process.env.FRONTEND_URL.trim()
+      : 'http://localhost:5173';
+    const safePedidoId = pedidoId ? pedidoId : '';
+    const preferenceData = {
+      items: mpItems,
+      payer: {
+        name: pedido.facturacion.nombreCompleto,
+        email: pedido.facturacion.email,
+        phone: {
+          area_code: '',
+          number: pedido.facturacion.telefono.replace(/\D/g, '')
+        }
+      },
+      back_urls: {
+        success: `${frontendUrl}/pedido-confirmado?pedido=${safePedidoId}`,
+        failure: `${frontendUrl}/checkout?error=pago_fallido&pedido=${safePedidoId}`,
+        pending: `${frontendUrl}/checkout?status=pendiente&pedido=${safePedidoId}`
+      },
+      auto_return: 'approved',
+      external_reference: safePedidoId,
+      notification_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`,
+      statement_descriptor: 'VerdeNexo - Compra en línea'
+    };
+    // Log obligatorio para depuración
+    console.log('DEBUG MP - back_urls.success:', preferenceData.back_urls.success);
+    console.log('DEBUG MP - preferenceData:', JSON.stringify(preferenceData, null, 2));
+    // Validar back_urls.success
+    if (!frontendUrl || frontendUrl.trim() === '' || !safePedidoId) {
+      return res.status(400).json({
+        success: false,
+        message: 'URL de éxito para Mercado Pago no definida correctamente. Verifica FRONTEND_URL y pedidoId.'
+      });
+    }
+    // Crear preferencia en Mercado Pago
+    const preference = new Preference(config.mercadopago);
+    const response = await preference.create({ body: preferenceData });
+    res.json({
+      success: true,
+      message: "Preferencia de pago creada exitosamente",
+      data: {
+        preferenceId: response.id,
+        initPoint: response.init_point,
+        pedidoId
+      }
+    });
+  } catch (error) {
+    console.error('Error creando preferencia de pago:', error);
+    next(error);
+  }
+};
+
+// ============================
+// RF-CHE-08 - WEBHOOKS MERCADO PAGO
+// ============================
+
+/**
+ * Webhook para notificaciones de Mercado Pago
+ */
+export const webhookMercadoPago = async (req, res, next) => {
+  try {
+    const { action, data } = req.body;
+
+    // Solo procesar pagos
+    if (action !== 'payment.created' && action !== 'payment.updated') {
+      return res.status(200).send('OK');
+    }
+
+    const paymentId = data.id;
+
+    // Obtener detalles del pago desde Mercado Pago
+    const payment = new Payment(config.mercadopago);
+    const response = await payment.get({ id: paymentId });
+    const paymentData = response;
+
+    // Obtener pedido por external_reference
+    const pedidoId = paymentData.external_reference;
+    const pedido = await Pedido.findById(pedidoId);
+
+    if (!pedido) {
+      console.error('Pedido no encontrado para payment:', paymentId);
+      return res.status(404).send('Pedido not found');
+    }
+
+    // Procesar según estado del pago
+    const status = paymentData.status;
+    const statusDetail = paymentData.status_detail;
+
+    console.log(`Pago ${paymentId} para pedido ${pedidoId}: ${status} (${statusDetail})`);
+
+    if (status === 'approved') {
+      // Pago aprobado - confirmar pedido
+      pedido.estado = 'pagado';
+      pedido.fechaPago = new Date();
+      pedido.pago.estadoPago = 'completado';
+      pedido.pago.idTransaccion = paymentId;
+
+      // Agregar al historial
+      pedido.agregarAlHistorial(
+        'pago_aprobado',
+        `Pago aprobado - ID: ${paymentId}`,
+        'mercadopago'
+      );
+
+      // Confirmar pedido automáticamente
+      await confirmarPedidoInterno(pedido);
+
+    } else if (status === 'rejected') {
+      // Pago rechazado
+      pedido.pago.estadoPago = 'rechazado';
+      pedido.pago.idTransaccion = paymentId;
+
+      // Agregar al historial
+      pedido.agregarAlHistorial(
+        'pago_rechazado',
+        `Pago rechazado - ${statusDetail} - ID: ${paymentId}`,
+        'mercadopago'
+      );
+
+    } else if (status === 'pending') {
+      // Pago pendiente
+      pedido.pago.estadoPago = 'pendiente';
+      pedido.pago.idTransaccion = paymentId;
+
+      // Agregar al historial
+      pedido.agregarAlHistorial(
+        'pago_pendiente',
+        `Pago pendiente - ${statusDetail} - ID: ${paymentId}`,
+        'mercadopago'
+      );
+    }
+
+    await pedido.save();
+
+    res.status(200).send('OK');
+
+  } catch (error) {
+    console.error('Error procesando webhook de Mercado Pago:', error);
+    res.status(500).send('Error');
+  }
+};
+
+/**
+ * Función interna para confirmar pedido (similar a confirmarPedido pero sin validaciones)
+ */
+async function confirmarPedidoInterno(pedido) {
+  try {
+    // Cambiar estado a confirmado
+    pedido.estado = 'confirmado';
+    pedido.fechaConfirmacion = new Date();
+
+    // Agregar al historial
+    pedido.agregarAlHistorial(
+      'confirmado',
+      'Pedido confirmado automáticamente por pago aprobado',
+      'sistema'
+    );
+
+    // Aquí iría la lógica de stock, comisiones, facturación, etc. (igual que en confirmarPedido)
+
+    await pedido.save();
+
+  } catch (error) {
+    console.error('Error confirmando pedido internamente:', error);
+  }
+}

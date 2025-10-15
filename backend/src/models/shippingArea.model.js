@@ -375,6 +375,13 @@ zonaEnvioSchema.pre('save', function(next) {
 
 // Calcular costo de envío para un carrito específico (RF-CARRO-05)
 zonaEnvioSchema.methods.calcularCostoEnvio = function(carrito, direccion = null) {
+  console.log('--- CALCULO ENVIO ---');
+  console.log('tarifaBase:', this.tarifaBase);
+  console.log('tarifaPorKg:', this.tarifaPorKg);
+  console.log('recargoFragiles:', this.recargoFragiles);
+  console.log('recargoVoluminosos:', this.recargoVoluminosos);
+  console.log('carrito subtotal:', carrito.totales?.subtotal);
+  console.log('carrito items:', carrito.items?.length);
   if (!this.activa) {
     throw new Error('La zona de envío no está activa');
   }

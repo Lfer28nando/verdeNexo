@@ -96,7 +96,7 @@ const facturacionSchema = new mongoose.Schema({
   // Dirección de facturación
   direccionFacturacion: {
     calle: { type: String, required: true },
-    numero: { type: String, required: true },
+    numero: { type: String }, // Opcional ya que puede estar incluido en calle
     complemento: { type: String },
     barrio: { type: String, required: true },
     ciudad: { type: String, required: true, default: "Bogotá" },
@@ -112,7 +112,7 @@ const envioSchema = new mongoose.Schema({
   // Dirección de envío
   direccionEnvio: {
     calle: { type: String, required: true },
-    numero: { type: String, required: true },
+    numero: { type: String }, // Opcional ya que puede estar incluido en calle
     complemento: { type: String },
     barrio: { type: String, required: true },
     ciudad: { type: String, required: true, default: "Bogotá" },
@@ -155,48 +155,19 @@ const envioSchema = new mongoose.Schema({
 const pagoSchema = new mongoose.Schema({
   metodoPago: {
     type: String,
-    enum: ['tarjeta_credito', 'tarjeta_debito', 'pse', 'efectivo', 'transferencia', 'contra_entrega'],
+    enum: ['mercadopago'],
     required: true
   },
-
-  // Para pagos con tarjeta
-  informacionTarjeta: {
-    tipoTarjeta: { type: String, enum: ['visa', 'mastercard', 'amex', 'diners'] },
-    ultimosDigitos: { type: String },
-    nombreTitular: { type: String },
-    fechaExpiracion: { type: String } // MM/YY
-  },
-
-  // Para PSE y transferencias
-  informacionBancaria: {
-    banco: { type: String },
-    tipoCuenta: { type: String, enum: ['ahorros', 'corriente'] },
-    numeroCuenta: { type: String }
-  },
-
-  // Estado del pago
   estadoPago: {
     type: String,
     enum: ['pendiente', 'procesando', 'aprobado', 'rechazado', 'reembolsado', 'cancelado'],
     default: 'pendiente'
   },
-
-  // Montos
   montoTotal: { type: Number, required: true, min: 0 },
   montoPagado: { type: Number, default: 0, min: 0 },
-
-  // Referencias de pago
   referenciaPago: { type: String },
   idTransaccion: { type: String },
-  fechaPago: { type: Date },
-
-  // Para reembolsos
-  reembolso: {
-    monto: { type: Number, default: 0 },
-    fecha: { type: Date },
-    razon: { type: String },
-    referencia: { type: String }
-  }
+  fechaPago: { type: Date }
 }, { _id: false });
 
 // ============================

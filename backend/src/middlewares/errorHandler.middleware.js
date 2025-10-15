@@ -74,10 +74,22 @@ export const notFoundHandler = (req, res, next) => {
         message: `Ruta ${req.originalUrl} no encontrada`
     });
     
-    // Le cambio el código a uno más específico
-    error.code = 'API_003';
-    error.userMessage = 'Recurso no encontrado';
-    error.httpStatus = 404;
+        // Si la ruta no existe, devolver error API_003
+        if (req.originalUrl === '/api/checkout/guardar-datos' && req.method === 'POST') {
+            return res.status(404).json({
+                success: false,
+                error: {
+                    code: 'API_003',
+                    message: 'La ruta /api/checkout/guardar-datos no está disponible. Verifica que el backend esté corriendo y la ruta esté definida como POST.',
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
+        next(createError('API_003', {
+            message: 'Recurso no encontrado',
+            originalUrl: req.originalUrl,
+            method: req.method
+        }));
     
     next(error);
 };
