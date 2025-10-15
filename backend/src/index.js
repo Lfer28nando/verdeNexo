@@ -5,9 +5,7 @@ dotenv.config({ path: './src/.env' });
 import app from './app.js';
 import { connectDB } from './db.js';
 
-async function start() {
-  // Puerto por defecto si PORT no está definido
-  const port = process.env.PORT || 10000;
+
 
   // Intenta conectar a la DB pero no dejes que bloquee indefinidamente el start
  /* try {
@@ -22,9 +20,12 @@ async function start() {
   }*/
 
   // Escucha siempre en 0.0.0.0 y en el puerto correcto
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`✅ VerdeNexo Backend running on http://0.0.0.0:${port} (NODE_ENV=${process.env.NODE_ENV})`);
-  });
-}
+const PORT = process.env.PORT || 3000;
 
-start();
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Backend corriendo en puerto ${PORT}`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`📱 Aplicación disponible en: ${process.env.FRONTEND_URL || 'https://tu-app.onrender.com'}`);
+  }
+});
