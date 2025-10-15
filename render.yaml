@@ -1,6 +1,3 @@
-previews:
-  generation: manual   # opcional: evita que Render cree previews automáticos
-
 services:
   - type: web
     name: verdeNexo-backend
