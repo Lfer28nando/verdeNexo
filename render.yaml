@@ -1,10 +1,10 @@
 services:
   - type: web
     name: verdeNexo-backend
-    runtime: node
+    runtime: node          # <-- usar 'runtime' (no 'env')
     repo: https://github.com/Lfer28nando/verdeNexo
     branch: develop
-    plan: free            # <- agrega esto
+    plan: free             # <- si quieres Free
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm run dev
     envVars:
@@ -33,12 +33,12 @@ services:
       - key: MERCADOPAGO_ACCESS_TOKEN
         sync: false
 
-  - type: web
+  - type: static             # <-- static site service (no es 'web')
     name: verdeNexo-frontend
     runtime: static
     repo: https://github.com/Lfer28nando/verdeNexo
     branch: develop
-    plan: free            # <- y esto también
+    plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
