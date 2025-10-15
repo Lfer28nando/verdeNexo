@@ -12,6 +12,7 @@ import checkoutRoutes from "./routes/checkout.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import './config/googleAuth.js'; // Importar la configuración de Google OAuth
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.middleware.js';
 import { 
@@ -51,6 +52,10 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'verdenexo-secret-session-2025',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        dbName: process.env.DB_NAME,
+    }),
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000 // 24 horas
