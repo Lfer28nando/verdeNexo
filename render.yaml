@@ -13,22 +13,38 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: MONGO_URI
+      - key: MONGODB_URI
         sync: false
-      - key: MONGO_DB_NAME
-        sync: false
-      - key: SESSION_SECRET
+      - key: DB_NAME
         sync: false
       - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
         sync: false
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
         sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
         sync: false
       - key: FRONTEND_URL
         value: https://verdenexo-frontend.onrender.com
+      - key: MERCADO_PAGO_ACCESS_TOKEN
+        sync: false
 
   # Frontend Service
   - type: web
