@@ -46,6 +46,9 @@ app.get('/checkout', (req, res) => {
 app.get('/pedido-confirmado', (req, res) => {
     res.render('pages/pedido-confirmado');
 });
+app.get('/producto/:id', (req, res) => {
+    res.render('pages/producto');
+});
 
 const PORT = process.env.PORT || 5173;
 

@@ -1,6 +1,5 @@
 // navbar.js - Manejo dinámico de la navbar basado en sesión
 import { API } from './api.js';
-import { initializeCartCounter } from './cart.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const loginLink = document.getElementById('loginLink');
@@ -51,7 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkSession();
 
     // Inicializar contador del carrito
-    initializeCartCounter();
+    if (window.CartManager && window.CartManager.updateCartCount) {
+        window.CartManager.updateCartCount();
+    }
 
     // Event listener para botón de perfil
     btnPerfil.addEventListener('click', () => {

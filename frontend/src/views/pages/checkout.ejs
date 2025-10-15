@@ -1,5 +1,8 @@
 <%- include('../partials/header') %>
 
+<!-- SDK de Mercado Pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
 <style>
 /* Checkout - Verde Nexo */
 
@@ -371,8 +374,14 @@
                         <h3 class="section-title">
                             <i class="fas fa-user"></i> Información de Contacto
                         </h3>
-                        <input type="email" id="email" class="checkout-input" placeholder="Correo electrónico" required>
-                        <input type="tel" id="phone" class="checkout-input" placeholder="Teléfono" required>
+                        <div class="input-group mb-3">
+                            <input type="email" id="email" class="checkout-input form-control" placeholder="Correo electrónico" required>
+                            <button id="clearEmailBtn" type="button" class="btn btn-outline-danger" style="font-size:1rem;padding:0 0.5rem;">&times;</button>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="tel" id="phone" class="checkout-input form-control" placeholder="Teléfono" required>
+                            <button id="clearPhoneBtn" type="button" class="btn btn-outline-danger" style="font-size:1rem;padding:0 0.5rem;">&times;</button>
+                        </div>
                     </div>
 
                     <!-- Información de Envío -->
@@ -382,58 +391,23 @@
                         </h3>
                         <input type="text" id="firstName" class="checkout-input" placeholder="Nombre" required>
                         <input type="text" id="lastName" class="checkout-input" placeholder="Apellido" required>
-                        <input type="text" id="address" class="checkout-input" placeholder="Dirección" required>
-                        <div class="input-row">
-                            <input type="text" id="city" class="checkout-input" placeholder="Ciudad" required>
-                            <select id="department" class="checkout-select" required>
-                                <option value="">Departamento</option>
-                                <option value="bogota">Bogotá D.C.</option>
-                                <option value="antioquia">Antioquia</option>
-                                <option value="valle">Valle del Cauca</option>
-                                <option value="cundinamarca">Cundinamarca</option>
+
+                        <!-- Campos de envío (UPZ / Barrio) añadidos para prefill desde el carrito -->
+                        <div class="input-row" style="margin-bottom:1rem;">
+                            <input type="text" id="shippingUPZ" class="checkout-input" value="Medellín" readonly style="flex:1;margin-right:0.5rem;" />
+                            <select id="shippingBarrio" class="checkout-select" style="flex:1;">
+                                <option value="">Seleccionar Barrio</option>
+                                <option value="El Poblado">El Poblado</option>
+                                <option value="Laureles">Laureles</option>
+                                <option value="Envigado">Envigado</option>
+                                <option value="Belen">Belén</option>
+                                <option value="Robledo">Robledo</option>
+                                <option value="Castilla">Castilla</option>
                             </select>
                         </div>
+
+                        <input type="text" id="address" class="checkout-input" placeholder="Dirección" required>
                         <input type="text" id="postalCode" class="checkout-input" placeholder="Código Postal (opcional)">
-                    </div>
-
-                    <!-- Método de Pago -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-credit-card"></i> Método de Pago
-                        </h3>
-                        <div class="payment-methods">
-                            <div class="payment-method selected" data-method="card">
-                                <input type="radio" id="card" name="paymentMethod" value="card" class="payment-radio" checked>
-                                <label for="card">
-                                    <i class="fas fa-credit-card me-2"></i>
-                                    Tarjeta de Crédito/Débito
-                                </label>
-                            </div>
-                            <div class="payment-method" data-method="pse">
-                                <input type="radio" id="pse" name="paymentMethod" value="pse" class="payment-radio">
-                                <label for="pse">
-                                    <i class="fas fa-university me-2"></i>
-                                    PSE (Transferencia Bancaria)
-                                </label>
-                            </div>
-                            <div class="payment-method" data-method="cash">
-                                <input type="radio" id="cash" name="paymentMethod" value="cash" class="payment-radio">
-                                <label for="cash">
-                                    <i class="fas fa-money-bill-wave me-2"></i>
-                                    Contra Entrega
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Campos de tarjeta -->
-                        <div id="cardFields" class="mt-3">
-                            <input type="text" id="cardNumber" class="checkout-input" placeholder="Número de tarjeta" required>
-                            <div class="input-row">
-                                <input type="text" id="expiryDate" class="checkout-input" placeholder="MM/AA" required>
-                                <input type="text" id="cvv" class="checkout-input" placeholder="CVV" required>
-                            </div>
-                            <input type="text" id="cardName" class="checkout-input" placeholder="Nombre en la tarjeta" required>
-                        </div>
                     </div>
 
                     <!-- Notas del Pedido -->
@@ -442,6 +416,16 @@
                             <i class="fas fa-sticky-note"></i> Notas del Pedido (Opcional)
                         </h3>
                         <textarea id="orderNotes" class="checkout-input" rows="3" placeholder="Instrucciones especiales para el envío..."></textarea>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="checkout-actions">
+                        <button type="submit" id="placeOrderBtn" class="btn-place-order" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Pagar con Mercado Pago
+                        </button>
+                        <button type="button" id="backToCartBtn" class="btn-back-to-cart">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
+                        </button>
                     </div>
                 </form>
             </div>
@@ -461,16 +445,6 @@
 
                     <div id="orderTotals" class="mt-3">
                         <!-- Totales se cargan dinámicamente -->
-                    </div>
-
-                    <!-- Acciones -->
-                    <div class="checkout-actions">
-                        <button id="placeOrderBtn" class="btn-place-order" disabled>
-                            <i class="fas fa-lock me-2"></i>Realizar Pedido
-                        </button>
-                        <button id="backToCartBtn" class="btn-back-to-cart">
-                            <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
-                        </button>
                     </div>
                 </div>
             </div>
@@ -531,8 +505,9 @@ async function loadCartData() {
     try {
         const response = await API.get(`/api/cart/${sessionId}`);
 
-        if (response.data.success) {
+            if (response.data.success) {
             cartData = response.data.data;
+            console.log('checkout: cartData loaded', cartData);
 
             // Verificar que hay items en el carrito
             if (!cartData.items || cartData.items.length === 0) {
@@ -543,6 +518,102 @@ async function loadCartData() {
 
             renderOrderSummary();
             updateOrderTotals();
+
+            // Si el carrito ya tiene dirección de envío calculada, prefilar en el checkout
+            try {
+                const envio = cartData.envio || {};
+                console.log('checkout: envio payload', envio);
+
+                // Helpers para lectura/escritura segura del DOM (en caso de que algunos inputs hayan sido eliminados)
+                const elValue = (id) => {
+                    const el = document.getElementById(id);
+                    return el ? (el.value || '').toString().trim() : '';
+                };
+                const elSetValue = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = val;
+                };
+
+                // Buscar la dirección en múltiples posibles formatos (más robusto)
+                let addressString = '';
+                let foundFrom = null;
+
+                // 1) Top-level handy fields
+                const topCandidates = [envio.calle, envio.addressString, envio.direccion_text, envio.direccion_raw, envio.direccionTexto, envio.direccionExacta, envio.direccionCompleta];
+                for (const c of topCandidates) {
+                    if (typeof c === 'string' && c.trim()) {
+                        addressString = c.trim();
+                        foundFrom = 'envio.top:' + c;
+                        break;
+                    }
+                }
+
+                // 2) If envio.direccion is present (string or object)
+                if (!addressString && envio.direccion) {
+                    const d = envio.direccion;
+                    if (typeof d === 'string' && d.trim()) {
+                        addressString = d.trim();
+                        foundFrom = 'envio.direccion:string';
+                    } else if (typeof d === 'object' && d !== null) {
+                        const candidate = d.calle || d.street || d.address || d.fullAddress || d.direccion || d.direccionExacta || d.direccionCompleta || '';
+                        if (candidate && typeof candidate === 'string') {
+                            addressString = candidate.trim();
+                            foundFrom = 'envio.direccion.object.' + (d.calle ? 'calle' : d.street ? 'street' : d.address ? 'address' : 'other');
+                        }
+                        // secondary fields (escribir solo si el elemento existe)
+                        if (d.ciudad || d.city) elSetValue('city', d.ciudad || d.city);
+                        if (d.departamento || d.department) elSetValue('department', d.departamento || d.department);
+                        if (d.postalCode || d.codigoPostal) elSetValue('postalCode', d.postalCode || d.codigoPostal);
+                    }
+                }
+
+                // 3) Other fields on envio
+                if (!addressString) {
+                    const other = envio.direccionExacta || envio.address || envio.street || envio.fullAddress || '';
+                    if (other && typeof other === 'string') {
+                        addressString = other.trim();
+                        foundFrom = 'envio.other';
+                    }
+                }
+
+                if (addressString) {
+                    elSetValue('address', addressString);
+                    console.log('checkout: dirección prefilleada desde', foundFrom || 'unknown');
+                } else {
+                    console.info('checkout: no se encontró dirección exacta en cartData.envio');
+                }
+            } catch (prefillErr) {
+                console.warn('No se pudo prefilar dirección desde carrito:', prefillErr);
+            }
+
+            // Prefilar UPZ y Barrio si vienen en cartData.envio
+            try {
+                if (cartData.envio) {
+                    const upzVal = cartData.envio.upz || cartData.envio.UPZ || cartData.envio.zone || '';
+                    const barrioVal = cartData.envio.barrio || cartData.envio.neighborhood || '';
+
+                    const shippingUPZ = document.getElementById('shippingUPZ');
+                    const shippingBarrio = document.getElementById('shippingBarrio');
+
+                    if (shippingUPZ && upzVal) {
+                        shippingUPZ.value = upzVal;
+                    }
+
+                    if (shippingBarrio && barrioVal) {
+                        // Si el select no tiene la opción, agregarla
+                        let exists = Array.from(shippingBarrio.options).some(o => o.value === barrioVal || o.text === barrioVal);
+                        if (!exists) {
+                            const opt = document.createElement('option');
+                            opt.value = barrioVal;
+                            opt.text = barrioVal;
+                            shippingBarrio.appendChild(opt);
+                        }
+                        shippingBarrio.value = barrioVal;
+                    }
+                }
+            } catch (prefillErr2) {
+                console.warn('No se pudo prefilar UPZ/Barrio desde carrito:', prefillErr2);
+            }
 
             // Habilitar botón de pedido
             document.getElementById('placeOrderBtn').disabled = false;
@@ -612,32 +683,12 @@ function updateOrderTotals() {
 
 // Configurar event listeners
 function setupEventListeners() {
-    // Métodos de pago
-    document.querySelectorAll('.payment-method').forEach(method => {
-        method.addEventListener('click', function() {
-            // Deseleccionar todos
-            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
-            document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.checked = false);
-
-            // Seleccionar este
-            this.classList.add('selected');
-            this.querySelector('input[type="radio"]').checked = true;
-
-            // Mostrar/ocultar campos de tarjeta
-            const cardFields = document.getElementById('cardFields');
-            if (this.dataset.method === 'card') {
-                cardFields.style.display = 'block';
-            } else {
-                cardFields.style.display = 'none';
-            }
-        });
-    });
-
     // Formulario de checkout
     document.getElementById('checkoutForm').addEventListener('submit', handlePlaceOrder);
 
     // Botón volver al carrito
-    document.getElementById('backToCartBtn').addEventListener('click', () => {
+    document.getElementById('backToCartBtn').addEventListener('click', (e) => {
+        e.preventDefault();
         window.location.href = '/carrito';
     });
 }
@@ -645,34 +696,82 @@ function setupEventListeners() {
 // Manejar envío del pedido
 async function handlePlaceOrder(event) {
     event.preventDefault();
+    console.log('handlePlaceOrder: Iniciando proceso de pago');
 
     // Validar formulario
     const formData = getFormData();
+    console.log('handlePlaceOrder: Datos del formulario:', formData);
     if (!validateForm(formData)) {
+        console.log('handlePlaceOrder: Validación fallida');
         return;
     }
+    console.log('handlePlaceOrder: Validación exitosa');
 
     // Deshabilitar botón
     const submitBtn = document.getElementById('placeOrderBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando pago...';
 
     try {
-        // Aquí iría la lógica para crear el pedido
-        // Por ahora, mostrar mensaje de éxito simulado
+        // Preparar datos para guardar checkout
+        const checkoutData = {
+            sessionId,
+            facturacion: {
+                tipoDocumento: 'cedula', // Corregido: usar 'cedula' en lugar de 'CC'
+                numeroDocumento: '123456789', // Temporal, debería obtenerse del form
+                nombreCompleto: `${formData.firstName} ${formData.lastName}`,
+                email: formData.email,
+                telefono: formData.phone
+            },
+            envio: {
+                direccionEnvio: {
+                    calle: formData.address,
+                    numero: '', // Podría extraerse
+                    barrio: document.getElementById('shippingBarrio')?.value || '',
+                    ciudad: document.getElementById('shippingUPZ')?.value || 'Medellín',
+                    departamento: 'Antioquia'
+                },
+                nombreDestinatario: `${formData.firstName} ${formData.lastName}`,
+                telefonoDestinatario: formData.phone,
+                costoEnvio: cartData.totales.costoEnvio || 0
+            },
+            pago: {
+                metodoPago: 'mercadopago',
+                montoTotal: cartData.totales.total
+            }
+        };
+        console.log('handlePlaceOrder: Datos para guardar checkout:', checkoutData);
 
-        showToast('¡Pedido realizado exitosamente!', 'success');
+        // 1. Guardar datos del checkout (crear pedido en borrador)
+        console.log('handlePlaceOrder: Enviando petición para guardar datos...');
+        const saveResponse = await API.post('/api/checkout/guardar-datos', checkoutData);
+        console.log('handlePlaceOrder: Respuesta guardar datos:', saveResponse);
+        if (!saveResponse.data.success) {
+            throw new Error('Error al guardar datos del checkout');
+        }
 
-        // Limpiar carrito y redirigir
-        setTimeout(() => {
-            localStorage.removeItem('cartSessionId');
-            window.location.href = '/pedido-confirmado';
-        }, 2000);
+        const pedidoId = saveResponse.data.data.pedidoId;
+        console.log('handlePlaceOrder: Pedido creado en borrador:', pedidoId);
+
+        // 2. Crear preferencia de pago
+        console.log('handlePlaceOrder: Creando preferencia de pago...');
+        const prefResponse = await API.post(`/api/checkout/crear-preferencia/${pedidoId}`);
+        console.log('handlePlaceOrder: Respuesta crear preferencia:', prefResponse);
+        if (!prefResponse.data.success) {
+            throw new Error('Error al crear preferencia de pago');
+        }
+
+        const { initPoint } = prefResponse.data.data;
+        console.log('handlePlaceOrder: Preferencia creada, initPoint:', initPoint);
+
+        // 3. Redirigir al checkout de Mercado Pago
+        console.log('handlePlaceOrder: Redirigiendo a:', initPoint);
+        window.location.href = initPoint;
 
     } catch (error) {
-        console.error('Error placing order:', error);
-        showToast('Error al procesar el pedido', 'error');
+        console.error('handlePlaceOrder: Error procesando pago:', error);
+        showToast('Error al procesar el pago: ' + (error.response?.data?.message || error.message), 'error');
 
         // Rehabilitar botón
         submitBtn.disabled = false;
@@ -682,21 +781,21 @@ async function handlePlaceOrder(event) {
 
 // Obtener datos del formulario
 function getFormData() {
+    const g = id => {
+        const el = document.getElementById(id);
+        if (!el) return '';
+        return (el.value || '').toString().trim();
+    };
     return {
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        firstName: document.getElementById('firstName').value.trim(),
-        lastName: document.getElementById('lastName').value.trim(),
-        address: document.getElementById('address').value.trim(),
-        city: document.getElementById('city').value.trim(),
-        department: document.getElementById('department').value,
-        postalCode: document.getElementById('postalCode').value.trim(),
-        paymentMethod: document.querySelector('input[name="paymentMethod"]:checked')?.value,
-        cardNumber: document.getElementById('cardNumber').value.trim(),
-        expiryDate: document.getElementById('expiryDate').value.trim(),
-        cvv: document.getElementById('cvv').value.trim(),
-        cardName: document.getElementById('cardName').value.trim(),
-        orderNotes: document.getElementById('orderNotes').value.trim()
+        email: g('email'),
+        phone: g('phone'),
+        firstName: g('firstName'),
+        lastName: g('lastName'),
+        address: g('address'),
+        city: g('city'),
+        department: g('department'),
+        postalCode: g('postalCode'),
+        orderNotes: g('orderNotes')
     };
 }
 
@@ -716,19 +815,14 @@ function validateForm(data) {
         errors.push('Nombre y apellido son requeridos');
     }
 
-    if (!data.address || !data.city || !data.department) {
+    // Si la página no incluye city/department, no los requerimos
+    const cityEl = document.getElementById('city');
+    const deptEl = document.getElementById('department');
+    if (!data.address || (cityEl && !data.city) || (deptEl && !data.department)) {
         errors.push('Dirección completa es requerida');
     }
 
-    if (!data.paymentMethod) {
-        errors.push('Método de pago es requerido');
-    }
-
-    if (data.paymentMethod === 'card') {
-        if (!data.cardNumber || !data.expiryDate || !data.cvv || !data.cardName) {
-            errors.push('Datos de tarjeta incompletos');
-        }
-    }
+    // No validar método de pago, será Mercado Pago
 
     if (errors.length > 0) {
         showToast('Por favor corrige los siguientes errores:\n' + errors.join('\n'), 'error');
@@ -789,5 +883,6 @@ function showError(message) {
 }
 </script>
 
+<script type="module" src="/js/checkout.js"></script>
 <%- include('../partials/footer') %></content>
 <parameter name="filePath">c:\Users\Usuario\verdeNexo-develop\verdeNexo-develop\frontend\src\views\pages\checkout.ejs

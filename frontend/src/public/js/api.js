@@ -1,4 +1,3 @@
-
 export const API = axios.create({
   baseURL: 'http://localhost:3000/', // ajusta si tu API tiene otro prefijo
   withCredentials: true, // MUY importante: para que el navegador envíe/reciba cookies HttpOnly
