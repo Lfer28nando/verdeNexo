@@ -8,7 +8,7 @@ import { connectDB } from './db.js';
 
 
   // Intenta conectar a la DB pero no dejes que bloquee indefinidamente el start
- /* try {
+ try {
     // espera la conexión si connectDB devuelve Promise
     await connectDB();
     console.log('✅ MongoDB connected');
@@ -17,7 +17,7 @@ import { connectDB } from './db.js';
     // Si la DB es crítica quizá quieras salir con error:
     // process.exit(1);
     // Pero para debug temporal, seguimos y arrancamos el servidor para comprobar puerto.
-  }*/
+  }
 
   // Escucha siempre en 0.0.0.0 y en el puerto correcto
 const PORT = process.env.PORT || 3000;
