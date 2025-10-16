@@ -5,16 +5,20 @@ import { API } from '/js/api.js';
 API.interceptors.response.use(
   res => res,
   err => {
-    // Solo redirigir al login si la petición es de perfil, calificación o endpoints protegidos
     const url = err.config?.url || '';
     const isProtected = [
-      '/api/auth/profile',
       '/api/products/', // para calificar (POST)
       '/api/users',
       '/api/cart',
       '/api/checkout',
       '/api/admin'
     ].some(path => url.includes(path));
+    // Si es /api/auth/profile y da 401, mostrar mensaje informativo en vez de error
+    if (err.response?.status === 401 && url.includes('/api/auth/profile')) {
+      console.info('No hay sesión activa. El usuario no está logueado.');
+      // Opcional: showToast('No has iniciado sesión.', 'info');
+      return Promise.reject(err);
+    }
     if (err.response?.status === 401 && isProtected) {
       showToast('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 'warning');
       setTimeout(() => (window.location.href = '/login'), 1200);

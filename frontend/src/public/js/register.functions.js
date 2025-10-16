@@ -52,8 +52,12 @@ export function initGoogleAuthButton(buttonSelector = '#googleAuth') {
             alert('No se completó la autenticación con Google.');
           }
         } catch (err) {
-          console.error('Error al verificar auth después de Google:', err);
-          alert('No se pudo verificar la autenticación. Revisa la consola.');
+          if (err.response?.status === 401) {
+            console.info('No hay sesión activa con Google. El usuario no está logueado.');
+          } else {
+            console.error('Error al verificar auth después de Google:', err);
+            alert('No se pudo verificar la autenticación. Revisa la consola.');
+          }
         }
         return;
       }
