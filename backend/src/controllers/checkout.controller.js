@@ -1547,7 +1547,7 @@ export const crearPreferenciaPago = async (req, res, next) => {
       },
       auto_return: 'approved',
       external_reference: safePedidoId,
-      notification_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`,
+      notification_url: `${process.env.BACKEND_URL || 'https://verdenexo-backend.onrender.com'}/api/webhooks/mercadopago`,
       statement_descriptor: 'VerdeNexo - Compra en línea'
     };
     // Log obligatorio para depuración

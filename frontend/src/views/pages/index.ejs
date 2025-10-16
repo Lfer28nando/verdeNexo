@@ -770,7 +770,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarProductosDestacados() {
     try {
-        const response = await axios.get('http://localhost:3000/api/products/featured');
+        const response = await axios.get('https://verdenexo-backend.onrender.com/api/products/featured');
         console.log('Respuesta de productos:', response.data);
         if (response.data.ok) {
             renderizarProductos(response.data.data);
@@ -790,7 +790,7 @@ function renderizarProductos(productos) {
 
     productos.forEach(producto => {
         console.log('Renderizando producto:', producto.nombre);
-        const imagen = producto.imagenes && producto.imagenes.length > 0 ? `http://localhost:3000/uploads/imagenes/${producto.imagenes[0]}` : 'https://pic.onlinewebfonts.com/thumbnails/icons_574013.svg';
+        const imagen = producto.imagenes && producto.imagenes.length > 0 ? `https://verdenexo-backend.onrender.com/uploads/imagenes/${producto.imagenes[0]}` : 'https://pic.onlinewebfonts.com/thumbnails/icons_574013.svg';
         const card = `
             <div class="producto-slide flex-shrink-0" style="width: 300px; margin-right: 1.5rem;">
                 <div class="card h-100 shadow-sm producto-card-hover">
@@ -888,7 +888,7 @@ if (statsSection) {
 // Funciones para 2FA
 // API configuration
 const API = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL: 'https://verdenexo-backend.onrender.com/',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' }
 });
