@@ -1,5 +1,5 @@
 export const API = axios.create({
-  baseURL: 'http://localhost:3000/', // ajusta si tu API tiene otro prefijo
+  baseURL: 'https://verdenexo-backend.onrender.com/', // backend público en Render
   withCredentials: true, // MUY importante: para que el navegador envíe/reciba cookies HttpOnly
   headers: {
     'Content-Type': 'application/json' // Forzar JSON por defecto
