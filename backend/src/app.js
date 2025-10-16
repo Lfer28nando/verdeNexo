@@ -36,7 +36,11 @@ app.use(logRateLimit);
 
 // Configurar CORS adecuadamente
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Frontend Vite
+    origin: [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'https://verdenexo-frontend.onrender.com'
+    ], // Frontend Vite y producción
     credentials: true, // Permitir cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
