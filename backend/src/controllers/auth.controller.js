@@ -34,8 +34,9 @@ export const register = async (req, res, next) => {
         
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
+            domain: '.onrender.com',
             maxAge: 24 * 60 * 60 * 1000
         });
 
@@ -114,8 +115,9 @@ export const login = async (req, res, next) => {
         
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
+            domain: '.onrender.com',
             maxAge: 24 * 60 * 60 * 1000
         });
 
@@ -602,8 +604,9 @@ export const verify2FA = async (req, res, next) => {
                     const token = await createAccessToken({ id: userFound._id });
                     res.cookie("token", token, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'lax',
+                        secure: true,
+                        sameSite: 'none',
+                        domain: '.onrender.com',
                         maxAge: 24 * 60 * 60 * 1000
                     });
                 }

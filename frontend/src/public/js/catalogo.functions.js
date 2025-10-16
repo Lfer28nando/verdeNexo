@@ -5,7 +5,17 @@ import { API } from '/js/api.js';
 API.interceptors.response.use(
   res => res,
   err => {
-    if (err.response?.status === 401) {
+    // Solo redirigir al login si la petición es de perfil, calificación o endpoints protegidos
+    const url = err.config?.url || '';
+    const isProtected = [
+      '/api/auth/profile',
+      '/api/products/', // para calificar (POST)
+      '/api/users',
+      '/api/cart',
+      '/api/checkout',
+      '/api/admin'
+    ].some(path => url.includes(path));
+    if (err.response?.status === 401 && isProtected) {
       showToast('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 'warning');
       setTimeout(() => (window.location.href = '/login'), 1200);
     }
