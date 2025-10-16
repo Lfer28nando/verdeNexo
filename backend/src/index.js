@@ -6,6 +6,7 @@ dotenv.config({ path: './src/.env' });
 import app from './app.js';
 import { connectDB } from './db.js';
 
+console.log('▶️  Arrancando backend - archivo: backend-app.js - PID:', process.pid);
 
 
   // Intenta conectar a la DB pero no dejes que bloquee indefinidamente el start
@@ -27,6 +28,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Backend corriendo en puerto ${PORT}`);
   console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
   if (process.env.NODE_ENV === 'production') {
-    console.log(`📱 Aplicación disponible en: ${process.env.FRONTEND_URL || 'https://tu-app.onrender.com'}`);
+    console.log(`📱 Aplicación disponible en: ${process.env.FRONTEND_URL}`);
   }
 });

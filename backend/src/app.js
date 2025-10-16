@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config({ path: './src/.env' });
+
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -25,7 +27,7 @@ const app = express();
 
 // Health check para Render (debe ir antes de cualquier middleware)
 app.get('/health', (req, res) => res.status(200).json({ ok: true, time: new Date().toISOString() }));
-dotenv.config()
+
 
 // Configurar trust proxy para producción
 trustProxyMiddleware(app);
@@ -34,17 +36,27 @@ trustProxyMiddleware(app);
 app.use(generalLimiter);
 app.use(logRateLimit);
 
-// Configurar CORS adecuadamente
+
+// Configurar CORS usando el paquete cors y el .env
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowedOrigins = allowedOriginsEnv.split(',').map(s => s.trim()).filter(Boolean);
+console.log('[CORS] allowedOrigins (startup):', allowedOrigins);
+
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'https://verdenexo-frontend.onrender.com'
-    ], // Frontend Vite y producción
-    credentials: true, // Permitir cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIOvNS'],
+    origin: function (origin, callback) {
+        console.log('[CORS] origin recibido:', origin);
+        if (!origin) return callback(null, true); // Permitir requests sin origin (curl, Postman)
+        if (allowedOrigins.includes(origin.trim().replace(/\/+$/, ''))) {
+            return callback(null, true);
+        }
+        console.warn(`[CORS] Origen NO permitido: ${origin}`);
+        return callback(new Error('CORS: origen no permitido'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+
 
 app.use(cookieParser());
 app.use(morgan('dev'));

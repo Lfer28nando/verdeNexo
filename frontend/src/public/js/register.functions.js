@@ -10,9 +10,11 @@ export function initGoogleAuthButton(buttonSelector = '#googleAuth') {
   btn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // URL donde tu backend inicia OAuth (ajusta si tu baseURL tiene /api)
-    const authUrl = 'https://verdenexo-backend.onrender.com/auth/google';
-    // si tu backend usa /api prefix: 'https://verdenexo-backend.onrender.com/api/auth/google'
+
+  // URL donde tu backend inicia OAuth, configurable por variable global
+  // Si usas /api prefix, ajusta aquí
+  const backendUrl = (window._env_ && window._env_.BACKEND_URL) ? window._env_.BACKEND_URL : 'https://verdenexo-backend.onrender.com';
+  const authUrl = `${backendUrl.replace(/\/$/, '')}/auth/google`;
 
     // Tamaño y posición del popup (opcional)
     const width = 600;

@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/css/admin.styles.css">
+    <script type="module" src="/js/api.js"></script>
 </head>
 
 <body>
@@ -402,10 +403,13 @@ document.getElementById('createProductForm').addEventListener('submit', async fu
 
     <script>
         // API configuration
-        const API = axios.create({
-          baseURL: 'https://verdenexo-backend.onrender.com/',
-          withCredentials: true
-        });
+                // Configuración de la API
+                // Permite configurar la URL del backend por variable global window._env_.BACKEND_URL
+                const API_BASE = (window._env_ && window._env_.BACKEND_URL) ? window._env_.BACKEND_URL : 'https://verdenexo-backend.onrender.com/';
+                const API = axios.create({
+                    baseURL: API_BASE,
+                    withCredentials: true
+                });
 
         API.interceptors.response.use(
           res => res,

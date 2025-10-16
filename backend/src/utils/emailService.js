@@ -230,7 +230,7 @@ export const sendOrderStatusUpdateEmail = async (pedido, nuevoEstado, mensajeAdi
             <p>Para ver los detalles completos de tu pedido, puedes acceder a tu cuenta en nuestro sitio web.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://verdenexo.com'}/pedidos/${pedido._id}"
+              <a href="${process.env.FRONTEND_URL}/pedidos/${pedido._id}"
                  style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Ver Detalles del Pedido
               </a>

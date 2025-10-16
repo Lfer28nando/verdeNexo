@@ -28,46 +28,76 @@ router.get('/google/callback',
     }),
     async (req, res) => {
         try {
-            // req.user contiene el usuario autenticado por la estrategia
             const user = req.user;
 
             if (!user) {
                 return res.redirect('/login?error=google_auth_failed');
             }
 
-                        // Verificar si el usuario tiene 2FA activado
-                        if (user.twoFactorEnabled) {
-                                // Crear token temporal para el proceso de 2FA
-                                await setTemp2FACookie(res, user);
-                                // Redirigir en la ventana principal usando window.opener
-                                                return res.send(`
-                                                    <html>
-                                                        <head><title>Verificación 2FA</title></head>
-                                                        <body>
-                                                            <script>
-                                                                const frontendUrl = 'https://verdenexo-frontend.onrender.com/login?requires2fa=true';
-                                                                if (window.opener) {
-                                                                    window.opener.location = frontendUrl;
-                                                                    window.close();
-                                                                } else {
-                                                                    window.location = frontendUrl;
-                                                                }
-                                                            </script>
-                                                            <p>Redirigiendo...</p>
-                                                        </body>
-                                                    </html>
-                                                `);
-                        }
+            // Validar FRONTEND_URL
+            if (!process.env.FRONTEND_URL || process.env.FRONTEND_URL.trim() === '') {
+                return res.status(500).send(`
+                    <html>
+                        <head><title>Error de configuración</title></head>
+                        <body>
+                            <h2>FRONTEND_URL no está definida en las variables de entorno.</h2>
+                            <p>Configúrala en tu archivo .env o en Render.</p>
+                        </body>
+                    </html>
+                `);
+            }
+            const frontendUrlBase = process.env.FRONTEND_URL.trim();
+            // Si tiene 2FA activado
+            if (user.twoFactorEnabled) {
+                await setTemp2FACookie(res, user);
+                return res.send(`
+                    <html>
+                        <head><title>Verificación 2FA</title></head>
+                        <body>
+                            <script>
+                                const frontendUrl = '${frontendUrlBase}/login?requires2fa=true';
+                                if (window.opener) {
+                                    window.opener.location = frontendUrl;
+                                    window.close();
+                                } else {
+                                    window.location = frontendUrl;
+                                }
+                            </script>
+                            <p>Redirigiendo...</p>
+                        </body>
+                    </html>
+                `);
+            }
 
-            // Login normal sin 2FA
-            const token = await setAuthCookie(res, user);
-
-            // Redirigir a la página principal
-            res.redirect('/');
+            // ✅ Si NO tiene 2FA → redirige normal y cierra la ventana emergente
+            const frontendUrl = `${frontendUrlBase}/?login=success`;
+            return res.send(`
+                <html>
+                    <head><title>Inicio de sesión exitoso</title></head>
+                    <body>
+                        <script>
+                            if (window.opener) {
+                                window.opener.location = '${frontendUrl}';
+                                window.close();
+                            } else {
+                                window.location = '${frontendUrl}';
+                            }
+                        </script>
+                        <p>Inicio de sesión exitoso. Redirigiendo...</p>
+                    </body>
+                </html>
+            `);
 
         } catch (error) {
-            console.error('Error en Google OAuth callback:', error);
-            res.redirect('/login?error=internal_error');
+            console.error("Error en callback de Google:", error);
+            res.status(500).json({
+                success: false,
+                error: {
+                    code: "SRV_999",
+                    message: "Error interno del servidor",
+                    timestamp: new Date().toISOString()
+                }
+            });
         }
     }
 );

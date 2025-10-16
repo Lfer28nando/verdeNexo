@@ -12,20 +12,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para verificar sesión
     async function checkSession() {
         let hasSession = false;
-        try {
-            let res = await API.get('/auth/me');
-            if (res.data.ok && res.data.user) {
-                hasSession = true;
-            }
-        } catch (err) {
-            // Intentar con /api/auth/profile
+        // Helper para leer cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        // Solo hacer la petición si existe cookie de sesión (ej: "connect.sid" o la que uses)
+        const sessionCookie = getCookie('connect.sid');
+        if (!sessionCookie) {
+            // No hay sesión, no hacer petición ni mostrar nada
+        } else {
             try {
-                let res = await API.get('/api/auth/profile');
-                if (res.data.success && res.data.user) {
+                let res = await API.get('/auth/me');
+                if (res.data.ok && res.data.user) {
                     hasSession = true;
                 }
-            } catch (err2) {
-                // No autenticado
+            } catch (err) {
+                if (err.response && err.response.status === 401) {
+                    console.log('[checkSession] No autenticado en /auth/me (401)');
+                } else {
+                    console.warn('[checkSession] Error inesperado en /auth/me:', err);
+                }
+                // Intentar con /api/auth/profile
+                try {
+                    let res = await API.get('/api/auth/profile');
+                    if (res.data.success && res.data.user) {
+                        hasSession = true;
+                    }
+                } catch (err2) {
+                    if (err2.response && err2.response.status === 401) {
+                        console.log('[checkSession] No autenticado en /api/auth/profile (401)');
+                    } else {
+                        console.warn('[checkSession] Error inesperado en /api/auth/profile:', err2);
+                    }
+                    // No autenticado
+                }
             }
         }
 

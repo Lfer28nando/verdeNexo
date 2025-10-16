@@ -1526,30 +1526,41 @@ export const crearPreferenciaPago = async (req, res, next) => {
       unit_price: item.precioUnitario
     }));
     // Crear objeto de preferencia
-    const frontendUrl = process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim() !== ''
-      ? process.env.FRONTEND_URL.trim()
-      : 'https://verdenexo-frontend.onrender.com/';
+    if (!process.env.FRONTEND_URL || process.env.FRONTEND_URL.trim() === '') {
+      return res.status(500).json({
+        success: false,
+        message: 'FRONTEND_URL no está definida en las variables de entorno. Configúrala en tu archivo .env o en Render.'
+      });
+    }
+    const frontendUrl = process.env.FRONTEND_URL.trim();
     const safePedidoId = pedidoId ? pedidoId : '';
-    const preferenceData = {
-      items: mpItems,
-      payer: {
-        name: pedido.facturacion.nombreCompleto,
-        email: pedido.facturacion.email,
-        phone: {
-          area_code: '',
-          number: pedido.facturacion.telefono.replace(/\D/g, '')
-        }
-      },
-      back_urls: {
-        success: `${frontendUrl}/pedido-confirmado?pedido=${safePedidoId}`,
-        failure: `${frontendUrl}/checkout?error=pago_fallido&pedido=${safePedidoId}`,
-        pending: `${frontendUrl}/checkout?status=pendiente&pedido=${safePedidoId}`
-      },
-      auto_return: 'approved',
-      external_reference: safePedidoId,
-      notification_url: `${process.env.BACKEND_URL || 'https://verdenexo-backend.onrender.com'}/api/webhooks/mercadopago`,
-      statement_descriptor: 'VerdeNexo - Compra en línea'
-    };
+      if (!process.env.BACKEND_URL || process.env.BACKEND_URL.trim() === '') {
+        return res.status(500).json({
+          success: false,
+          message: 'BACKEND_URL no está definida en las variables de entorno. Configúrala en tu archivo .env o en Render.'
+        });
+      }
+      const backendUrl = process.env.BACKEND_URL.trim();
+      const preferenceData = {
+        items: mpItems,
+        payer: {
+          name: pedido.facturacion.nombreCompleto,
+          email: pedido.facturacion.email,
+          phone: {
+            area_code: '',
+            number: pedido.facturacion.telefono.replace(/\D/g, '')
+          }
+        },
+        back_urls: {
+          success: `${frontendUrl}/pedido-confirmado?pedido=${safePedidoId}`,
+          failure: `${frontendUrl}/checkout?error=pago_fallido&pedido=${safePedidoId}`,
+          pending: `${frontendUrl}/checkout?status=pendiente&pedido=${safePedidoId}`
+        },
+        auto_return: 'approved',
+        external_reference: safePedidoId,
+        notification_url: `${backendUrl}/api/webhooks/mercadopago`,
+        statement_descriptor: 'VerdeNexo - Compra en línea'
+      };
     // Log obligatorio para depuración
     console.log('DEBUG MP - back_urls.success:', preferenceData.back_urls.success);
     console.log('DEBUG MP - preferenceData:', JSON.stringify(preferenceData, null, 2));

@@ -1,18 +1,26 @@
+import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/esm/axios.min.js';
+
+// Obtener la variable inyectada desde el servidor (EJS)
+const backendUrl = window.BACKEND_URL;
+
+// Validar que esté definida
+if (!backendUrl) {
+  throw new Error("❌ BACKEND_URL no está definida. Asegúrate de que el servidor la esté enviando correctamente.");
+}
+
 export const API = axios.create({
-  baseURL: 'https://verdenexo-backend.onrender.com/', // backend público en Render
-  withCredentials: true, // MUY importante: para que el navegador envíe/reciba cookies HttpOnly
+  baseURL: backendUrl,
+  withCredentials: true, // Para manejar cookies HttpOnly
   headers: {
-    'Content-Type': 'application/json' // Forzar JSON por defecto
+    'Content-Type': 'application/json'
   }
 });
 
-// NOTA: No añadimos interceptor que lea token de localStorage porque no usas Authorization header.
-// Pero dejamos un interceptor de errores opcional para debug.
+// Interceptor para manejar errores
 API.interceptors.response.use(
   res => res,
   err => {
-    // loguea el error para debug
-    console.error('API response error', err);
+    console.error('❌ Error en la API:', err);
     return Promise.reject(err);
   }
 );
