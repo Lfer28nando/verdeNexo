@@ -42,7 +42,7 @@ app.use(cors({
         'https://verdenexo-frontend.onrender.com'
     ], // Frontend Vite y producción
     credentials: true, // Permitir cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIOvNS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 

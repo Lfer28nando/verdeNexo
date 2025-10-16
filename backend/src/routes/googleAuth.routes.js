@@ -45,7 +45,7 @@ router.get('/google/callback',
                                                         <head><title>Verificación 2FA</title></head>
                                                         <body>
                                                             <script>
-                                                                const frontendUrl = 'http://localhost:5173/login?requires2fa=true';
+                                                                const frontendUrl = 'https://verdenexo-frontend.onrender.com/login?requires2fa=true';
                                                                 if (window.opener) {
                                                                     window.opener.location = frontendUrl;
                                                                     window.close();

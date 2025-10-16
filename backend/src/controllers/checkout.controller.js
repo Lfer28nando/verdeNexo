@@ -1528,7 +1528,7 @@ export const crearPreferenciaPago = async (req, res, next) => {
     // Crear objeto de preferencia
     const frontendUrl = process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim() !== ''
       ? process.env.FRONTEND_URL.trim()
-      : 'http://localhost:5173';
+      : 'https://verdenexo-frontend.onrender.com/';
     const safePedidoId = pedidoId ? pedidoId : '';
     const preferenceData = {
       items: mpItems,
