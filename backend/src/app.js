@@ -22,6 +22,9 @@ import {
 } from './middlewares/rateLimiter.middleware.js';
 
 const app = express();
+
+// Health check para Render (debe ir antes de cualquier middleware)
+app.get('/health', (req, res) => res.status(200).json({ ok: true, time: new Date().toISOString() }));
 dotenv.config()
 
 // Configurar trust proxy para producción

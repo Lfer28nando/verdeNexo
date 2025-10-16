@@ -1,6 +1,5 @@
 // backend/src/index.js (reemplaza todo esto)
 // justo después de crear `app = express()`
-app.get('/health', (req, res) => res.status(200).json({ ok: true, time: new Date().toISOString() }));
 import dotenv from 'dotenv';
 dotenv.config({ path: './src/.env' });
 
