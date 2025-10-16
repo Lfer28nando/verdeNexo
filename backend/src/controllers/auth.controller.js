@@ -93,8 +93,8 @@ export const login = async (req, res, next) => {
 
             res.cookie("temp_token", tempToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                secure: true,
+                sameSite: 'None',
                 maxAge: 5 * 60 * 1000 // 5 minutos
             });
 
@@ -146,8 +146,8 @@ export const login = async (req, res, next) => {
 export const logout = (req, res) => {
     res.cookie("token", "", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'None',
         expires: new Date(0)
     });
     

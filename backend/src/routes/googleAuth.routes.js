@@ -92,8 +92,8 @@ router.get('/logout', (req, res) => {
     // Limpiar la cookie con las mismas opciones para que el navegador la sobrescriba
     res.cookie("token", "", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'None',
         expires: new Date(0)
     });
 

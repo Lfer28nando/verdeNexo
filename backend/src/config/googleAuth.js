@@ -97,8 +97,8 @@ export const setAuthCookie = async (res, user) => {
         // Configurar cookie HttpOnly
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure:true,
+            sameSite: 'None',
             maxAge: 24 * 60 * 60 * 1000 // 24 horas
         });
 
@@ -119,8 +119,8 @@ export const setTemp2FACookie = async (res, user) => {
         // Configurar cookie temporal HttpOnly (5 minutos)
         res.cookie("temp_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'None',
             maxAge: 5 * 60 * 1000 // 5 minutos
         });
 
