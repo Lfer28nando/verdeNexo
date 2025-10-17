@@ -4,6 +4,29 @@
 <script type="module" src="/js/index.functions.js"></script>;
 <link rel="stylesheet" href="/css/index.styles.css">
 
+<!-- Botón flotante Panel Admin (solo visible para admin, se muestra por JS) -->
+<div id="adminPanelFab" style="display:none; position:fixed; bottom:32px; right:32px; z-index:9999;">
+  <a href="/admin" class="btn btn-danger btn-lg shadow-lg d-flex align-items-center gap-2" style="font-size:1.25rem; border-radius:50px; padding:18px 32px 18px 28px; box-shadow:0 4px 24px rgba(0,0,0,0.18);">
+    <i class="fas fa-tools fa-lg me-2"></i>Panel Admin
+  </a>
+</div>
+<script type="module">
+import { API } from '/js/api.functions.js';
+(async () => {
+  try {
+    const res = await API.get('/auth/me', { withCredentials: true });
+    if (res?.data?.ok && res.data.user?.role === 'admin') {
+      document.getElementById('adminPanelFab').style.display = 'block';
+    } else {
+      // fallback
+      const res2 = await API.get('/api/auth/profile', { withCredentials: true });
+      if (res2?.data?.success && res2.data.user?.role === 'admin') {
+        document.getElementById('adminPanelFab').style.display = 'block';
+      }
+    }
+  } catch {}
+})();
+</script>
 <!-- Banner principal con texto sobre la imagen -->
 <section class="position-relative" style="height: 650px; overflow: hidden;">
   <!-- Imagen de fondo -->
@@ -158,7 +181,7 @@
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
                 <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
-                    <img src="https://img.freepik.com/foto-gratis/plantas-interior-estudio_23-2151022060.jpg?t=st=1760465784~exp=1760469384~hmac=bf8183b3fab8652d56fcd33879dda09b29b0a5f737cce661d2f8fb9826b3b658&w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <img src="https://img.freepik.com
                     <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
                          style="background: rgba(47, 82, 51, 0.7);">
                         <div class="text-center text-white">
@@ -172,7 +195,7 @@
             
             <div class="col-lg-4 col-md-6">
                 <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
-                    <img src="https://img.freepik.com/foto-gratis/arreglo-plantas-verdes-alto-angulo_23-2149413491.jpg?t=st=1760465975~exp=1760469575~hmac=9c7bb4b527664a7e12907a588c10d58b37b04cd59784a1444a7c3239598abdbf&w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <
                     <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
                          style="background: rgba(47, 82, 51, 0.7);">
                         <div class="text-center text-white">
@@ -186,7 +209,7 @@
             
             <div class="col-lg-4 col-md-6">
                 <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
-                    <img src="https://img.freepik.com/fotos-premium/exuberante-romero-fresco-olla-sobre-mesa-cocina_212840-465.jpg?w=1060" class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;">
+                    <
                     <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
                          style="background: rgba(47, 82, 51, 0.7);">
                         <div class="text-center text-white">

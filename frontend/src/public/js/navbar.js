@@ -44,6 +44,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
     }
     if (btnPerfilBottom) btnPerfilBottom.onclick = () => window.location.href = '/perfil';
+    // --- BOTÓN PANEL ADMIN ---
+    let adminBtn = document.getElementById('adminPanelBtn');
+    if (user.role === 'admin') {
+      if (!adminBtn) {
+        // Insertar botón en la navbar (desktop)
+        const navList = document.querySelector('.navbar-nav');
+        if (navList) {
+          adminBtn = document.createElement('li');
+          adminBtn.className = 'nav-item';
+          adminBtn.id = 'adminPanelBtn';
+          adminBtn.innerHTML = '<a class="nav-link navbar-vn-links text-danger fw-bold" href="/admin"><i class="fas fa-tools me-1"></i>Panel</a>';
+          navList.appendChild(adminBtn);
+        }
+      } else {
+        adminBtn.style.display = '';
+      }
+    } else if (adminBtn) {
+      adminBtn.style.display = 'none';
+    }
   }
 
   function renderLoggedOutUI() {
@@ -125,6 +144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { await API.get('/api/auth/logout', { withCredentials: true }); }
         catch (err2) { dwarn('logout ambos endpoints fallaron (silenciado)'); }
       } finally {
+        // Limpiar carrito local al cerrar sesión
+        localStorage.removeItem('cartSessionId');
         if (modalPerfil) modalPerfil.hide();
         window.location.replace('/login');
       }
@@ -155,6 +176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      // Limpiar carrito local al iniciar sesión
+      localStorage.removeItem('cartSessionId');
       const email = document.getElementById('emailMobile')?.value;
       const password = document.getElementById('passwordMobile')?.value;
       try {
