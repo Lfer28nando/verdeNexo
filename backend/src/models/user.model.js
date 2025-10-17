@@ -88,7 +88,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // Favoritos del usuario
-  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Producto' }]
 }, {timestamps: true});
 
 // Índices únicos pero sparse: permite múltiples documentos sin el campo (null/absente) y garantiza que sean únicos cuando se proporciona

@@ -3,11 +3,14 @@ import authGuard from './authGuard.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[Perfil] DOMContentLoaded');
-    authGuard('/login').then(() => {
-        console.log('[Perfil] authGuard terminó, usuario autenticado');
-    }).catch(() => {
-        console.warn('[Perfil] authGuard redirigió a login');
-    });
+    authGuard('/login')
+        .then(() => {
+            console.log('[Perfil] Usuario autenticado, cargando perfil...');
+            loadUserInfo();
+        })
+        .catch(() => {
+            console.warn('[Perfil] Usuario no autenticado, redirigido a login');
+        });
     const logoutBtn = document.getElementById('logoutBtn');
     const logoutBtnMobile = document.getElementById('logoutBtnMobile');
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
@@ -26,14 +29,26 @@ async function loadUserInfo() {
             populateUserData(user);
             return;
         } else {
-            console.warn('[Perfil] /api/auth/profile no exitoso:', res.data);
+            // Si el backend responde con error de autenticación, redirigir
+            if (res.status === 401 || res.status === 403) {
+                console.warn('[Perfil] Sesión inválida, redirigiendo a login');
+                window.location.replace('/login');
+                return;
+            }
+            // Si es otro error, mostrar mensaje y no redirigir
+            alert(res.data.message || 'No se pudo cargar el perfil.');
+            return;
         }
     } catch (err) {
         console.error('[Perfil] Error en loadUserInfo:', err);
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+            console.warn('[Perfil] Sesión inválida (catch), redirigiendo a login');
+            window.location.replace('/login');
+            return;
+        }
+        alert(err?.response?.data?.message || 'Error al cargar el perfil.');
     }
-    // Si no carga, redirigir
-    console.warn('[Perfil] Redirigiendo a login desde loadUserInfo');
-    window.location.replace('/login');
 }
 
         // Función para poblar los datos del usuario
@@ -101,7 +116,12 @@ async function loadUserInfo() {
     `;
 
     // Llamar a populateSecurityContent después de populateUserData
-    populateSecurityContent(user);
+    if (typeof populateSecurityContent === 'function') {
+        populateSecurityContent(user);
+    } else {
+        // Stub temporal para evitar error si no existe la función
+        console.warn('[Perfil] populateSecurityContent no está definida.');
+    }
     // Cargar favoritos del usuario
     loadUserFavorites(user._id || user.id);
     // Inicializar event listeners después de cargar todo el contenido
@@ -122,8 +142,6 @@ async function loadUserInfo() {
             });
         }
     }
-
-    // ...existing code...
 
         // Renderizar favoritos
         async function loadUserFavorites(userId) {
@@ -256,8 +274,12 @@ async function loadUserInfo() {
                 if (address) profileData.address = address;
 
                 const profileRes = await API.put('/api/auth/edit', profileData);
-                
                 if (!profileRes.data.success) {
+                    // Si el backend indica sesión inválida, solo ahí redirigir
+                    if (profileRes.status === 401 || profileRes.status === 403) {
+                        window.location.replace('/login');
+                        return;
+                    }
                     alert(profileRes.data.message || 'Error al actualizar el perfil.');
                     return;
                 }
@@ -265,19 +287,25 @@ async function loadUserInfo() {
                 // Mostrar modal de éxito
                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 successModal.show();
-                
+
                 // Actualizar datos en localStorage
                 const updatedUser = profileRes.data.user;
                 localStorage.setItem('user', JSON.stringify(updatedUser));
-                
+
                 // Recargar información del perfil
                 populateUserData(updatedUser);
-                
+
                 // Cerrar modal de edición
                 bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
-                
+
             } catch (err) {
                 console.error('Error al guardar perfil:', err);
+                // Solo redirigir si el error es de autenticación
+                const status = err?.response?.status;
+                if (status === 401 || status === 403) {
+                    window.location.replace('/login');
+                    return;
+                }
                 if (!err.response) {
                     alert('Error de conexión. Verifica tu internet.');
                 } else {
@@ -587,22 +615,19 @@ async function loadUserInfo() {
             }
         }
 
-        // Hacer funciones globales para onclick
-        window.editProfile = editProfile;
-        window.removeFavorite = removeFavorite;
-        window.requestEmailVerification = requestEmailVerification;
-        window.changePassword = changePassword;
-        window.submitChangePassword = submitChangePassword;
-        window.setup2FA = setup2FA;
-        window.disable2FA = disable2FA;
-        window.submitDisable2FA = submitDisable2FA;
-        window.changeEmail = changeEmail;
-        window.submitChangeEmailRequest = submitChangeEmailRequest;
-        window.verifyAndEnable2FA = verifyAndEnable2FA;
-        window.confirmEmailChange = confirmEmailChange;
-
-        // Cargar info al cargar la página
-        loadUserInfo();
+// Hacer funciones globales para onclick
+window.editProfile = editProfile;
+window.removeFavorite = removeFavorite;
+window.requestEmailVerification = requestEmailVerification;
+window.changePassword = changePassword;
+window.submitChangePassword = submitChangePassword;
+window.setup2FA = setup2FA;
+window.disable2FA = disable2FA;
+window.submitDisable2FA = submitDisable2FA;
+window.changeEmail = changeEmail;
+window.submitChangeEmailRequest = submitChangeEmailRequest;
+window.verifyAndEnable2FA = verifyAndEnable2FA;
+window.confirmEmailChange = confirmEmailChange;
 
     // Función para enviar baja
     window.submitUnsubscribe = async function() {
@@ -642,4 +667,42 @@ async function loadUserInfo() {
             }
         }
     };
-    
+
+// Renderizar el apartado de seguridad con el HTML exacto proporcionado por el usuario
+function populateSecurityContent(user) {
+    document.getElementById('securityContent').innerHTML =
+        '<div class="security-section mb-4">' +
+            '<h5><i class="fas fa-key me-2"></i>Cambiar Contraseña</h5>' +
+            '<p class="text-muted">Actualiza tu contraseña regularmente para mantener tu cuenta segura.</p>' +
+            '<button class="btn btn-outline-primary" onclick="changePassword()">' +
+                '<i class="fas fa-lock me-2"></i>Cambiar Contraseña' +
+            '</button>' +
+        '</div>' +
+        '<div class="security-section mb-4">' +
+            '<h5><i class="fas fa-mobile-alt me-2"></i>Autenticación de Dos Factores (2FA)</h5>' +
+            '<p class="text-muted">Añade una capa extra de seguridad a tu cuenta con códigos TOTP.</p>' +
+            '<div class="d-flex align-items-center gap-3">' +
+                (user.twoFactorEnabled ?
+                    '<span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>2FA Activado</span>' :
+                    '<span class="badge bg-secondary fs-6"><i class="fas fa-times me-1"></i>2FA Desactivado</span>') +
+                '<button class="btn ' + (user.twoFactorEnabled ? 'btn-outline-danger' : 'btn-outline-success') + '" onclick="' + (user.twoFactorEnabled ? 'disable2FA()' : 'setup2FA()') + '">' +
+                    '<i class="fas ' + (user.twoFactorEnabled ? 'fa-times' : 'fa-plus') + ' me-2"></i>' + (user.twoFactorEnabled ? 'Desactivar 2FA' : 'Configurar 2FA') +
+                '</button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="security-section mb-4">' +
+            '<h5><i class="fas fa-envelope me-2"></i>Cambiar Dirección de Email</h5>' +
+            '<p class="text-muted">Actualiza tu dirección de email. Recibirás un código de confirmación en la nueva dirección.</p>' +
+            '<button class="btn btn-outline-primary" onclick="changeEmail()">' +
+                '<i class="fas fa-edit me-2"></i>Cambiar Email' +
+            '</button>' +
+        '</div>' +
+        '<div class="security-section border-danger mb-4" style="border-left: 4px solid #dc3545; background-color: #fff5f5;">' +
+            '<h5 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Zona de Peligro</h5>' +
+            '<p class="text-muted">Acciones irreversibles que afectan permanentemente tu cuenta.</p>' +
+            '<button class="btn btn-outline-danger" id="showUnsubscribe">' +
+                '<i class="fas fa-user-times me-2"></i>Eliminar mi cuenta' +
+            '</button>' +
+            '<small class="text-muted d-block mt-2">Esta acción no se puede deshacer. Se eliminarán todos tus datos permanentemente.</small>' +
+        '</div>';
+}

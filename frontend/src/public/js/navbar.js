@@ -8,6 +8,14 @@ function dlog(...args) { if (DEBUG) console.log(...args); }
 function dwarn(...args) { if (DEBUG) console.warn(...args); }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Event listener para editar perfil desde el modal
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', () => {
+      if (modalPerfil) modalPerfil.hide();
+      window.location.href = '/perfil';
+    });
+  }
   // Obtener referencias (verificamos existencia)
   const loginLink = document.getElementById('loginLink');
   const registerLink = document.getElementById('registerLink');

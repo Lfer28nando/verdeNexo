@@ -559,12 +559,27 @@ function viewFullDetails() {
 function toggleWishlist(productId, event) {
   let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
   const idx = wishlist.indexOf(productId);
+  // Obtener usuario autenticado
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('user'));
+  } catch (e) {}
+  const userId = user?._id || user?.id;
+
   if (idx > -1) {
     wishlist.splice(idx, 1);
     showToast('Removido de favoritos', 'info');
+    // Quitar del backend si está autenticado
+    if (userId) {
+      API.delete(`/api/users/${userId}/favorites/${productId}`).catch(() => {});
+    }
   } else {
     wishlist.push(productId);
     showToast('Agregado a favoritos', 'success');
+    // Agregar al backend si está autenticado
+    if (userId) {
+      API.post(`/api/users/${userId}/favorites/${productId}`).catch(() => {});
+    }
   }
   localStorage.setItem('wishlist', JSON.stringify(wishlist));
 
