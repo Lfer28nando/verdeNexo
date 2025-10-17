@@ -1,0 +1,16 @@
+Los botones de cantidades de los productos no funcionan
+El boton de ver detalles no se ve bien.
+Quitar el filtro de disponibilidad.
+El boton de favoritos no guarda
+El mensaje de bienvenida no se envia.
+los filtros superiores del catalogo estan montados
+implementar recapcha
+Cuando inicio sesión con google y 2auth no manda el token
+Pagina para rutas no disponibles
+mensaje de cookies
+alerts de contraseña incorrecta
+se puede entrar a /perfil sin ingresar
+cuando se quiere ingresar con google carga el backend de render no el de env
+
+APP_USR-dacce31a-3cf4-4183-8600-0edc1627a627
+APP_USR-588706202421271-101515-23634ef8d367295e32d6040948244cff-2928144730

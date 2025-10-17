@@ -69,7 +69,8 @@ router.get('/google/callback',
                 `);
             }
 
-            // ✅ Si NO tiene 2FA → redirige normal y cierra la ventana emergente
+            // Si NO tiene 2FA → genera cookie de sesión y redirige normal
+            await setAuthCookie(res, user);
             const frontendUrl = `${frontendUrlBase}/?login=success`;
             return res.send(`
                 <html>

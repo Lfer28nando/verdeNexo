@@ -1,4 +1,4 @@
-import { API } from './api.js';
+import { API } from './api.functions.js';
 
 // Utilidad para obtener el usuario actual (simulación, reemplazar por tu lógica de sesión real)
 async function fetchUserProfile() {

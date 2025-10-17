@@ -1,5 +1,5 @@
 // producto.js - Renderiza la vista de detalle de producto
-import { API } from './api.js';
+import { API } from './api.functions.js';
 import { CartManager } from './cart.js';
 
 document.addEventListener('DOMContentLoaded', async () => {

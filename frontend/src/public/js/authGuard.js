@@ -1,5 +1,5 @@
 // authGuard.js (ESM)
-import { API } from './api.js';
+import { API } from './api.functions.js';
 
 export default async function authGuard(redirectTo = '/login') {
   // Verificar si hay un parámetro requires2fa en la URL

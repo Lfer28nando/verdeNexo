@@ -1,7 +1,7 @@
 import axios from 'https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/esm/axios.min.js';
 
 // Obtener la variable inyectada desde el servidor (EJS)
-const backendUrl = window.BACKEND_URL;
+export const backendUrl = window.BACKEND_URL;
 
 // Validar que esté definida
 if (!backendUrl) {

@@ -1,224 +1,213 @@
-// navbar.js - Manejo dinámico de la navbar basado en sesión
-import { API } from './api.js';
+// navbar.js - Manejo dinámico de la navbar basado en sesión (versión silenciosa)
+import { API } from './api.functions.js';
+
+// Activa logs útiles solo si pones window.DEBUG = true en la consola
+const DEBUG = !!window.DEBUG;
+
+function dlog(...args) { if (DEBUG) console.log(...args); }
+function dwarn(...args) { if (DEBUG) console.warn(...args); }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const loginLink = document.getElementById('loginLink');
-    const registerLink = document.getElementById('registerLink');
-    const btnPerfil = document.getElementById('btnPerfil');
-    const btnPerfilBottom = document.getElementById('btnPerfilBottom');
-    const modalPerfil = new bootstrap.Modal(document.getElementById('modalPerfil'));
-    const modalAuthMobile = new bootstrap.Modal(document.getElementById('modalAuthMobile'));
+  // Obtener referencias (verificamos existencia)
+  const loginLink = document.getElementById('loginLink');
+  const registerLink = document.getElementById('registerLink');
+  const btnPerfil = document.getElementById('btnPerfil');
+  const btnPerfilBottom = document.getElementById('btnPerfilBottom');
+  const modalPerfilEl = document.getElementById('modalPerfil');
+  const modalAuthMobileEl = document.getElementById('modalAuthMobile');
+  const modalPerfil = modalPerfilEl ? new bootstrap.Modal(modalPerfilEl) : null;
+  const modalAuthMobile = modalAuthMobileEl ? new bootstrap.Modal(modalAuthMobileEl) : null;
 
-    // Función para verificar sesión
-    async function checkSession() {
-        let hasSession = false;
-        // Helper para leer cookies
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-        // Solo hacer la petición si existe cookie de sesión (ej: "connect.sid" o la que uses)
-        const sessionCookie = getCookie('connect.sid');
-        if (!sessionCookie) {
-            // No hay sesión, no hacer petición ni mostrar nada
-        } else {
-            try {
-                let res = await API.get('/auth/me');
-                if (res.data.ok && res.data.user) {
-                    hasSession = true;
-                }
-            } catch (err) {
-                if (err.response && err.response.status === 401) {
-                    console.log('[checkSession] No autenticado en /auth/me (401)');
-                } else {
-                    console.warn('[checkSession] Error inesperado en /auth/me:', err);
-                }
-                // Intentar con /api/auth/profile
-                try {
-                    let res = await API.get('/api/auth/profile');
-                    if (res.data.success && res.data.user) {
-                        hasSession = true;
-                    }
-                } catch (err2) {
-                    if (err2.response && err2.response.status === 401) {
-                        console.log('[checkSession] No autenticado en /api/auth/profile (401)');
-                    } else {
-                        console.warn('[checkSession] Error inesperado en /api/auth/profile:', err2);
-                    }
-                    // No autenticado
-                }
-            }
-        }
+  function safeSetDisplay(el, value) {
+    if (!el) return;
+    try { el.style.display = value; } catch (e) { /* silent */ }
+  }
 
-        if (hasSession) {
-            // Hay sesión: ocultar login/register, mostrar perfil
-            loginLink.style.display = 'none';
-            registerLink.style.display = 'none';
-            btnPerfil.style.display = 'flex';
-            // Bottom nav: redirigir a perfil
-            btnPerfilBottom.onclick = () => window.location.href = '/perfil';
-        } else {
-            // No hay sesión: mostrar login/register, ocultar perfil
-            loginLink.style.display = 'flex';
-            registerLink.style.display = 'flex';
-            btnPerfil.style.display = 'none';
-            // Bottom nav: abrir modal
-            btnPerfilBottom.onclick = () => modalAuthMobile.show();
-        }
+  function renderUserInNavbar(user) {
+    if (!user) return;
+    if (btnPerfil) {
+      btnPerfil.style.display = 'flex';
+      btnPerfil.innerHTML = `
+        <img src="${user.avatar || '/img/default-avatar.png'}" style="width:32px;height:32px;object-fit:cover;border-radius:50%;border:2px solid #e0e0e0;box-shadow:0 1px 4px rgba(0,0,0,0.08);" />
+      `;
+      btnPerfil.onclick = () => {
+        if (modalPerfil) modalPerfil.show();
+        else window.location.href = '/perfil';
+      };
     }
+    if (btnPerfilBottom) btnPerfilBottom.onclick = () => window.location.href = '/perfil';
+  }
 
-    // Verificar sesión al cargar
-    await checkSession();
-
-    // Inicializar contador del carrito
-    if (window.CartManager && window.CartManager.updateCartCount) {
-        window.CartManager.updateCartCount();
+  function renderLoggedOutUI() {
+    safeSetDisplay(loginLink, 'flex');
+    safeSetDisplay(registerLink, 'flex');
+    if (btnPerfil) {
+      safeSetDisplay(btnPerfil, 'none');
+      btnPerfil.onclick = null;
+      btnPerfil.innerHTML = '';
     }
+    if (btnPerfilBottom) {
+      btnPerfilBottom.onclick = () => {
+        if (modalAuthMobile) modalAuthMobile.show();
+        else window.location.href = '/login';
+      };
+    }
+  }
 
-    // Event listener para botón de perfil
-    btnPerfil.addEventListener('click', () => {
-        modalPerfil.show();
-    });
-    // btnPerfilBottom se setea en checkSession
+  async function checkSession() {
+    try {
+      // Llamada normal al endpoint de sesión
+      const res = await API.get('/auth/me', { withCredentials: true });
+      if (res?.data?.ok && res.data.user) {
+        safeSetDisplay(loginLink, 'none');
+        safeSetDisplay(registerLink, 'none');
+        renderUserInNavbar(res.data.user);
+        dlog('[checkSession] usuario obtenido');
+        return true;
+      } else {
+        // Si responde OK pero sin user -> tratamos como no logueado (sin ruido)
+        renderLoggedOutUI();
+        return false;
+      }
+    } catch (err) {
+      // Silenciar 401 y errores de red comunes para no llenar consola
+      const status = err?.response?.status;
+      if (status === 401) {
+        dlog('[checkSession] no autenticado (401)');
+        renderLoggedOutUI();
+        return false;
+      }
+      // Si hay otro error con respuesta (p. ej. 5xx) lo logueamos solo si DEBUG
+      if (err?.response) {
+        dwarn('[checkSession] respuesta inesperada:', err.response.status);
+      } else {
+        // error de red (no reach, CORS, ngrok cerrado). mostrar debug opcional.
+        dwarn('[checkSession] error de red o CORS (silenciado). Pon window.DEBUG = true para ver más.');
+      }
 
-    // Event listener para editar perfil
-    document.getElementById('editProfileBtn').addEventListener('click', () => {
-        modalPerfil.hide();
-        window.location.href = '/perfil';
-    });
-
-    // Event listener para cerrar sesión
-    document.getElementById('logoutBtnModal').addEventListener('click', async () => {
-        try {
-            await API.get('/auth/logout');
-            modalPerfil.hide();
-            window.location.replace('/login');
-        } catch (err) {
-            // Intentar con /api/auth/logout
-            try {
-                await API.get('/api/auth/logout');
-                modalPerfil.hide();
-                window.location.replace('/login');
-            } catch (err2) {
-                console.error('Error en logout:', err2);
-                window.location.replace('/login');
-            }
+      // Intentar endpoint alternativo si existe sin producir ruido si falla
+      try {
+        const res2 = await API.get('/api/auth/profile', { withCredentials: true });
+        if (res2?.data?.success && res2.data.user) {
+          safeSetDisplay(loginLink, 'none');
+          safeSetDisplay(registerLink, 'none');
+          renderUserInNavbar(res2.data.user);
+          dlog('[checkSession] usuario obtenido desde /api/auth/profile');
+          return true;
+        } else {
+          renderLoggedOutUI();
+          return false;
         }
+      } catch (err2) {
+        // silenciar fallback errors también
+        dlog('[checkSession] fallback profile falló (silenciado).');
+        renderLoggedOutUI();
+        return false;
+      }
+    }
+  }
+
+  // Logout (si existe el botón)
+  const logoutBtn = document.getElementById('logoutBtnModal');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await API.get('/auth/logout', { withCredentials: true });
+      } catch (err) {
+        try { await API.get('/api/auth/logout', { withCredentials: true }); }
+        catch (err2) { dwarn('logout ambos endpoints fallaron (silenciado)'); }
+      } finally {
+        if (modalPerfil) modalPerfil.hide();
+        window.location.replace('/login');
+      }
     });
+  }
 
-    // Lógica para modal auth móvil
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const switchToRegister = document.getElementById('switchToRegister');
-    const switchToLogin = document.getElementById('switchToLogin');
-    const loginFormMobile = document.getElementById('loginFormMobile');
-    const registerFormMobile = document.getElementById('registerFormMobile');
+  // Manejadores de forms mobile (si existen) - mismos checks
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const switchToRegister = document.getElementById('switchToRegister');
+  const switchToLogin = document.getElementById('switchToLogin');
+  const loginFormMobile = document.getElementById('loginFormMobile');
+  const registerFormMobile = document.getElementById('registerFormMobile');
 
+  if (switchToRegister && loginFormMobile && registerFormMobile) {
     switchToRegister.addEventListener('click', () => {
-        loginFormMobile.style.display = 'none';
-        registerFormMobile.style.display = 'block';
+      loginFormMobile.style.display = 'none';
+      registerFormMobile.style.display = 'block';
     });
-
+  }
+  if (switchToLogin && loginFormMobile && registerFormMobile) {
     switchToLogin.addEventListener('click', () => {
-        registerFormMobile.style.display = 'none';
-        loginFormMobile.style.display = 'block';
+      registerFormMobile.style.display = 'none';
+      loginFormMobile.style.display = 'block';
     });
+  }
 
+  if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('emailMobile').value;
-        const password = document.getElementById('passwordMobile').value;
-        
-        try {
-            const res = await API.post('/api/auth/login', { email, password });
-            
-            if (res.data.requires2FA) {
-                // Mostrar modal de 2FA
-                show2FAModal();
-                modalAuthMobile.hide();
-                return;
-            }
-            
-            if (res.data.success) {
-                modalAuthMobile.hide();
-                window.location.reload();
-            }
-        } catch (err) {
-            alert('Error en login: ' + (err.response?.data?.error?.message || err.response?.data?.message || 'Desconocido'));
+      e.preventDefault();
+      const email = document.getElementById('emailMobile')?.value;
+      const password = document.getElementById('passwordMobile')?.value;
+      try {
+        const res = await API.post('/api/auth/login', { email, password }, { withCredentials: true });
+        if (res.data?.requires2FA) {
+          window.show2FAModal?.();
+          modalAuthMobile?.hide();
+          return;
         }
+        if (res.data?.success) {
+          modalAuthMobile?.hide();
+          window.location.reload();
+        }
+      } catch (err) {
+        alert('Error en login: ' + (err.response?.data?.message || 'Desconocido'));
+      }
     });
+  }
 
+  if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('usernameMobile').value;
-        const email = document.getElementById('emailRegMobile').value;
-        const password = document.getElementById('passwordRegMobile').value;
-        const confirmPassword = document.getElementById('confirmPasswordMobile').value;
-        const cellphone = document.getElementById('cellphoneMobile').value;
-        const acceptTerms = document.getElementById('acceptTermsMobile').checked;
+      e.preventDefault();
+      const username = document.getElementById('usernameMobile')?.value;
+      const email = document.getElementById('emailRegMobile')?.value;
+      const password = document.getElementById('passwordRegMobile')?.value;
+      const confirmPassword = document.getElementById('confirmPasswordMobile')?.value;
+      const cellphone = document.getElementById('cellphoneMobile')?.value;
+      const acceptTerms = document.getElementById('acceptTermsMobile')?.checked;
 
-        if (password !== confirmPassword) {
-            alert('Las contraseñas no coinciden');
-            return;
-        }
-        if (!acceptTerms) {
-            alert('Debes aceptar los términos y condiciones');
-            return;
-        }
+      if (password !== confirmPassword) return alert('Las contraseñas no coinciden');
+      if (!acceptTerms) return alert('Debes aceptar los términos y condiciones');
 
-        try {
-            const res = await API.post('/api/auth/register', { username, email, password, cellphone });
-            if (res.data.success) {
-                modalAuthMobile.hide();
-                window.location.reload();
-            }
-        } catch (err) {
-            alert('Error en registro: ' + (err.response?.data?.message || 'Desconocido'));
+      try {
+        const res = await API.post('/api/auth/register', { username, email, password, cellphone }, { withCredentials: true });
+        if (res.data?.success) {
+          modalAuthMobile?.hide();
+          window.location.reload();
         }
+      } catch (err) {
+        alert('Error en registro: ' + (err.response?.data?.message || 'Desconocido'));
+      }
     });
+  }
 
-    // Función para mostrar modal de 2FA
-    function show2FAModal() {
-        // Si estamos en la página de login, usar el modal ahí
-        const twoFAModal = document.getElementById('twoFAModal');
-        if (twoFAModal) {
-            document.getElementById('twoFACode').value = '';
-            const modal = new bootstrap.Modal(twoFAModal);
-            modal.show();
-        } else {
-            // Si no estamos en login, redirigir a login con parámetro
-            window.location.href = '/login?requires2fa=true';
-        }
-    }
+  // Inicializar: verificar sesión y actualizar contador del carrito
+  await checkSession();
+  if (window.CartManager && window.CartManager.updateCartCount) {
+    try { window.CartManager.updateCartCount(); } catch (e) { dlog('CartManager.updateCartCount falló (silenciado)'); }
+  }
 
-    // Función para verificar 2FA
-    async function verify2FA() {
-        const code = document.getElementById('twoFACode').value.trim();
-        
-        if (!code || code.length !== 6) {
-            alert('Ingresa un código válido de 6 dígitos.');
-            return;
-        }
-
-        try {
-            const res = await API.post('/api/auth/verify2FACode', { code });
-            
-            if (res.data.success) {
-                // Cerrar modal y redirigir
-                const modal = bootstrap.Modal.getInstance(document.getElementById('twoFAModal'));
-                if (modal) modal.hide();
-                window.location.reload();
-            } else {
-                alert(res.data.message || 'Código inválido.');
-            }
-        } catch (err) {
-            const message = err.response?.data?.error?.message || err.response?.data?.message || 'Error al verificar código';
-            alert(`Error: ${message}`);
-        }
-    }
-
-    // Hacer funciones globales
-    window.show2FAModal = show2FAModal;
-    window.verify2FA = verify2FA;
+  // Exponer show2FAModal en global si no existe
+  if (!window.show2FAModal) {
+    window.show2FAModal = () => {
+      const twoFAModal = document.getElementById('twoFAModal');
+      if (twoFAModal) {
+        const inp = document.getElementById('twoFACode');
+        if (inp) inp.value = '';
+        new bootstrap.Modal(twoFAModal).show();
+      } else {
+        window.location.href = '/login?requires2fa=true';
+      }
+    };
+  }
 });

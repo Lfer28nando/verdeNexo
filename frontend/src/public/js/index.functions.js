@@ -1,18 +1,44 @@
-import { API } from "./api.js";
+import { API } from "./api.functions.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Cargando productos destacados...');
+    console.log('[Index] DOMContentLoaded');
+    await logAuthFlow();
+    console.log('[Index] Cargando productos destacados...');
     await cargarProductosDestacados();
 
     const urlParams = new URLSearchParams(window.location.search);
     const requires2FA = urlParams.get('requires2fa');
 
     if (requires2FA === 'true') {
-        console.log('Requiere 2FA, mostrando modal...');
+        console.log('[Index] Requiere 2FA, mostrando modal...');
         if (typeof show2FAModal === 'function') show2FAModal();
         return;
     }
 });
+
+async function logAuthFlow() {
+    try {
+        const resMe = await API.get('/auth/me');
+        console.log('[Index] /auth/me respuesta:', resMe);
+        if (resMe.data?.ok && resMe.data.user) {
+            console.log('[Index] Usuario autenticado en /auth/me:', resMe.data.user);
+            return;
+        }
+    } catch (err) {
+        console.warn('[Index] /auth/me error:', err);
+    }
+    try {
+        const resProfile = await API.get('/api/auth/profile');
+        console.log('[Index] /api/auth/profile respuesta:', resProfile);
+        if (resProfile.data?.success && resProfile.data.user) {
+            console.log('[Index] Usuario autenticado en /api/auth/profile:', resProfile.data.user);
+            return;
+        }
+    } catch (err2) {
+        console.warn('[Index] /api/auth/profile error:', err2);
+    }
+    console.warn('[Index] No autenticado, deberías redirigir a login si es necesario');
+};
 
 // Helper: obtener baseURL limpia (sin slash final)
 function baseUrlClean() {
@@ -223,7 +249,7 @@ async function mostrarBotonAdmin() {
     }
 
     // Solo hacer la petición si existe cookie de sesión (ej: "connect.sid" o la que uses)
-    const sessionCookie = getCookie('connect.sid');
+    const sessionCookie = getCookie('token');
     if (!sessionCookie) {
         // No hay sesión, no hacer petición ni mostrar nada
         return;

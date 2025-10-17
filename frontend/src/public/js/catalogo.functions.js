@@ -1,5 +1,5 @@
 // catalogo.functions.js
-import { API } from '/js/api.js';
+import { API } from '/js/api.functions.js';
 
 // -------------------- Config interceptor (auth) --------------------
 API.interceptors.response.use(

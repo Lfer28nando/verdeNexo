@@ -1,7 +1,7 @@
 // Nueva lógica de integración carrito frontend-backend
 
 
-import { API } from './api.js';
+import { API } from './api.functions.js';
 const API_BASE = '/api/cart';
 
 // Utilidad para obtener o crear sessionId
