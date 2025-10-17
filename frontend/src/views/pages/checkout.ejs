@@ -1,0 +1,115 @@
+<%- include('../partials/header') %>
+<script type="module" src="/js/api.functions.js"></script>
+
+<!-- SDK de Mercado Pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<link rel="stylesheet" href="/css/checkout.styles.css">
+<div class="checkout-container">
+    <!-- Header del Checkout -->
+    <section class="checkout-header">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h1 class="checkout-title">Finalizar Compra</h1>
+                    <p class="checkout-subtitle">Completa tu información para procesar el pedido</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <div class="container checkout-content">
+        <div class="row">
+            <!-- Formulario de Checkout -->
+            <div class="col-lg-8">
+                <form id="checkoutForm" class="checkout-form">
+                    <!-- Información de Contacto -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user"></i> Información de Contacto
+                        </h3>
+                        <div class="input-group mb-3">
+                            <input type="email" id="email" class="checkout-input form-control" placeholder="Correo electrónico" required>
+                            <button id="clearEmailBtn" type="button" class="btn btn-outline-danger" style="font-size:1rem;padding:0 0.5rem;">&times;</button>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="tel" id="phone" class="checkout-input form-control" placeholder="Teléfono" required>
+                            <button id="clearPhoneBtn" type="button" class="btn btn-outline-danger" style="font-size:1rem;padding:0 0.5rem;">&times;</button>
+                        </div>
+                    </div>
+
+                    <!-- Información de Envío -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-truck"></i> Información de Envío
+                        </h3>
+                        <input type="text" id="firstName" class="checkout-input" placeholder="Nombre" required>
+                        <input type="text" id="lastName" class="checkout-input" placeholder="Apellido" required>
+
+                        <!-- Campos de envío (UPZ / Barrio) añadidos para prefill desde el carrito -->
+                        <div class="input-row" style="margin-bottom:1rem;">
+                            <input type="text" id="shippingUPZ" class="checkout-input" value="Medellín" readonly style="flex:1;margin-right:0.5rem;" />
+                            <select id="shippingBarrio" class="checkout-select" style="flex:1;">
+                                <option value="">Seleccionar Barrio</option>
+                                <option value="El Poblado">El Poblado</option>
+                                <option value="Laureles">Laureles</option>
+                                <option value="Envigado">Envigado</option>
+                                <option value="Belen">Belén</option>
+                                <option value="Robledo">Robledo</option>
+                                <option value="Castilla">Castilla</option>
+                            </select>
+                        </div>
+
+                        <input type="text" id="address" class="checkout-input" placeholder="Dirección" required>
+                        <input type="text" id="postalCode" class="checkout-input" placeholder="Código Postal (opcional)">
+                    </div>
+
+                    <!-- Notas del Pedido -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-sticky-note"></i> Notas del Pedido (Opcional)
+                        </h3>
+                        <textarea id="orderNotes" class="checkout-input" rows="3" placeholder="Instrucciones especiales para el envío..."></textarea>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="checkout-actions">
+                        <button type="submit" id="placeOrderBtn" class="btn-place-order" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Pagar con Mercado Pago
+                        </button>
+                        <button type="button" id="backToCartBtn" class="btn-back-to-cart">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Resumen del Pedido -->
+            <div class="col-lg-4">
+                <div class="order-summary">
+                    <h3 class="summary-title">Resumen del Pedido</h3>
+
+                    <div id="orderItems">
+                        <!-- Items se cargan dinámicamente -->
+                        <div class="text-center py-4">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Cargando pedido...</p>
+                        </div>
+                    </div>
+
+                    <div id="orderTotals" class="mt-3">
+                        <!-- Totales se cargan dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay de carga -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+</div>
+
+<script type="module" src="/js/checkout.functions.js"></script>
+<%- include('../partials/footer') %></content>

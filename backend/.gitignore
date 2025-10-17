@@ -1,0 +1,78 @@
+# Backend-specific ignores (Node.js/Express API)
+# This complements the root .gitignore
+
+# Dependencies (duplicated from root for clarity)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (backend-specific)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs (backend-specific)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and test reports
+coverage/
+*.lcov
+.nyc_output/
+test-results.json
+test-results.xml
+test-report.html
+
+# Newman (Postman CLI) - specific to backend testing
+newman/
+
+# Build outputs
+dist/
+build/
+
+# Cache directories
+.npm
+.eslintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.cache
+.parcel-cache
+
+# Temporary files
+tmp/
+temp/
+
+# IDE/Editor files (backend-specific)
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files (if any local DB)
+*.sqlite
+*.sqlite3
+
+# Optional: Uncomment to ignore Postman collections if you want to keep them private
+# *.postman_collection.json
+# *.postman_environment.json

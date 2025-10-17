@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+<script type="module" src="/js/api.functions.js"></script>
+<link rel="stylesheet" href="/css/carrito.styles.css">
+<div class="cart-container">
+    <!-- Header del Carrito -->
+    <section class="cart-header">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h1 class="cart-title">Mi Carrito de Compras</h1>
+                    <p class="cart-subtitle">Revisa y administra los productos que deseas adquirir</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <div class="container cart-content">
+        <div class="row">
+            <!-- Items del Carrito -->
+            <div class="col-lg-8">
+                <div id="cartItemsContainer" class="cart-items">
+                    <!-- Items se cargan dinámicamente -->
+                    <div class="loading-spinner" id="cartLoading"></div>
+                </div>
+
+                <!-- Carrito vacío -->
+                <div id="emptyCart" class="empty-cart" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>Tu carrito está vacío</h3>
+                    <p>¡Agrega algunos productos para comenzar tu compra!</p>
+                    <a href="/catalogo" class="btn btn-success btn-lg">
+                        <i class="fas fa-leaf me-2"></i>Explorar Catálogo
+                    </a>
+                </div>
+            </div>
+
+            <!-- Resumen del Carrito -->
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <h3 class="summary-title">Resumen del Pedido</h3>
+
+                    <!-- Cupón -->
+                    <div class="coupon-section">
+                        <div class="coupon-input-group">
+                            <input type="text" id="couponCode" class="coupon-input" placeholder="Código de descuento" maxlength="20">
+                            <button id="applyCouponBtn" class="btn-apply-coupon">
+                                <i class="fas fa-tag me-1"></i>Aplicar
+                            </button>
+                        </div>
+                        <div id="couponApplied" class="coupon-applied" style="display: none;">
+                            <span id="couponText"></span>
+                            <button id="removeCouponBtn" class="remove-coupon">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Envío -->
+                    <div class="shipping-section">
+                        <h5 class="mb-3">Calcular Envío</h5>
+                        <div class="shipping-form">
+                            <input type="text" id="shippingUPZ" class="shipping-input" value="Medellín" readonly>
+                            <select id="shippingBarrio" class="shipping-input">
+                                <option value="El Poblado">El Poblado</option>
+                                <option value="Laureles">Laureles</option>
+                                <option value="Envigado">Envigado</option>
+                                <option value="Belen">Belén</option>
+                                <option value="Robledo">Robledo</option>
+                                <option value="Castilla">Castilla</option>
+                            </select>
+                            <input type="text" id="shippingDireccion" class="shipping-input" placeholder="Dirección exacta (calle, número, apto, etc.)" maxlength="100">
+                            <button id="calculateShippingBtn" class="btn-calculate-shipping">
+                                <i class="fas fa-truck me-1"></i>Calcular
+                            </button>
+                        </div>
+                        <div id="shippingResult" class="shipping-result" style="display: none;">
+                            <div id="shippingInfo"></div>
+                        </div>
+                    </div>
+
+                    <!-- Totales -->
+                    <div id="cartTotals">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotalAmount">$0</span>
+                        </div>
+                        <div class="summary-row discount" id="discountRow" style="display: none;">
+                            <span>Descuento:</span>
+                            <span id="discountAmount">-$0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Envío:</span>
+                            <span id="shippingAmount">$0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>IVA (incluido):</span>
+                            <span id="ivaAmount">$0</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <span id="totalAmount">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="cart-actions">
+                        <button id="checkoutBtn" class="btn-checkout" disabled>
+                            <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                        </button>
+                        <button id="continueShoppingBtn" class="btn-continue-shopping">
+                            <i class="fas fa-arrow-left me-2"></i>Continuar Comprando
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay de carga -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+</div>
+<%- include('../partials/footer') %></content>
+<parameter name="filePath">c:\Users\Usuario\verdeNexo-develop\verdeNexo-develop\frontend\src\views\pages\carrito.ejs

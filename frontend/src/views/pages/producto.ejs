@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<script type="module" src="/js/api.functions.js"></script>
+<link rel="stylesheet" href="/css/catalogo.styles.css">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg rounded-4 p-4" id="productDetailCard">
+                <div class="row g-4">
+                    <div class="col-md-5 text-center">
+                        <img id="productImage" src="" alt="Imagen del producto" class="img-fluid rounded-3" style="max-height:300px;object-fit:cover;">
+                    </div>
+                    <div class="col-md-7">
+                        <h2 id="productName" class="mb-3"></h2>
+                        <div id="productPrice" class="fs-4 fw-bold text-success mb-2"></div>
+                        <p id="productDescription" class="text-muted mb-3"></p>
+                        <div id="productStock" class="mb-3"></div>
+                        <button id="addToCartBtn" class="btn btn-success btn-lg">
+                            <i class="fas fa-cart-plus me-2"></i>Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="module" src="/js/producto.js"></script>
+<%- include('../partials/footer') %>

@@ -1,0 +1,445 @@
+<%- include('../partials/header') %>
+
+<script type="module" src="/js/api.functions.js"></script>;
+<script type="module" src="/js/index.functions.js"></script>;
+<link rel="stylesheet" href="/css/index.styles.css">
+
+<!-- Botón flotante Panel Admin (solo visible para admin, se muestra por JS) -->
+<div id="adminPanelFab" style="display:none; position:fixed; bottom:32px; right:32px; z-index:9999;">
+  <a href="/admin" class="btn btn-danger btn-lg shadow-lg d-flex align-items-center gap-2" style="font-size:1.25rem; border-radius:50px; padding:18px 32px 18px 28px; box-shadow:0 4px 24px rgba(0,0,0,0.18);">
+    <i class="fas fa-tools fa-lg me-2"></i>Panel Admin
+  </a>
+</div>
+<script type="module">
+import { API } from '/js/api.functions.js';
+(async () => {
+  try {
+    const res = await API.get('/auth/me', { withCredentials: true });
+    if (res?.data?.ok && res.data.user?.role === 'admin') {
+      document.getElementById('adminPanelFab').style.display = 'block';
+    } else {
+      // fallback
+      const res2 = await API.get('/api/auth/profile', { withCredentials: true });
+      if (res2?.data?.success && res2.data.user?.role === 'admin') {
+        document.getElementById('adminPanelFab').style.display = 'block';
+      }
+    }
+  } catch {}
+})();
+</script>
+<!-- Banner principal con texto sobre la imagen -->
+<section class="position-relative" style="height: 650px; overflow: hidden;">
+  <!-- Imagen de fondo -->
+  <img src="/img/l1.png" alt="monstera" class="w-100 h-100" style="object-fit: cover; object-position: center;">
+
+  <!-- Contenido encima de la imagen -->
+  <div class="position-absolute top-50 start-0 translate-middle-y text-white p-4 p-md-5" 
+       style="background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)); 
+              max-width: 550px; border-radius: 15px; margin-left: 5%; 
+              backdrop-filter: blur(2px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+    <h1 class="fw-bold mb-4" style="font-size: 2.5rem; line-height: 1.1; color: #ffffff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: -0.01em;">
+      Transforma tu espacio con <span style="color: #90EE90;">naturaleza viva</span>
+    </h1>
+    <p class="mb-4" style="font-size: 1.1rem; line-height: 1.6; color: #f8f9fa; opacity: 0.95; letter-spacing: 0.01em;">
+      Nuestras plantas están cuidadosamente seleccionadas para armonizar tu hogar, oficina o negocio, 
+      aportando frescura, estilo y bienestar en cada rincón de tu vida.
+    </p>
+    <a href="{% url 'tienda:catalogo' %}" class="btn btn-light fw-bold px-4 py-3" 
+       style="font-size: 1rem; letter-spacing: 0.02em; border-radius: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.3); transition: all 0.3s ease;">
+      <i class="fas fa-leaf me-2"></i>Descubre Nuestro Catálogo
+    </a>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">¿Por qué elegir Vivero Verde Nexo?</h2>
+                <p class="lead text-muted">Tu vivero comprometido con la sostenibilidad y calidad</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_39920.svg" alt="Ecológico" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">100% Ecológico</h4>
+                    <p class="text-muted">Todos nuestros productos son respetuosos con el medio ambiente y certificados.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_224289.svg" alt="Envío Sostenible" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">Envío Sostenible</h4>
+                    <p class="text-muted">Entregamos tus productos con empaques biodegradables y transporte eco-friendly.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_454300.svg" alt="Calidad Premium" width="48" height="48">
+                    </div>
+                    <h4 class="fw-bold">Calidad Premium</h4>
+                    <p class="text-muted">Seleccionamos cuidadosamente cada producto para garantizar la mejor calidad.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Preview Slider -->
+<section class="products-preview py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Productos Destacados</h2>
+                <p class="lead text-muted">Descubre nuestros productos más populares</p>
+            </div>
+        </div>
+        
+        <!-- Slider Container -->
+        <div class="position-relative">
+            <div class="productos-slider-container overflow-hidden">
+                <div class="productos-slider d-flex transition-all" id="productosSlider" style="transform: translateX(0px); transition: transform 0.5s ease;">
+                    <!-- Productos se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+            
+            <!-- Navigation Arrows -->
+            <button class="slider-arrow slider-arrow-left btn btn-success position-absolute top-50 start-0 translate-middle-y ms-2" 
+                    onclick="window.moverSlider('prev')" style="z-index: 10; width: 50px; height: 50px; border-radius: 50%; display: none;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="slider-arrow slider-arrow-right btn btn-success position-absolute top-50 end-0 translate-middle-y me-2" 
+                    onclick="window.moverSlider('next')" style="z-index: 10; width: 50px; height: 50px; border-radius: 50%; display: none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="/catalogo" class="btn btn-success btn-lg">
+                <i class="fas fa-eye me-2"></i>Ver Todos los Productos
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Estadísticas Section -->
+<section class="stats-section py-5" style="background: linear-gradient(135deg, #2f5233, #4a7c59);">
+    <div class="container">
+        <div class="row text-center text-white">
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="21">0</div>
+                    <h5 class="stat-label">Plantas Vendidas</h5>
+                    <p class="small opacity-75">Este mes</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="98">0</div>
+                    <h5 class="stat-label">% Satisfacción</h5>
+                    <p class="small opacity-75">Clientes felices</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="250">0</div>
+                    <h5 class="stat-label">Especies Diferentes</h5>
+                    <p class="small opacity-75">En catálogo</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number h1 fw-bold mb-2" data-count="5">0</div>
+                    <h5 class="stat-label">Años Experiencia</h5>
+                    <p class="small opacity-75">En el mercado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categorías Destacadas -->
+<section class="categories-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Explora por Categorías</h2>
+                <p class="lead text-muted">Encuentra exactamente lo que necesitas para tu espacio verde</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <img src="https://img.freepik.com
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas de Interior</h4>
+                            <p class="mb-3">Ideales para decorar tu hogar</p>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas de Exterior</h4>
+                            <p class="mb-3">Para jardines y balcones</p>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="category-card position-relative overflow-hidden rounded-3 shadow-sm" style="height: 300px;">
+                    <
+                    <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                         style="background: rgba(47, 82, 51, 0.7);">
+                        <div class="text-center text-white">
+                            <h4 class="fw-bold mb-3">Plantas Aromáticas</h4>
+                            <p class="mb-3">Hierbas y especias naturales</p>
+                            <a href="/catalogo" class="btn btn-light btn-sm">Ver Plantas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios -->
+<section class="testimonials-section py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Lo que Dicen Nuestros Clientes</h2>
+                <p class="lead text-muted">Experiencias reales de nuestra comunidad verde</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Las plantas llegaron en perfectas condiciones y el servicio al cliente fue excepcional. Mi hogar ahora está lleno de vida y color."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">MR</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">María Rodríguez</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Excelente variedad de plantas y muy buenos precios. El equipo de Verde Nexo realmente sabe de plantas y te asesoran perfectamente."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">CL</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Carlos López</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="testimonial-card bg-white p-4 rounded-3 shadow-sm h-100">
+                    <div class="d-flex mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="testimonial-text mb-4 fst-italic">"Mi jardín se transformó completamente con sus plantas y servicios. El delivery es súper rápido y el empaque ecológico me encanta."</p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white fw-bold">AG</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Ana García</h6>
+                            <small class="text-muted">Cliente verificado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section py-5" style="background: linear-gradient(135deg, rgba(47, 82, 51, 0.9), rgba(74, 124, 89, 0.9)); background-size: cover; background-position: center;">
+    <div class="container text-center text-white">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="display-5 fw-bold mb-4">¿Listo para Transformar tu Espacio?</h2>
+                <p class="lead mb-4">Únete a miles de clientes satisfechos que ya han transformado sus hogares con nuestras plantas premium y servicios especializados.</p>
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="/catalogo" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-shopping-cart me-2"></i>Comprar Ahora
+                    </a>
+                    <a href="/contacto" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-phone me-2"></i>Consultar Gratis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-6 fw-bold text-success mb-3">Preguntas Frecuentes</h2>
+                <p class="lead text-muted">Resolvemos tus dudas más comunes</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                ¿Cómo cuido mis plantas recién llegadas?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Todas nuestras plantas vienen con instrucciones detalladas de cuidado. Recomendamos regarlas gradualmente los primeros días y ubicarlas en un lugar con luz indirecta hasta que se adapten a su nuevo hogar.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                ¿Ofrecen garantía en las plantas?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Sí, ofrecemos garantía de 30 días en todas nuestras plantas. Si alguna planta no prospera siguiendo nuestras instrucciones de cuidado, la reemplazamos sin costo adicional.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                ¿Cuánto tiempo tarda el envío?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                El tiempo de envío varía según tu ubicación: 1-2 días en la ciudad, 3-5 días en el área metropolitana y 5-7 días a nivel nacional. Todos los envíos incluyen tracking.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                ¿Puedo devolver una planta si no me gusta?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Aceptamos devoluciones dentro de los primeros 15 días si la planta está en perfectas condiciones. El cliente cubre los costos de envío de devolución.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="newsletter-section py-5 bg-success text-white">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-6">
+                <h3 class="fw-bold mb-3">¡Mantente conectado con Vivero Verde Nexo!</h3>
+                <p class="mb-4">Suscríbete a nuestro newsletter y recibe ofertas exclusivas y consejos de jardinería.</p>
+                
+                <form class="d-flex gap-2">
+                    <input type="email" class="form-control" placeholder="Tu email...">
+                    <button class="btn btn-light" type="submit">
+                        <i class="fas fa-paper-plane me-1"></i>Suscribirme
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Modal para 2FA -->
+    <div class="modal fade" id="twoFAModal" tabindex="-1" aria-labelledby="twoFAModalLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:#181818; color:#fff;">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="twoFAModalLabel">Verificación de Dos Factores</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img src="https://pic.onlinewebfonts.com/thumbnails/icons_281692.svg" alt="2FA" width="60" height="60" class="mb-3">
+                        <p>Ingresa el código de 6 dígitos de tu aplicación autenticadora</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="twoFACode" class="form-label">Código 2FA</label>
+                        <input type="text" class="form-control text-center" id="twoFACode" maxlength="6" placeholder="000000" style="font-size:1.2rem; letter-spacing:0.5rem;">
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted">¿No tienes acceso a tu código? <a href="/recuperar" class="text-success">Recupera tu cuenta</a></small>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="verify2FA()">Verificar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('../partials/footer') %>

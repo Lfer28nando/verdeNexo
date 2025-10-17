@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Administrador - Vivero Verde Nexo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/admin.styles.css">
+    <script type="module" src="/js/api.functions.js"></script>
+    <script type="module" src="/js/admin.functions.js"></script>
+</head>
+
+<body>
+    <!-- NAVBAR (DESKTOP)-->
+    <nav class="navbar navbar-expand-lg navbar-vn sticky-top d-none d-lg-flex">
+        <div class="container-fluid px-4 align-items-center">
+            <!-- Secciones -->
+            <div class="collapse navbar-collapse order-1 order-lg-0" id="navbar-vn-1" style="flex: 1;">
+                <ul class="navbar-nav mb-3 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/catalogo">Catálogo</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/servicios">Servicios</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/blog">Blog</a></li>
+                    <li class="nav-item"><a class="nav-link navbar-vn-links" href="/contacto">Contacto</a></li>
+                </ul>
+            </div>
+
+            <!--Logo -->
+            <div class="text-center order-0" style="flex: 1;">
+                <a href="/"><img src="/img/logo.png" alt="Verde Nexo" height="45"></a>
+            </div>
+
+            <!--Buscador + botones -->
+            <div class="d-flex align-items-center justify-content-end order-2" style="flex: 1; gap: 0.75rem;">
+                <form class="d-none d-lg-flex" role="search" style="min-width: 200px;">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <img src="/img/search-alt.png" alt="Buscar" width="16" height="16">
+                        </span>
+                        <input class="form-control" type="search" placeholder="Buscar..." aria-label="Buscar">
+                    </div>
+                </form>
+                <!-- Botones de logout -->
+                <div class="d-flex" style="gap: 0.5rem;">
+                    <button id="logoutBtn" class="btn btn-vn-session" type="button">
+                        <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- NAVBAR (MOBILE)-->
+    <header class="d-lg-none py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <!-- logo centrado -->
+            <div class="flex-fill text-start">
+                <!--icono izquierdo vacío para centrar mejor -->
+            </div>
+            <div class="flex-fill text-center">
+                <a href="/"><img src="/img/logo.png" alt="Verde Nexo" height="40"></a>
+            </div>
+            <div class="flex-fill text-end">
+                <button id="logoutBtnMobile" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BOTTOM NAV para mobile -->
+    <nav class="bottom-nav d-lg-none">
+        <a href="/" class="bottom-nav-item">
+            <img src="/img/icon-home.svg" alt="Home" width="22" height="22" class="icon-white"><span>Inicio</span>
+        </a>
+        <a href="/catalogo" class="bottom-nav-item">
+            <img src="/img/icon-search.svg" alt="Buscar" width="22" height="22" class="icon-white"><span>Buscar</span>
+        </a>
+        <a href="/favoritos" class="bottom-nav-item">
+            <img src="/img/icon-heart.svg" alt="Favoritos" width="22" height="22" class="icon-white"><span>Favoritos</span>
+        </a>
+        <a href="/perfil" class="bottom-nav-item">
+            <img src="/img/icon-user.svg" alt="Perfil" width="22" height="22" class="icon-white"><span>Perfil</span>
+        </a>
+    </nav>
+
+    <!-- Header del Admin -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-md-8">
+                    <img src="https://pic.onlinewebfonts.com/thumbnails/icons_281692.svg" alt="Admin Avatar" class="admin-avatar mb-4">
+                    <div class="admin-welcome">
+                        <h1>Panel de Administrador</h1>
+                        <p id="adminEmail">Cargando información...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <!-- Navegación de Secciones -->
+                <ul class="nav nav-pills admin-nav mb-4" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="dashboard-tab" data-bs-toggle="pill" data-bs-target="#dashboard" type="button" role="tab">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="users-tab" data-bs-toggle="pill" data-bs-target="#users" type="button" role="tab">
+                            <i class="fas fa-users me-2"></i>Usuarios
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="products-tab" data-bs-toggle="pill" data-bs-target="#products" type="button" role="tab">
+                            <i class="fas fa-box me-2"></i>Productos
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Contenido de las Secciones -->
+                <div class="tab-content" id="adminTabContent">
+                    <!-- Dashboard -->
+                    <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                        <div id="dashboardContent">
+                            <div class="loading">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestión de Usuarios -->
+                    <div class="tab-pane fade" id="users" role="tabpanel">
+                        <div class="admin-section">
+                            <div class="section-header">
+                                <h3><i class="fas fa-users me-2"></i>Gestión de Usuarios</h3>
+                                <p>Administra usuarios, roles y permisos del sistema</p>
+                            </div>
+                            <div id="usersContent">
+                                <div class="loading">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestión de Productos -->
+                    <div class="tab-pane fade" id="products" role="tabpanel">
+                        <div class="admin-section">
+                            <div class="section-header">
+                                <h3><i class="fas fa-box me-2"></i>Gestión de Productos</h3>
+                                <p>Controla el inventario, disponibilidad y ficha técnica de productos</p>
+                            </div>
+                            <div id="productsContent">
+                                <div class="d-flex justify-content-end mb-3">
+                                    <button class="btn btn-admin-success" data-bs-toggle="modal" data-bs-target="#createProductModal">
+                                        <i class="fas fa-plus me-2"></i>Crear producto
+                                    </button>
+                                </div>
+                                <div class="loading">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                </div>
+<!-- Modal Crear Producto -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="createProductModalLabel"><i class="fas fa-box me-2"></i>Crear nuevo producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createProductForm" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" name="nombre" id="cpNombre" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio base</label>
+                            <input type="number" class="form-control" name="precioBase" id="cpPrecio" min="0" step="0.01" required />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" id="cpDescripcion" rows="2" required></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock</label>
+                            <input type="number" class="form-control" name="stock" id="cpStock" min="0" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Disponibilidad</label>
+                            <select class="form-select" name="disponibilidad" id="cpDisponibilidad">
+                                <option value="true">Disponible</option>
+                                <option value="false">No disponible</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Etiquetas</label>
+                            <input type="text" class="form-control" name="etiquetas" id="cpEtiquetas" placeholder="Separadas por coma" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Imágenes</label>
+                            <input type="file" class="form-control" name="imagenes" id="cpImagenes" accept="image/*" multiple />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ficha técnica (PDF)</label>
+                            <input type="file" class="form-control" name="fichaTecnica" id="cpFichaTecnica" accept="application/pdf" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Variantes (JSON)</label>
+                            <textarea class="form-control" name="variantes" id="cpVariantes" rows="2" placeholder='[{"atributo":"color","valor":"verde","precio":10,"stock":5}]'></textarea>
+                        </div>
+                    </div>
+                </form>
+                <hr class="my-4" />
+                <h6 class="mb-3">Previsualización</h6>
+                <div id="previewProducto" class="border rounded p-3 bg-light">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <img id="previewImg" src="https://via.placeholder.com/150x150?text=Imagen" alt="Preview" class="img-fluid rounded mb-2" style="max-height:150px;object-fit:cover;" />
+                            <div id="previewFicha" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-8">
+                            <h5 id="previewNombre">Nombre del producto</h5>
+                            <span class="badge bg-success mb-2" id="previewDisponibilidad">Disponible</span>
+                            <p id="previewDescripcion" class="mb-1">Descripción del producto...</p>
+                            <div class="mb-1"><strong>Precio:</strong> $<span id="previewPrecio">0.00</span></div>
+                            <div class="mb-1"><strong>Stock:</strong> <span id="previewStock">0</span></div>
+                            <div class="mb-1"><strong>Etiquetas:</strong> <span id="previewEtiquetas">-</span></div>
+                            <div class="mb-1"><strong>Variantes:</strong> <span id="previewVariantes">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="createProductForm" class="btn btn-admin-success">Guardar producto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+                            </div>
+                            <!-- Formulario de ficha técnica -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar rol de usuario -->
+    <div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeRoleModalLabel">Cambiar Rol de Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que quieres cambiar el rol de <strong id="userToChange"></strong>?</p>
+                    <div class="mb-3">
+                        <label for="newRole" class="form-label">Nuevo rol:</label>
+                        <select class="form-select" id="newRole">
+                            <option value="client">Cliente</option>
+                            <option value="seller">Vendedor</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-admin" onclick="changeUserRole()">Cambiar Rol</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para eliminar usuario -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Eliminar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Advertencia!</strong> Esta acción eliminará permanentemente al usuario <strong id="userToDelete"></strong> y todos sus datos asociados.
+                    </div>
+                    <p>¿Estás completamente seguro de que quieres continuar?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteUser()">Eliminar Usuario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar disponibilidad de producto -->
+    <div class="modal fade" id="toggleProductModal" tabindex="-1" aria-labelledby="toggleProductModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="toggleProductModalLabel">Cambiar Disponibilidad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="productToggleMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-admin-success" onclick="toggleProductAvailability()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+<%- include('../partials/footer') %>

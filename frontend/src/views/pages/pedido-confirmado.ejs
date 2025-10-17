@@ -1,0 +1,455 @@
+<%- include('../partials/header') %>
+<script type="module" src="/js/api.functions.js"></script>
+
+<style>
+/* Confirmación de Pedido - Verde Nexo */
+
+/* Variables CSS */
+:root {
+    --primary-green: #28a745;
+    --primary-green-dark: #218838;
+    --primary-green-light: #20c997;
+    --secondary-green: #4a7c59;
+    --accent-green: #90EE90;
+    --dark-green: #2f5233;
+    --light-bg: #f8f9fa;
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
+    --shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Layout Principal */
+.confirmation-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 2rem 0;
+}
+
+/* Header de Confirmación */
+.confirmation-header {
+    background: linear-gradient(135deg, var(--dark-green) 0%, var(--secondary-green) 100%);
+    color: white;
+    padding: 4rem 0 3rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+.confirmation-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="40" r="0.8" fill="rgba(255,255,255,0.1)"/><circle cx="20" cy="70" r="1.2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+    opacity: 0.3;
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: var(--accent-green);
+    margin-bottom: 1rem;
+    animation: checkmark 0.8s ease-in-out;
+}
+
+@keyframes checkmark {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(-90deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.confirmation-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 0.5rem;
+}
+
+.confirmation-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Contenedor Principal */
+.confirmation-content {
+    padding: 2rem 0;
+}
+
+/* Tarjeta de Confirmación */
+.confirmation-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 3rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.order-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 1rem;
+}
+
+.order-details {
+    text-align: left;
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+    font-weight: 700;
+    color: var(--primary-green);
+}
+
+/* Acciones */
+.confirmation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.btn-primary-action {
+    background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.btn-primary-action:hover {
+    background: linear-gradient(135deg, var(--primary-green-dark), var(--primary-green));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-secondary-action {
+    background: transparent;
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.btn-secondary-action:hover {
+    background: var(--primary-green);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Información Adicional */
+.additional-info {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.info-section {
+    margin-bottom: 2rem;
+}
+
+.info-section:last-child {
+    margin-bottom: 0;
+}
+
+.info-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-content {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .confirmation-header {
+        padding: 3rem 0 2rem;
+    }
+
+    .success-icon {
+        font-size: 3rem;
+    }
+
+    .confirmation-title {
+        font-size: 2rem;
+    }
+
+    .confirmation-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .confirmation-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 576px) {
+    .confirmation-container {
+        padding: 1rem 0;
+    }
+
+    .confirmation-header {
+        padding: 2rem 0 1.5rem;
+    }
+
+    .confirmation-title {
+        font-size: 1.8rem;
+    }
+
+    .confirmation-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .order-details {
+        margin: 1.5rem auto;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.confirmation-card,
+.additional-info {
+    animation: fadeInUp 0.6s ease-out;
+}
+</style>
+
+<div class="confirmation-container">
+    <!-- Header de Confirmación -->
+    <section class="confirmation-header">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="confirmation-title">¡Pedido Confirmado!</h1>
+                    <p class="confirmation-subtitle">
+                        Gracias por tu compra. Tu pedido ha sido procesado exitosamente y pronto recibirás un correo de confirmación.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <div class="container confirmation-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Tarjeta de Confirmación -->
+                <div class="confirmation-card">
+                    <div class="order-number">
+                        Número de Pedido: <span id="orderNumber">#VN-2025-XXXX</span>
+                    </div>
+
+                    <div class="order-details">
+                        <div class="detail-row">
+                            <span>Fecha del pedido:</span>
+                            <span id="orderDate">Cargando...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Método de pago:</span>
+                            <span id="paymentMethod">Cargando...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Estado del pedido:</span>
+                            <span style="color: var(--primary-green);">Confirmado</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total del pedido:</span>
+                            <span id="orderTotal">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="confirmation-actions">
+                        <button class="btn-primary-action" onclick="continueShopping()">
+                            <i class="fas fa-shopping-bag me-2"></i>Continuar Comprando
+                        </button>
+                        <button class="btn-secondary-action" onclick="viewOrderDetails()">
+                            <i class="fas fa-eye me-2"></i>Ver Detalles del Pedido
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Información Adicional -->
+                <div class="additional-info">
+                    <div class="info-section">
+                        <h3 class="info-title">
+                            <i class="fas fa-shipping-fast"></i> Información de Envío
+                        </h3>
+                        <div class="info-content">
+                            <p>Tu pedido será procesado en las próximas 24-48 horas. Recibirás actualizaciones por correo electrónico sobre el estado de tu envío.</p>
+                            <p><strong>Tiempo estimado de entrega:</strong> 3-5 días hábiles para Bogotá y alrededores.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="info-title">
+                            <i class="fas fa-envelope"></i> Confirmación por Correo
+                        </h3>
+                        <div class="info-content">
+                            <p>Hemos enviado un correo electrónico con los detalles completos de tu pedido. Si no lo encuentras en tu bandeja de entrada, revisa la carpeta de spam.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="info-title">
+                            <i class="fas fa-question-circle"></i> ¿Necesitas Ayuda?
+                        </h3>
+                        <div class="info-content">
+                            <p>Si tienes alguna pregunta sobre tu pedido, puedes contactarnos:</p>
+                            <p><strong>Email:</strong> soporte@verdenexo.com</p>
+                            <p><strong>Teléfono:</strong> +57 300 123 4567</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Configuración de la API
+const API_BASE = 'https://verdenexo-backend.onrender.com/';
+
+// Inicializar página de confirmación
+document.addEventListener('DOMContentLoaded', function() {
+    initializeConfirmation();
+});
+
+// Inicializar confirmación
+async function initializeConfirmation() {
+    try {
+        // Generar número de pedido simulado
+        const orderNumber = generateOrderNumber();
+        document.getElementById('orderNumber').textContent = orderNumber;
+
+        // Fecha actual
+        const now = new Date();
+        document.getElementById('orderDate').textContent = now.toLocaleDateString('es-CO', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Método de pago (simulado)
+        document.getElementById('paymentMethod').textContent = 'Tarjeta de Crédito';
+
+        // Total (simulado - en una implementación real vendría de la sesión)
+        document.getElementById('orderTotal').textContent = '$0.00'; // Se actualizaría con datos reales
+
+        // Mostrar mensaje de éxito
+        showToast('¡Pedido confirmado exitosamente!', 'success');
+
+    } catch (error) {
+        console.error('Error initializing confirmation:', error);
+        showToast('Error al cargar la confirmación', 'error');
+    }
+}
+
+// Generar número de pedido único
+function generateOrderNumber() {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `#VN-${new Date().getFullYear()}-${random}`;
+}
+
+// Continuar comprando
+function continueShopping() {
+    window.location.href = '/catalogo';
+}
+
+// Ver detalles del pedido (funcionalidad futura)
+function viewOrderDetails() {
+    showToast('Funcionalidad de detalles del pedido próximamente', 'info');
+}
+
+// Utilidades
+function showToast(message, type = 'info') {
+    // Crear contenedor de toasts si no existe
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+
+    // Crear toast
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Mostrar toast
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+
+    // Limpiar después de ocultar
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+</script>
+
+<%- include('../partials/footer') %></content>
+<parameter name="filePath">c:\Users\Usuario\verdeNexo-develop\verdeNexo-develop\frontend\src\views\pages\pedido-confirmado.ejs

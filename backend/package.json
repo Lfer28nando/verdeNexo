@@ -1,36 +1,57 @@
 {
-  "name": "backend",
+  "name": "verdenexo-backend",
   "version": "1.0.0",
-  "main": "app.js",
+  "description": "Sistema de autenticación completo para VerdeNexo - Backend con Node.js, Express y MongoDB",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "check-config": "node scripts/check-config.js",
-    "verify-imports": "node scripts/verify-imports.js",
-    "build": "echo 'No build step required for Node.js'"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "verdenexo",
+    "authentication",
+    "nodejs",
+    "express",
+    "mongodb",
+    "jwt",
+    "backend",
+    "api"
+  ],
+  "author": "VerdeNexo Team",
   "license": "ISC",
-  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/verdenexo/backend-auth.git"
+  },
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^2.4.3",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.0",
-    "ejs": "^3.1.10",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.2",
-    "express-validator": "^7.2.1",
+    "express-slow-down": "^3.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.5",
+    "mercadopago": "^2.9.0",
+    "mongoose": "^8.19.1",
+    "morgan": "^1.10.1",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.9",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
